@@ -2,8 +2,9 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  DashboardIcon, ClientesIcon, GruposIcon, CotasIcon, 
-  AssembleiasIcon, FinanceiroIcon 
+  LogoIcon, DashboardIcon, ClientesIcon, GruposIcon, CotasIcon, 
+  AssembleiasIcon, LancesIcon, ReembolsoIcon, FinanceiroIcon,
+  BalanceteIcon, EstatisticasIcon, PldIcon, LogoutIcon
 } from '../ui/Icons';
 
 export const Sidebar = () => {
@@ -12,7 +13,7 @@ export const Sidebar = () => {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <span className="brand-logo">🏢</span>
+        <LogoIcon />
         <div>
           <h1>Consórcio API</h1>
           <p>Painel Administrativo</p>
@@ -36,10 +37,10 @@ export const Sidebar = () => {
           <AssembleiasIcon /> Assembleias AGO
         </NavLink>
         <NavLink to="/lances-pendentes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <span className="text-xs mr-2">📥</span> Integralizar Lances
+          <LancesIcon /> Integralizar Lances
         </NavLink>
         <NavLink to="/reembolsos-excluidos" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <span className="text-xs mr-2">💸</span> Reembolso Excluídos
+          <ReembolsoIcon /> Reembolso Excluídos
         </NavLink>
         <NavLink to="/financeiro" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
           <FinanceiroIcon /> Amortização / Parcelas
@@ -47,7 +48,7 @@ export const Sidebar = () => {
 
         {/* Seção Relatórios BCB */}
         <div style={{ 
-          padding: '16px 16px 6px 16px', 
+          padding: '20px 16px 8px 16px', 
           fontSize: '0.68rem', 
           color: 'rgba(255,255,255,0.35)', 
           textTransform: 'uppercase', 
@@ -56,22 +57,22 @@ export const Sidebar = () => {
           borderTop: '1px solid rgba(255,255,255,0.05)',
           marginTop: '10px'
         }}>
-          📋 Relatórios BCB
+          Relatórios BCB
         </div>
 
         {(user?.role === 'ADMIN' || user?.role === 'DIRETOR') && (
           <NavLink to="/relatorios/balancete" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <span style={{ fontSize: '1rem', marginRight: '10px' }}>📄</span> Balancete (4110)
+            <BalanceteIcon /> Balancete (4110)
           </NavLink>
         )}
 
         <NavLink to="/relatorios/estatisticas" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-          <span style={{ fontSize: '1rem', marginRight: '10px' }}>📊</span> Estatísticas (2080)
+          <EstatisticasIcon /> Estatísticas (2080)
         </NavLink>
 
         {(user?.role === 'ADMIN' || user?.role === 'DIRETOR') && (
           <NavLink to="/relatorios/pld-ft" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <span style={{ fontSize: '1rem', marginRight: '10px' }}>🔍</span> Monitoramento PLD/FT
+            <PldIcon /> Monitoramento PLD/FT
           </NavLink>
         )}
       </nav>
@@ -82,7 +83,7 @@ export const Sidebar = () => {
             <span className={`status-dot ${isMockMode ? 'mock' : 'real'}`}></span>
             <span>{isMockMode ? "Simulado (Browser)" : "API Spring (Live)"}</span>
           </div>
-          <button onClick={toggleMockMode} className="btn btn-sm btn-outline">
+          <button onClick={toggleMockMode} className="btn btn-sm btn-outline btn-block">
             Alternar Modo
           </button>
         </div>
@@ -93,8 +94,8 @@ export const Sidebar = () => {
             <h4>{user?.nome || "Ronaldo Navarro"}</h4>
             <p>{user?.role === 'ADMIN' ? 'Administrador' : user?.role === 'DIRETOR' ? 'Diretor' : 'Operador'}</p>
           </div>
-          <button onClick={logout} className="btn-logout" title="Sair do painel">
-            🚪
+          <button onClick={logout} className="btn-logout" title="Sair do painel" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF4444' }}>
+            <LogoutIcon />
           </button>
         </div>
       </div>

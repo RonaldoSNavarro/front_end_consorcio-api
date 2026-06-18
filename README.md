@@ -1,70 +1,92 @@
-# Consórcio Admin - Frontend Financeiro 💸
+# Consórcio Admin - Frontend Financeiro 📊
 
-Este é o módulo Frontend de administração do **Consórcio API**, responsável por se conectar com nosso motor financeiro Spring Boot e administrar grupos, cotas, parcelas e apuração de assembleias de forma visual e segura.
+Este é o módulo Frontend de administração do **Consórcio API**, responsável por se conectar com nosso motor financeiro Spring Boot e administrar grupos, cotas, parcelas e apuração de assembleias de forma visual, segura e com foco em alta fidelidade regulatória.
+
+---
 
 ## 🏗️ Arquitetura e Tecnologias
 
-Foi realizada uma refatoração em larga escala que transformou a aplicação base em um ecossistema modular escalável, projetado para suportar altos volumes de dados com confiabilidade.
+A aplicação adota um ecossistema modular escalável, projetado para suportar fluxos de caixa complexos com robustez e consistência de estado:
 
-*   **React 18**: Construção da interface com hooks.
-*   **Vite**: Build tool super veloz de última geração.
-*   **React Router DOM**: Gestão de SPA (Single Page Application) e bloqueio de rotas protegidas (Deep Linking e Auth).
-*   **TanStack Query (React Query)**: Responsável absoluto pelo Server State, paginações, cache em memória, e deduplicação de requisições pesadas (ex: Relatórios Financeiros Contábeis).
-*   **Zod & React Hook Form**: Criação de formulários não-controlados super performáticos que barram strings maliciosas e formatos inválidos de CPFs ou Moedas no client-side (antes mesmo de enviar a rede).
-*   **ViaCEP Integrado**: Buscador que aciona o proxy do nosso backend para não expor tokens e preenche magicamente a árvore de endereços.
+*   **React 18**: Construção da interface declarativa com hooks.
+*   **Vite**: Ferramenta de build de última geração para desenvolvimento ágil.
+*   **React Router DOM**: Gestão de rotas da SPA com controle de acesso baseado em perfis (RBAC) e proteção contra acessos diretos indevidos.
+*   **TanStack Query (React Query) v5**: Gestão absoluta de Server State, cache de dados, paginação e invalidação instantânea de queries pós-mutação para evitar cliques duplos e inconsistências financeiras.
+*   **Zod & React Hook Form**: Formulários não-controlados super performáticos que validam formatos (CPF/CNPJ, datas, moedas) e previnem valores negativos ou injeções no lado do cliente.
+*   **ViaCEP Integrado**: Consulta automatizada de CEPs via proxy no backend (prevenindo problemas de CORS e exposição a terceiros no cliente).
 
-## 🛡️ Validações Estritas (Compliance BCB)
-Nossa malha de formulários (`src/components/forms/`) não permite lixo contábil:
-- **ClienteForm**: Trava CPFs inválidos (apenas 11 ou 14 dígitos), rejeita patrimônios negativos.
-- **GrupoForm**: Bloqueia crédito inicial abaixo de R$ 1.000, e amarra as taxas e prazos.
-- **CotaForm**: Requer cliente mapeado e grupo financeiro com verificação na árvore relacional de dependência de chave estrangeira antes de chegar à API.
+---
+
+## 🎨 Identidade Visual & Design System Premium
+
+A aplicação foi reformulada para seguir uma estética corporativa sóbria e premium (padrão de bancos e fintechs):
+
+*   **Tema Escuro HSL Harmônico**:
+    *   **Background Principal**: `#0B0F19` (Midnight Navy profundo)
+    *   **Background de Painéis**: `#111827` (Deep Slate / Slate 900)
+    *   **Bordas & Vidro**: Transparências suaves e sombras com sensação de profundidade (`box-shadow`).
+    *   **Acento Primário**: `#3B82F6` (Corporate Blue) e `#6366F1` (Indigo), com `#F59E0B` (Amber) reservado exclusivamente para sinalização de lances contemplados ou avisos financeiros.
+*   **Zero Emojis**: Todos os emojis nativos foram substituídos por ícones vetoriais SVG minimalistas importados de `Icons.jsx`.
+*   **Scrollbars & Focos**: Scrollbars de trilha oculta super finos e anel de foco Indigo unificado para todos os elementos interativos.
+*   **Modais Estáveis (Anti-Overflow)**: Os backdrops e contêineres de modal utilizam alinhamento dinâmico (`items-start` no topo para telas pequenas com scroll vertical ativo, e `md:items-center` em resoluções normais), impedindo que formulários extensos cortem o cabeçalho no limite do navegador.
+
+---
+
+## 🛡️ Validações Estritas & Conformidade Regulatória
+
+Nossa malha de formulários e exibições garante total aderência contábil e de compliance:
+*   **Integralização de Lances (ADR 004)**: Controle de lances pendentes com prazos úteis rígidos e justificativa obrigatória de cancelamento por decurso de prazo.
+*   **Restituição de Excluídos (ADR 005 - Art. 30 da Lei 11.795/08)**: Memória de cálculo detalhada aplicando a amortização do fundo comum sobre o valor atualizado do bem na data da AGO de sorteio, com dedução de 10% da cláusula penal contábil.
+*   **Mapeamento COSIF**: Indicações explícitas de partidas dobradas e contas contábeis de auditoria (BACEN) em cada operação.
+
+---
 
 ## 📂 Estrutura de Diretórios
 
 ```text
 src/
  ┣ components/
- ┃ ┣ forms/       # (ClienteForm, GrupoForm, etc) Validações Zod
- ┃ ┣ layout/      # Layout base (Sidebar, ProtectedRoute)
- ┃ ┗ ui/          # Componentes visuais puramente apresentacionais (Icons, Toasts)
- ┣ context/       # AuthContext (JWT) e ToastContext
- ┣ pages/         # Telas mapeadas nas Rotas (Dashboard, Clientes, Financeiro, etc.)
- ┣ services/      # Isolamento da conexão com o Backend Spring Boot (api.js)
- ┣ App.jsx        # Ponto de entrada (Router Injector)
+ ┃ ┣ forms/       # Formulários validados por Schemas Zod
+ ┃ ┣ layout/      # Sidebar, AppLayout e ProtectedRoute (RBAC)
+ ┃ ┗ ui/          # Ícones SVG e notificações de Toast
+ ┣ context/       # AuthContext (JWT) e ToastContext (Alertas)
+ ┣ hooks/         # Custom Hooks isolando todas as Queries/Mutações do TanStack
+ ┣ pages/         # Telas (Dashboard, Clientes, Financeiro, AGO, Lances, Reembolsos, etc)
+ ┣ schemas/       # Schemas Zod de validação estrita (login, assembleia, lance, etc)
+ ┣ services/      # Isolamento da conexão com o Backend Spring Boot (api.js & mockDb.js)
+ ┣ test/          # Suíte de testes unitários de Schemas e Hooks
+ ┣ App.jsx        # Configuração de Rotas e Provedores do App
  ┗ main.jsx       # Ponto de montagem no DOM
 ```
 
+---
+
 ## 🚀 Como Executar
 
-O frontend depende do backend Spring Boot estar rodando na porta 8080 para a integração ao vivo. No entanto, o `api.js` possui um detector inteligente: se o Spring Boot cair, o frontend entrará magicamente no **Modo Simulado (Local Storage)** para evitar que o operador trave.
+O frontend depende do backend Spring Boot estar rodando na porta 8080. O `api.js` possui um detector automático de proxy: se a API real estiver offline, a aplicação cairá suavemente em **Modo Simulado (mockDb local)**, permitindo desenvolvimento offline completo.
 
-1. Instale todas as dependências (`react-query`, `zod`, etc):
-```bash
-npm install
-```
+1. Instale todas as dependências:
+   ```bash
+   npm install
+   ```
 
-2. Suba o servidor de desenvolvimento Vite (geralmente porta 5173):
-```bash
-npm run dev
-```
+2. Execute o servidor de desenvolvimento Vite:
+   ```bash
+   npm run dev
+   ```
 
-## 🔒 Segurança
+3. Execute a suíte de testes unitários e de integração:
+   ```bash
+   npm run test:run
+   ```
 
-Todo o fluxo segue orientações do Banco Central e as requisições HTTPS injetam o cookie HttpOnly interceptado pelo `api.js`. As visualizações de telas são fortemente bloqueadas pelo `<ProtectedRoute>` sem evasão de CSRF.
+---
 
-## 🧪 Testes E2E com Agente de Automação (Playwright)
+## 🧪 Cobertura de Testes (Vitest)
 
-A aplicação possui um script E2E (`e2e_agent.cjs`) que simula a operação completa de um administrador/operador no navegador visível (headed Chrome):
+A aplicação conta com validação automatizada contínua por meio de Vitest, cobrindo:
+*   **Schemas Zod**: Validação de CPFs/CNPJs, regras financeiras, patrimônio e formatos.
+*   **TanStack Hooks**: Validação de cache, queries e mutações em modo simulação.
+*   **Integração do DOM**: Testes em `App.test.jsx` cobrindo o fluxo de login e criação de clientes.
 
-### Pré-requisitos:
-* Google Chrome instalado no Windows.
-* Banco de dados PostgreSQL rodando na porta 5432 (para injeção e depuração de saldos de capital).
-* Backend e Frontend ativos nas portas 8080 e 5173, respectivamente.
-
-### Execução:
-Para iniciar os testes automatizados, execute o comando na raiz do frontend:
-```bash
-node e2e_agent.cjs
-```
-As evidências visuais de cada cenário de teste e o arquivo consolidado de relatório `relatorio_teste_e2e.md` serão gerados no final do processo.
-
+Todos os **37 testes integrados** passam com 100% de sucesso.

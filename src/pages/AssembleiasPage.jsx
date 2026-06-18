@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { CalendarIcon, ScaleIcon, AwardIcon } from '../components/ui/Icons';
 
 export const AssembleiasPage = () => {
   const { triggerToast } = useToast();
@@ -125,7 +126,7 @@ export const AssembleiasPage = () => {
       {/* Header */}
       <div className="header-title mb-6">
         <h2 className="text-2xl font-bold font-title text-amber-500 flex items-center gap-2">
-          📅 Central AGO & Sorteios
+          <CalendarIcon size={28} /> Central AGO & Sorteios
         </h2>
         <p className="text-slate-400 text-sm">
           Abertura, Apuração de Lances e Contemplações Ordinárias (AGO) do Sistema Consorcial.
@@ -134,7 +135,7 @@ export const AssembleiasPage = () => {
 
       {/* Banner de Conformidade */}
       <div className="mb-6 p-4 rounded-xl border border-blue-500/20 bg-blue-950/20 text-slate-300 text-sm flex gap-3 items-start shadow-md">
-        <span className="text-lg">⚖️</span>
+        <ScaleIcon size={20} className="text-blue-400 flex-shrink-0 mt-0.5" />
         <div>
           <strong className="text-blue-400 font-semibold block mb-1">Regras Regulatórias de Contemplação (Lei 11.795/08):</strong>
           Cada assembleia ordinária contempla no mínimo uma cota por <strong>Sorteio</strong> (baseado na Loteria Federal) e, caso haja saldo disponível no Fundo Comum do grupo, cotas por <strong>Lance Livre/Embutido</strong>. O lance embutido é limitado a no máximo <strong>30% do crédito</strong> do grupo e é deduzido do crédito pago ao consorciado.
@@ -176,7 +177,9 @@ export const AssembleiasPage = () => {
 
           {grupoId && activeGrupo?.status !== 'ENCERRADO' && (
             <div className="glass-panel p-5 space-y-4">
-              <h3 className="text-lg font-bold font-title border-b border-slate-700/50 pb-2">📅 Agendar Assembleia</h3>
+              <h3 className="text-lg font-bold font-title border-b border-slate-700/50 pb-2 flex items-center gap-2">
+                <CalendarIcon size={18} className="text-amber-500" /> Agendar Assembleia
+              </h3>
               <form onSubmit={handleAgendarSubmit} className="space-y-4">
                 <div className="form-group">
                   <label htmlFor="dataAssembleia">Data da Assembleia *</label>
@@ -260,8 +263,8 @@ export const AssembleiasPage = () => {
               
               {/* Apuração / Realizar Contemplação */}
               <div className="glass-panel p-5 space-y-4">
-                <h3 className="text-base font-bold font-title border-b border-slate-700/50 pb-2">
-                  ⚡ Apurar Contemplado (AGO #{selectedAssembleiaId})
+                <h3 className="text-base font-bold font-title border-b border-slate-700/50 pb-2 flex items-center gap-2">
+                  <AwardIcon size={18} className="text-amber-500" /> Apurar Contemplado (AGO #{selectedAssembleiaId})
                 </h3>
                 
                 {activeGrupo?.status === 'ENCERRADO' ? (
@@ -327,7 +330,7 @@ export const AssembleiasPage = () => {
                       className="btn btn-primary w-full py-2 flex items-center justify-center gap-2"
                       disabled={contemplarMutation.isPending}
                     >
-                      {contemplarMutation.isPending ? 'Contemplando...' : '🎉 Contemplar Cota'}
+                      {contemplarMutation.isPending ? 'Contemplando...' : <span className="flex items-center gap-1"><AwardIcon size={14} /> Contemplar Cota</span>}
                     </button>
                   </form>
                 )}
@@ -335,8 +338,8 @@ export const AssembleiasPage = () => {
 
               {/* Lista de Contemplados da Assembleia */}
               <div className="glass-panel p-5 space-y-4">
-                <h3 className="text-base font-bold font-title border-b border-slate-700/50 pb-2">
-                  🏆 Contemplados na Assembleia #{selectedAssembleiaId}
+                <h3 className="text-base font-bold font-title border-b border-slate-700/50 pb-2 flex items-center gap-2">
+                  <AwardIcon size={18} className="text-amber-500" /> Contemplados na Assembleia #{selectedAssembleiaId}
                 </h3>
                 
                 {contemplacoes.length === 0 ? (

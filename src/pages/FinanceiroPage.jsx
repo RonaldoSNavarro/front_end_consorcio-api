@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { FinanceiroIcon, ScaleIcon, CotasIcon, AlertIcon, MoneyIcon } from '../components/ui/Icons';
 
 export const FinanceiroPage = () => {
   const { triggerToast } = useToast();
@@ -113,7 +114,7 @@ export const FinanceiroPage = () => {
       {/* Header */}
       <div className="header-title mb-6">
         <h2 className="text-2xl font-bold font-title text-amber-500 flex items-center gap-2">
-          💰 Financeiro e Caixa
+          <FinanceiroIcon size={28} /> Financeiro e Caixa
         </h2>
         <p className="text-slate-400 text-sm">
           Operações de Baixa de Parcelas, Estorno Contábil e Amortizações de Cotas.
@@ -122,7 +123,7 @@ export const FinanceiroPage = () => {
 
       {/* Banner de Conformidade */}
       <div className="mb-6 p-4 rounded-xl border border-blue-500/20 bg-blue-950/20 text-slate-300 text-sm flex gap-3 items-start shadow-md">
-        <span className="text-lg">⚖️</span>
+        <ScaleIcon size={20} className="text-blue-400 flex-shrink-0 mt-0.5" />
         <div>
           <strong className="text-blue-400 font-semibold block mb-1">Regras de Contabilidade de Grupos (ADR 002):</strong>
           Cada baixa de parcela ou estorno efetua automaticamente lançamentos contábeis de partidas dobradas sob a estrutura do plano de contas <strong>COSIF (BACEN)</strong>. Amortizações de lances diluem o valor das parcelas seguintes ou reduzem o prazo final, dependendo da opção selecionada.
@@ -134,7 +135,9 @@ export const FinanceiroPage = () => {
         {/* Coluna Esquerda: Seletor de Cota & Inadimplência */}
         <div className="lg:col-span-1 space-y-6">
           <div className="glass-panel p-5 space-y-4">
-            <h3 className="text-lg font-bold font-title border-b border-slate-700/50 pb-2"> Cota Consorcial</h3>
+            <h3 className="text-lg font-bold font-title border-b border-slate-700/50 pb-2 flex items-center gap-2">
+              <CotasIcon size={18} className="text-amber-500" /> Cota Consorcial
+            </h3>
             <div className="form-group">
               <label htmlFor="select-cota">Selecione a Cota *</label>
               <select 
@@ -162,7 +165,7 @@ export const FinanceiroPage = () => {
           {selectedCotaId && inadimplencia && inadimplencia.quantidadeParcelasAtrasadas > 0 && (
             <div className="border border-rose-500/30 bg-rose-950/20 p-5 rounded-2xl space-y-3 shadow-md animate-pulse">
               <h4 className="text-rose-400 font-bold font-title flex items-center gap-1.5">
-                ⚠️ Cota em Atraso
+                <AlertIcon size={18} className="text-rose-400" /> Cota em Atraso
               </h4>
               <div className="text-xs space-y-1 text-slate-300">
                 <div className="flex justify-between">
@@ -193,7 +196,9 @@ export const FinanceiroPage = () => {
           {/* Form de Amortização */}
           {selectedCotaId && activeCota?.status !== 'CANCELADA' && (
             <div className="glass-panel p-5 space-y-4">
-              <h3 className="text-lg font-bold font-title border-b border-slate-700/50 pb-2">💰 Amortizar por Lance</h3>
+              <h3 className="text-lg font-bold font-title border-b border-slate-700/50 pb-2 flex items-center gap-2">
+                <MoneyIcon size={18} className="text-amber-500" /> Amortizar por Lance
+              </h3>
               <form onSubmit={handleAmortizarSubmit} className="space-y-4">
                 <div className="form-group">
                   <label htmlFor="valorAmortizar">Valor da Amortização (R$) *</label>
@@ -235,8 +240,8 @@ export const FinanceiroPage = () => {
         <div className="lg:col-span-3 space-y-6">
           <div className="glass-panel p-5">
             <div className="flex flex-col md:flex-row md:justify-between md:items-center border-b border-slate-700/50 pb-2 mb-4 gap-2">
-              <h3 className="text-lg font-bold font-title">
-                📋 Carnê / Lista de Parcelas da Cota
+              <h3 className="text-lg font-bold font-title flex items-center gap-2">
+                <FinanceiroIcon size={18} className="text-amber-500" /> Carnê / Lista de Parcelas da Cota
               </h3>
               
               {selectedCotaId && (

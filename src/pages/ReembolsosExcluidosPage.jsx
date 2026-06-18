@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../context/ToastContext';
+import { ReembolsoIcon, InfoIcon, CalculatorIcon, ScaleIcon, CrossIcon, AlertIcon } from '../components/ui/Icons';
 
 /**
  * ℹ️ NOTA DE DESIGN UI/UX:
@@ -140,7 +141,7 @@ export const ReembolsosExcluidosPage = () => {
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <div className="header-title">
           <h2 className="text-2xl font-bold font-title text-amber-500 flex items-center gap-2">
-            💰 Restituições a Excluídos Contemplados
+            <ReembolsoIcon size={28} /> Restituições a Excluídos Contemplados
           </h2>
           <p className="text-slate-400 text-sm">
             Cálculo legal e processamento de reembolsos de cotas excluídas/canceladas sorteadas na AGO (ADR 005).
@@ -172,7 +173,7 @@ export const ReembolsosExcluidosPage = () => {
 
       {/* COMPLIANCE ALERT - LEI E ADRS */}
       <div className="mb-6 p-4 rounded-xl border border-amber-500/20 bg-amber-950/15 text-slate-300 text-sm flex gap-3 items-start shadow-md">
-        <span className="text-lg">⚖️</span>
+        <ScaleIcon size={20} className="text-amber-400 flex-shrink-0 mt-0.5" />
         <div>
           <strong className="text-amber-400 font-semibold block mb-1">Nota de Compliance Judicial & Regulatório (Art. 30 da Lei 11.795/08):</strong>
           O reembolso de consorciados excluídos/cancelados deve basear-se no percentual amortizado do fundo comum aplicado sobre o valor atualizado do bem de referência <strong>vigente na data da assembleia (AGO) de contemplação por sorteio</strong>, deduzida a multa rescisória de 10% (cláusula penal). É proibida a devolução com base em valores nominais históricos sem reajuste.
@@ -212,7 +213,7 @@ export const ReembolsosExcluidosPage = () => {
       {/* ESTADO: EMPTY STATE */}
       {simulatedState.isEmpty && !simulatedState.isLoading && !simulatedState.isError && (
         <div className="glass-panel p-10 text-center flex flex-col items-center justify-center space-y-4 border-dashed border-slate-700">
-          <span className="text-5xl opacity-40">🤝</span>
+          <ReembolsoIcon size={48} className="text-slate-500 opacity-40" />
           <div>
             <h3 className="text-lg font-semibold text-slate-300">Nenhum Reembolso Pendente</h3>
             <p className="text-slate-500 text-sm max-w-sm mt-1">
@@ -275,14 +276,14 @@ export const ReembolsosExcluidosPage = () => {
                           className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded flex items-center gap-1 border border-slate-700/50"
                           title="Visualizar Memória de Cálculo detalhada"
                         >
-                          🧮 Memória
+                          <CalculatorIcon size={12} /> Memória
                         </button>
                         <button
                           onClick={() => handlePayClick(item)}
                           className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded flex items-center gap-1 shadow-sm"
                           title="Processar quitação bancária de devolução"
                         >
-                          💸 Pagar Reembolso
+                          <ReembolsoIcon size={12} /> Pagar Reembolso
                         </button>
                       </div>
                     </td>
@@ -305,17 +306,17 @@ export const ReembolsosExcluidosPage = () => {
         const isDiferencaPositiva = diferenca > 0;
         
         return (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex justify-center p-4 py-8 overflow-y-auto items-start md:items-center">
             <div className="glass-panel max-w-lg w-full p-6 border-slate-700 bg-slate-900/95 shadow-2xl animate-fade-in">
               <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
                 <h3 className="text-lg font-bold font-title text-indigo-400 flex items-center gap-2">
-                  🧮 Memória de Cálculo de Reembolso
+                  <CalculatorIcon size={20} /> Memória de Cálculo de Reembolso
                 </h3>
                 <button 
                   onClick={() => { setShowCalculationModal(false); setSelectedReembolso(null); }} 
-                  className="text-slate-400 hover:text-slate-100 text-lg"
+                  className="text-slate-400 hover:text-slate-100 flex items-center justify-center p-1 rounded-full hover:bg-slate-800"
                 >
-                  ✕
+                  <CrossIcon size={16} />
                 </button>
               </div>
 
@@ -366,8 +367,11 @@ export const ReembolsosExcluidosPage = () => {
                   </div>
                 </div>
 
-                <div className="text-[11px] text-slate-500 leading-normal">
-                  📌 <strong>Regra de Auditoria Fiscal:</strong> O lançamento contábil COSIF registrará a baixa do saldo de devoluções, cobrindo integralmente o débito no Fundo Comum do grupo de consórcio respectivo.
+                <div className="text-[11px] text-slate-500 leading-normal flex gap-2 items-start">
+                  <InfoIcon size={16} className="text-slate-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <strong>Regra de Auditoria Fiscal:</strong> O lançamento contábil COSIF registrará a baixa do saldo de devoluções, cobrindo integralmente o débito no Fundo Comum do grupo de consórcio respectivo.
+                  </div>
                 </div>
               </div>
 
@@ -388,17 +392,17 @@ export const ReembolsosExcluidosPage = () => {
       {showPayModal && selectedReembolso && (() => {
         const { valorLiquido } = calcularValoresReembolso(selectedReembolso);
         return (
-          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex justify-center p-4 py-8 overflow-y-auto items-start md:items-center">
             <div className="glass-panel max-w-lg w-full p-6 border-slate-700 bg-slate-900/95 shadow-2xl animate-fade-in">
               <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
                 <h3 className="text-lg font-bold font-title text-amber-500 flex items-center gap-2">
-                  💸 Processar Quitação de Devolução (Excluído)
+                  <ReembolsoIcon size={20} /> Processar Quitação de Devolução (Excluído)
                 </h3>
                 <button 
                   onClick={() => { setShowPayModal(false); setSelectedReembolso(null); }} 
-                  className="text-slate-400 hover:text-slate-100 text-lg"
+                  className="text-slate-400 hover:text-slate-100 flex items-center justify-center p-1 rounded-full hover:bg-slate-800"
                 >
-                  ✕
+                  <CrossIcon size={16} />
                 </button>
               </div>
 
@@ -496,8 +500,11 @@ export const ReembolsosExcluidosPage = () => {
                   </div>
                 </div>
 
-                <div className="p-3 bg-amber-950/20 border border-amber-500/20 rounded-lg text-[10px] text-amber-400 leading-normal">
-                  ⚠️ <strong>Alerta Contábil (COSIF):</strong> Ao registrar o pagamento, o ledger efetuará partidas dobradas automáticas, debitando a conta de passivo <strong>Excluídos/Cancelados a Restituir (2.1.2.40.20-5)</strong> e creditando a conta de <strong>Disponibilidades Bancárias</strong> correspondente.
+                <div className="p-3 bg-amber-950/20 border border-amber-500/20 rounded-lg text-[10px] text-amber-400 leading-normal flex gap-2 items-start">
+                  <AlertIcon size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <strong>Alerta Contábil (COSIF):</strong> Ao registrar o pagamento, o ledger efetuará partidas dobradas automáticas, debitando a conta de passivo <strong>Excluídos/Cancelados a Restituir (2.1.2.40.20-5)</strong> e creditando a conta de <strong>Disponibilidades Bancárias</strong> correspondente.
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">

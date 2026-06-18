@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '../context/ToastContext';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { LancesIcon, InfoIcon, CheckIcon, CrossIcon, AlertIcon, CalendarIcon } from '../components/ui/Icons';
 
 /**
  * ℹ️ NOTA DE DESIGN UI/UX:
@@ -143,7 +144,7 @@ export const LancesPendentesPage = () => {
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <div className="header-title">
           <h2 className="text-2xl font-bold font-title text-amber-500 flex items-center gap-2">
-            📥 Integralização de Lances
+            <LancesIcon size={28} /> Integralização de Lances
           </h2>
           <p className="text-slate-400 text-sm">
             Validação de caixa do backoffice e confirmação de lances livres vencedores no status <code className="text-amber-400 font-mono">PENDENTE_INTEGRALIZACAO</code> (ADR 004).
@@ -175,7 +176,7 @@ export const LancesPendentesPage = () => {
 
       {/* BANNER INFORMATIVO DE LEI E COMPLIANCE */}
       <div className="mb-6 p-4 rounded-xl border border-blue-500/20 bg-blue-950/20 text-slate-300 text-sm flex gap-3 items-start shadow-md">
-        <span className="text-lg">ℹ️</span>
+        <InfoIcon size={20} className="text-blue-400 flex-shrink-0 mt-0.5" />
         <div>
           <strong className="text-blue-400 font-semibold block mb-1">Regra de Segurança de Fluxo de Caixa (ADR 004):</strong>
           Para resguardar a integridade financeira do grupo de consórcio contra lances inadimplentes (lances fantasma), as contemplações de lance livre iniciam sob o status <code className="text-amber-400 font-mono">PENDENTE_INTEGRALIZACAO</code>. O cliente dispõe de <strong>2 a 5 dias úteis</strong> para integralizar o valor do lance livre no caixa do grupo. A liberação do crédito só ocorre após a confirmação deste pagamento.
@@ -215,7 +216,7 @@ export const LancesPendentesPage = () => {
       {/* ESTADO: LISTA VAZIA (EMPTY STATE) */}
       {simulatedState.isEmpty && !simulatedState.isLoading && !simulatedState.isError && (
         <div className="glass-panel p-10 text-center flex flex-col items-center justify-center space-y-4 border-dashed border-slate-700">
-          <span className="text-5xl opacity-40">📥</span>
+          <LancesIcon size={48} className="text-slate-500 opacity-40" />
           <div>
             <h3 className="text-lg font-semibold text-slate-300">Caixa de Entrada Vazia</h3>
             <p className="text-slate-500 text-sm max-w-sm mt-1">
@@ -264,8 +265,8 @@ export const LancesPendentesPage = () => {
                       </span>
                     </td>
                     <td>
-                      <span className={`badge ${isUrgent ? 'badge-danger bg-rose-500/15 border-rose-500/20 text-rose-400' : 'badge-warning bg-amber-500/15 border-amber-500/20 text-amber-400'}`}>
-                        ⏳ {lance.diasRestantes} dia(s) útil(eis)
+                      <span className={`badge ${isUrgent ? 'badge-danger bg-rose-500/15 border-rose-500/20 text-rose-400' : 'badge-warning bg-amber-500/15 border-amber-500/20 text-amber-400'} flex items-center gap-1`}>
+                        <CalendarIcon size={12} /> {lance.diasRestantes} dia(s) útil(eis)
                       </span>
                     </td>
                     <td>
@@ -275,14 +276,14 @@ export const LancesPendentesPage = () => {
                           className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded transition-all flex items-center gap-1 shadow-sm"
                           title="Confirmar pagamento em caixa do lance livre"
                         >
-                          <span>✓</span> Confirmar Pago
+                          <CheckIcon size={12} /> Confirmar Pago
                         </button>
                         <button
                           onClick={() => handleCancelClick(lance.id)}
                           className="px-3 py-1.5 bg-rose-900/40 hover:bg-rose-800 text-rose-300 border border-rose-800/40 font-semibold text-xs rounded transition-all flex items-center gap-1"
                           title="Cancelar Lance Livre e convocar próximo suplente"
                         >
-                          <span>✗</span> Cancelar
+                          <CrossIcon size={12} /> Cancelar
                         </button>
                       </div>
                     </td>
@@ -300,17 +301,17 @@ export const LancesPendentesPage = () => {
 
       {/* MODAL DE CONFIRMAÇÃO DE INTEGRALIZAÇÃO (FORMULÁRIO REACT HOOK FORM + ZOD) */}
       {showConfirmModal && selectedLance && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex justify-center p-4 py-8 overflow-y-auto items-start md:items-center">
           <div className="glass-panel max-w-lg w-full p-6 border-slate-700 bg-slate-900/95 shadow-2xl animate-fade-in">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
               <h3 className="text-lg font-bold font-title text-emerald-400 flex items-center gap-2">
-                💰 Confirmar Integralização de Lance
+                <LancesIcon size={20} /> Confirmar Integralização de Lance
               </h3>
               <button 
                 onClick={() => { setShowConfirmModal(false); setSelectedLance(null); }} 
-                className="text-slate-400 hover:text-slate-100 text-lg"
+                className="text-slate-400 hover:text-slate-100 flex items-center justify-center p-1 rounded-full hover:bg-slate-800"
               >
-                ✕
+                <CrossIcon size={16} />
               </button>
             </div>
 
@@ -378,8 +379,11 @@ export const LancesPendentesPage = () => {
                 />
               </div>
 
-              <div className="p-3 bg-emerald-950/20 border border-emerald-500/20 rounded-lg text-[11px] text-emerald-400/90 leading-relaxed">
-                📢 <strong>Impacto Contábil COSIF:</strong> Ao confirmar, o sistema gerará um lançamento de partida dobrada debitando a conta de <strong>Disponibilidades do Grupo</strong> e creditando a conta de passivo <strong>Créditos de Consórcios a Liberar (2.1.2.30.10-0)</strong>.
+              <div className="p-3 bg-emerald-950/20 border border-emerald-500/20 rounded-lg text-[11px] text-emerald-400/90 leading-relaxed flex gap-2 items-start">
+                <InfoIcon size={16} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong>Impacto Contábil COSIF:</strong> Ao confirmar, o sistema gerará um lançamento de partida dobrada debitando a conta de <strong>Disponibilidades do Grupo</strong> e creditando a conta de passivo <strong>Créditos de Consórcios a Liberar (2.1.2.30.10-0)</strong>.
+                </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
@@ -404,17 +408,17 @@ export const LancesPendentesPage = () => {
 
       {/* MODAL DE CANCELAMENTO COM JUSTIFICATIVA MANDATÓRIA (REACT HOOK FORM + ZOD) */}
       {showCancelModal && cancelLanceId && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex justify-center p-4 py-8 overflow-y-auto items-start md:items-center">
           <div className="glass-panel max-w-md w-full p-6 border-slate-700 bg-slate-900/95 shadow-2xl animate-fade-in">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
               <h3 className="text-lg font-bold font-title text-rose-400 flex items-center gap-2">
-                ⚠️ Cancelar Contemplação de Lance
+                <AlertIcon size={20} /> Cancelar Contemplação de Lance
               </h3>
               <button 
                 onClick={() => { setShowCancelModal(false); setCancelLanceId(null); }} 
-                className="text-slate-400 hover:text-slate-100 text-lg"
+                className="text-slate-400 hover:text-slate-100 flex items-center justify-center p-1 rounded-full hover:bg-slate-800"
               >
-                ✕
+                <CrossIcon size={16} />
               </button>
             </div>
 
@@ -447,8 +451,11 @@ export const LancesPendentesPage = () => {
                 ></textarea>
               </div>
 
-              <div className="p-3 bg-rose-950/20 border border-rose-500/20 rounded-lg text-[11px] text-rose-400 leading-normal">
-                ⚠️ <strong>Aviso legal:</strong> Esta ação é definitiva na assembleia vigente. O lance será marcado como desclassificado e o motor de apuração notificará o suplente da fila de classificação.
+              <div className="p-3 bg-rose-950/20 border border-rose-500/20 rounded-lg text-[11px] text-rose-400 leading-normal flex gap-2 items-start">
+                <AlertIcon size={16} className="text-rose-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <strong>Aviso legal:</strong> Esta ação é definitiva na assembleia vigente. O lance será marcado como desclassificado e o motor de apuração notificará o suplente da fila de classificação.
+                </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">

@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { MoneyIcon, ClientesIcon, TrendUpIcon, CotasIcon } from '../components/ui/Icons';
 
 export const DashboardPage = () => {
   const { triggerToast } = useToast();
@@ -60,17 +61,19 @@ export const DashboardPage = () => {
 
   return (
     <div className="view-container animate-fade-in">
-      <div className="header-title mb-4">
-        <h2>📊 Dashboard Operacional</h2>
+      <div className="header-title mb-6">
+        <h2>Dashboard Operacional</h2>
         <p>Visão Geral do Consórcio</p>
       </div>
 
       {isLoading ? (
-        <div style={{ color: '#fff' }}>Carregando métricas...</div>
+        <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Carregando métricas...</div>
       ) : (
         <div className="kpi-grid">
           <div className="glass-panel kpi-card">
-            <div className="kpi-icon money">💰</div>
+            <div className="kpi-icon money">
+              <MoneyIcon />
+            </div>
             <div className="kpi-info">
               <p>Arrecadação Fundo Comum</p>
               <h3>R$ {statsData.arrecadacao.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
@@ -79,7 +82,9 @@ export const DashboardPage = () => {
           </div>
 
           <div className="glass-panel kpi-card">
-            <div className="kpi-icon active-users">👥</div>
+            <div className="kpi-icon active-users">
+              <ClientesIcon />
+            </div>
             <div className="kpi-info">
               <p>Clientes Ativos</p>
               <h3>{statsData.clientes}</h3>
@@ -88,7 +93,9 @@ export const DashboardPage = () => {
           </div>
 
           <div className="glass-panel kpi-card">
-            <div className="kpi-icon growth">📈</div>
+            <div className="kpi-icon growth">
+              <TrendUpIcon />
+            </div>
             <div className="kpi-info">
               <p>Grupos em Andamento</p>
               <h3>{statsData.grupos}</h3>
@@ -97,7 +104,9 @@ export const DashboardPage = () => {
           </div>
 
           <div className="glass-panel kpi-card">
-            <div className="kpi-icon config">🎫</div>
+            <div className="kpi-icon config">
+              <CotasIcon />
+            </div>
             <div className="kpi-info">
               <p>Cotas Emitidas</p>
               <h3>{statsData.cotas}</h3>

@@ -33,6 +33,11 @@ export const detectBackend = async () => {
       signal: controller.signal
     });
     clearTimeout(timeoutId);
+    
+    if (response.status === 502 || response.status === 504) {
+      throw new Error("Backend offline (Vite Proxy Error 502/504)");
+    }
+    
     isMockMode = false;
     console.log("🔌 backend: Spring Boot API ativa na porta 8080. Rodando em Modo Real.");
     return false; // isMockMode = false
@@ -291,6 +296,31 @@ export const api = {
       if (isMockMode) return mockDb.cotas.obterMovimentos(id);
       const response = await fetchApi(`${BASE_URL}/api/cotas/${id}/movimentos`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar extrato de movimentos da cota na API.");
+      return response.json();
+    }
+  },
+
+  // --- LANCES ---
+  lances: {
+    salvar: async (dto) => {
+      if (isMockMode) {
+        return {
+          id: Math.floor(Math.random() * 1000) + 1,
+          cotaId: Number(dto.cotaId),
+          assembleiaId: Number(dto.assembleiaId),
+          tipo: dto.tipo,
+          modalidade: dto.modalidade,
+          valorOferta: Number(dto.valorOferta),
+          dataOferta: new Date().toISOString(),
+          statusApuracao: "PENDENTE"
+        };
+      }
+      const response = await fetchApi(`${BASE_URL}/api/lances`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao cadastrar lance na API.");
       return response.json();
     }
   },

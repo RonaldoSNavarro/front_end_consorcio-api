@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { LockIcon, InfoIcon } from '../components/ui/Icons';
+import { LockIcon, InfoIcon, LogoIcon } from '../components/ui/Icons';
 import { useNavigate, Navigate } from 'react-router-dom';
 
 export const LoginPage = () => {
@@ -32,8 +32,10 @@ export const LoginPage = () => {
       <div className="glow-vector-1"></div>
       <div className="glow-vector-2"></div>
       <div className="glass-panel login-card">
-        <div className="logo-section">
-          <span className="logo-icon">🏢</span>
+        <div className="logo-section" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+          <div style={{ transform: 'scale(1.5)', color: 'var(--primary)', marginBottom: '10px' }}>
+            <LogoIcon />
+          </div>
           <h2>Consórcio Admin</h2>
           <p>Gerenciamento Financeiro & Contemplações</p>
         </div>
