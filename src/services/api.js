@@ -1,6 +1,6 @@
 import { mockDb } from './mockDb';
 
-const BASE_URL = typeof process !== 'undefined' && process.env.NODE_ENV === 'test' ? 'http://localhost:8080' : '';
+const BASE_URL = import.meta.env?.VITE_API_URL || (typeof process !== 'undefined' && process.env.NODE_ENV === 'test' ? 'http://localhost:8080' : '');
 
 let isMockMode = true;
 
@@ -22,6 +22,9 @@ const handleResponseError = async (response, defaultMessage) => {
 
 // Ping backend to detect online/offline status
 export const detectBackend = async () => {
+  // Em homolog/prod, VITE_ENABLE_MOCK_FALLBACK pode ser explicitamente "false"
+  const allowMockFallback = import.meta.env?.VITE_ENABLE_MOCK_FALLBACK !== 'false';
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 1000);
   try {
@@ -39,10 +42,17 @@ export const detectBackend = async () => {
     }
     
     isMockMode = false;
-    console.log("🔌 backend: Spring Boot API ativa na porta 8080. Rodando em Modo Real.");
+    console.log("🔌 backend: Spring Boot API ativa. Rodando em Modo Real.");
     return false; // isMockMode = false
   } catch (e) {
     clearTimeout(timeoutId);
+    
+    if (!allowMockFallback) {
+      console.error("🔌 backend: API offline e fallback para simulação está DESABILITADO neste ambiente.");
+      isMockMode = false;
+      throw new Error("O sistema encontra-se indisponível no momento.");
+    }
+
     isMockMode = true;
     console.warn("🔌 backend: Spring Boot API offline. Ativando Modo Simulado.");
     return true; // isMockMode = true
