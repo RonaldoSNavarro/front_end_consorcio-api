@@ -1,33 +1,50 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useTheme } from '../context/ThemeContext';
 import { Lock, Info, Building2, Eye, EyeOff } from 'lucide-react';
 import { useNavigate, Navigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  username: z.string().min(1, 'O login é obrigatório'),
+  password: z.string().min(1, 'A senha é obrigatória'),
+});
 
 export const LoginPage = () => {
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin');
   const [showPassword, setShowPassword] = useState(false);
   const { login, isMockMode, token } = useAuth();
   const { triggerToast } = useToast();
   const { isDark } = useTheme();
   const navigate = useNavigate();
-  const usernameRef = useRef(null);
+
+  const {
+    register,
+    handleSubmit,
+    setFocus,
+    formState: { errors, isSubmitting }
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: 'admin',
+      password: 'admin',
+    }
+  });
 
   useEffect(() => {
-    usernameRef.current?.focus();
-  }, []);
+    setFocus('username');
+  }, [setFocus]);
 
   // Se já estiver logado, foge dessa página
   if (token) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
     try {
-      await login(username, password);
+      await login(data.username, data.password);
       triggerToast("Login efetuado com sucesso!", "success");
       navigate('/dashboard');
     } catch (err) {
@@ -56,18 +73,17 @@ export const LoginPage = () => {
             </p>
           </div>
           
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="form-group">
               <label htmlFor="login-username">Login Administrativo</label>
               <input 
-                ref={usernameRef}
                 id="login-username"
                 type="text" 
-                value={username} 
-                onChange={e => setUsername(e.target.value)} 
-                required
+                {...register('username')}
                 autoComplete="username"
+                className={errors.username ? 'border-red-500' : ''}
               />
+              {errors.username && <span className="text-red-500 text-xs mt-1 block">{errors.username.message}</span>}
             </div>
             
             <div className="form-group">
@@ -76,11 +92,9 @@ export const LoginPage = () => {
                 <input 
                   id="login-password"
                   type={showPassword ? 'text' : 'password'} 
-                  value={password} 
-                  onChange={e => setPassword(e.target.value)} 
-                  required
+                  {...register('password')}
                   autoComplete="current-password"
-                  className="pr-10"
+                  className={`pr-10 ${errors.password ? 'border-red-500' : ''}`}
                 />
                 <button
                   type="button"
@@ -91,6 +105,7 @@ export const LoginPage = () => {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              {errors.password && <span className="text-red-500 text-xs mt-1 block">{errors.password.message}</span>}
             </div>
 
             <div className="flex items-start gap-2.5 p-3 rounded-lg bg-blue-50 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-500/15 text-xs text-blue-600 dark:text-blue-400">
@@ -98,8 +113,8 @@ export const LoginPage = () => {
               <span>Dica: Use <strong>admin</strong> / <strong>admin</strong> para entrar direto</span>
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block py-3 text-sm">
-              <Lock className="w-4 h-4" /> Autenticar
+            <button type="submit" disabled={isSubmitting} className="btn btn-primary btn-block py-3 text-sm">
+              <Lock className="w-4 h-4" /> {isSubmitting ? 'Autenticando...' : 'Autenticar'}
             </button>
           </form>
 

@@ -1,6 +1,6 @@
 # 📋 Especificação de UI — Composição de Fundos e Parcelas (fundos)
 
-*   **Status**: DRAFT
+*   **Status**: IMPLEMENTED v1.0
 *   **Versão**: v1.0
 *   **Spec Backend**: [spec.md](../../../../consorcio-api/docs/specs/fundos/spec.md)
 *   **API Contract**: [api-contract.md](../../../../consorcio-api/docs/specs/fundos/api-contract.md)

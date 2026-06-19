@@ -101,7 +101,7 @@ Este documento descreve o estado atual do frontend, a stack de referência, as A
 
 - **Fase Atual**: Refatoração Visual Corporativa (Tailwind CSS v3) concluída.
 - **Backend de Referência**: Sprint 5 concluída — 9 capabilities implementadas, 107 testes passando.
-- **Status Frontend**: 100% migrado para Tailwind CSS (13 páginas e 9 componentes). Tema Claro/Escuro implementado. Acessibilidade WCAG e Design System unificados.
+- **Status Frontend**: Sign-Off concluído para as 9 capabilities (migração Tailwind, fluxos e validações implementados). Specs marcadas como `IMPLEMENTED v1.0`.
 - **Testes**: 37 testes passando (Testes E2E `App.test.jsx`, unitários `api.test.js`, `hooks.test.jsx`, `schemas.test.js`). UI Drift resolvido.
 - **Artefatos Gerados**:
   - [constitution.md](constitution.md) — Princípios e regras técnicas inegociáveis.

@@ -1,6 +1,6 @@
 # 📋 Especificação de UI — Autenticação e Sessão (auth)
 
-*   **Status**: DRAFT
+*   **Status**: IMPLEMENTED v1.0
 *   **Versão**: v1.0
 *   **Spec Backend**: [spec.md](../../../../consorcio-api/docs/specs/auth/spec.md)
 *   **API Contract**: [api-contract.md](../../../../consorcio-api/docs/specs/auth/api-contract.md)

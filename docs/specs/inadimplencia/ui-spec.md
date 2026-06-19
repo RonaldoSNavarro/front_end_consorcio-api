@@ -1,6 +1,6 @@
 # 📋 Especificação de UI — Mora e Inadimplência (inadimplencia)
 
-*   **Status**: DRAFT
+*   **Status**: IMPLEMENTED v1.0
 *   **Versão**: v1.0
 *   **Spec Backend**: [spec.md](../../../../consorcio-api/docs/specs/inadimplencia/spec.md)
 *   **API Contract**: [api-contract.md](../../../../consorcio-api/docs/specs/inadimplencia/api-contract.md)

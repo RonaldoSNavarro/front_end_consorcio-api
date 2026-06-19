@@ -20,17 +20,17 @@
 
 ### [FRONTEND] REQ-ASM-001: Agendamento e Histórico de Assembleias
 - [x] Criar página `AssembleiasPage.jsx` com seletor de grupo e tabela de histórico
-- [ ] Criar hook `useAssembleias(grupoId)` (TanStack useQuery para `GET /api/assembleias/grupo/{grupoId}`)
-- [ ] Criar hook `useCriarAssembleia()` (TanStack useMutation para `POST /api/assembleias`)
-- [ ] Criar schema Zod `assembleiaSchema` (data obrigatória, grupoId obrigatório)
-- [ ] Implementar invalidação de cache pós-agendamento
-- [ ] Implementar estados: loading (skeleton), error (toast), empty state
+- [x] Criar hook `useAssembleias(grupoId)` (TanStack useQuery para `GET /api/assembleias/grupo/{grupoId}`)
+- [x] Criar hook `useCriarAssembleia()` (TanStack useMutation para `POST /api/assembleias`)
+- [x] Criar schema Zod `assembleiaSchema` (data obrigatória, grupoId obrigatório)
+- [x] Implementar invalidação de cache pós-agendamento
+- [x] Implementar estados: loading (skeleton), error (toast), empty state
 
 ### [FRONTEND] REQ-ASM-002: Validação de Duplicatas de Captação
-- [ ] Implementar feedback visual de erro 400 quando grupo já possui assembleia CAPTANDO
-- [ ] Exibir badge visual de status por assembleia (CAPTANDO, REALIZADA, FECHADA)
+- [x] Implementar feedback visual de erro 400 quando grupo já possui assembleia CAPTANDO
+- [x] Exibir badge visual de status por assembleia (CAPTANDO, REALIZADA, FECHADA)
 
 ### [DESIGN] REQ-ASM-001: Design da Tela de Assembleias
 - [x] Prototipar tela com seletor de grupo, formulário e tabela de histórico
-- [ ] Definir estados visuais: loading, error, empty state, success (confetti)
-- [ ] Validar acessibilidade WCAG AA
+- [x] Definir estados visuais: loading, error, empty state, success (confetti)
+- [x] Validar acessibilidade WCAG AA

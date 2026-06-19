@@ -1,6 +1,6 @@
 # 📋 Especificação de UI — Oferta de Lances (lances)
 
-*   **Status**: DRAFT
+*   **Status**: IMPLEMENTED v1.0
 *   **Versão**: v1.0
 *   **Spec Backend**: [spec.md](../../../../consorcio-api/docs/specs/lances/spec.md)
 *   **API Contract**: [api-contract.md](../../../../consorcio-api/docs/specs/lances/api-contract.md)

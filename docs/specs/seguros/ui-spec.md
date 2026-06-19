@@ -1,6 +1,6 @@
 # 📋 Especificação de UI — Seguros (seguros)
 
-*   **Status**: DRAFT
+*   **Status**: IMPLEMENTED v1.0
 *   **Versão**: v1.0
 *   **Spec Backend**: [spec.md](../../../../consorcio-api/docs/specs/seguros/spec.md)
 *   **API Contract**: [api-contract.md](../../../../consorcio-api/docs/specs/seguros/api-contract.md)

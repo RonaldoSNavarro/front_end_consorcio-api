@@ -1,6 +1,6 @@
 # 📋 Especificação de UI — Reajustes e Encerramento (encerramento)
 
-*   **Status**: DRAFT
+*   **Status**: IMPLEMENTED v1.0
 *   **Versão**: v1.0
 *   **Spec Backend**: [spec.md](../../../../consorcio-api/docs/specs/encerramento/spec.md)
 *   **API Contract**: [api-contract.md](../../../../consorcio-api/docs/specs/encerramento/api-contract.md)
