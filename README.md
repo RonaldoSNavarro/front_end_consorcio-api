@@ -54,9 +54,10 @@ Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 9 capabi
 7. Seguros
 8. Restituição de Excluídos
 9. Reajustes e Encerramento
+10. Relatórios (PLD/FT, Balancete e Estatísticas)
 
 **Em Andamento:**
-* **PLD/FT (Prevenção à Lavagem de Dinheiro)**: Fase atual de `SPECIFY-UI` (Aguardando contrato de API do backend).
+* (Nenhuma capability no momento. Todas as 10 capabilities essenciais foram implementadas.)
 
 ---
 
