@@ -41,6 +41,25 @@ Nossa malha de formulários e exibições garante total aderência contábil e d
 
 ---
 
+## 📑 SDD (Spec-Driven Development) & Capabilities
+
+O projeto é guiado estritamente por especificações de UI (`docs/specs/`) vinculadas aos contratos de API do backend. 
+Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 9 capabilities (`IMPLEMENTED v1.0`):
+1. Autenticação e Sessão (com F5-Safety)
+2. Gestão de Assembleias
+3. Composição de Fundos e Parcelas
+4. Oferta de Lances
+5. Apuração e Contemplações
+6. Mora e Inadimplência
+7. Seguros
+8. Restituição de Excluídos
+9. Reajustes e Encerramento
+
+**Em Andamento:**
+* **PLD/FT (Prevenção à Lavagem de Dinheiro)**: Fase atual de `SPECIFY-UI` (Aguardando contrato de API do backend).
+
+---
+
 ## 📂 Estrutura de Diretórios
 
 ```text
