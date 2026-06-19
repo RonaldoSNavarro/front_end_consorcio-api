@@ -70,10 +70,10 @@ Este documento descreve o estado atual do frontend, a stack de referência, as A
 ## 🔴 3. Vulnerabilidades Identificadas
 
 ### VUL-001: F5-Safety (Sessão & LocalStorage)
-- **Componente**: `AuthContext.jsx`
-- **Problema**: O token é inicializado via `localStorage.getItem('consorcio_api_token')`. Sob segurança de JWT HttpOnly Cookie, o localStorage não contém o token real, causando redirecionamento indevido ao login ao atualizar a página (F5).
-- **Solução**: Implementação do mecanismo de validação ativa via `GET /api/login/me` (ADR 007 do backend).
-- **Status**: ⚠️ Pendente de implementação.
+- **Componente**: `AuthContext.jsx` / `useAuth.js`
+- **Problema**: O token era inicializado via `localStorage.getItem('consorcio_api_token')`.
+- **Solução**: LocalStorage para JWT foi completamente removido do código por infração de segurança. A validação de sessão ativa agora ocorre via `GET /api/login/me` e Cookies HttpOnly.
+- **Status**: ✅ Resolvido durante a Code Review de Refatoração.
 
 ---
 
@@ -99,9 +99,10 @@ Este documento descreve o estado atual do frontend, a stack de referência, as A
 
 ## 📈 5. Estado Atual do Projeto
 
-- **Fase Atual**: Criação da infraestrutura SDD do frontend.
+- **Fase Atual**: Refatoração Visual Corporativa (Tailwind CSS v3) concluída.
 - **Backend de Referência**: Sprint 5 concluída — 9 capabilities implementadas, 107 testes passando.
-- **Status Frontend**: 13 páginas e 9 componentes implementados. Cobertura de testes parcial (`App.test.jsx`, `api.test.js`).
+- **Status Frontend**: 100% migrado para Tailwind CSS (13 páginas e 9 componentes). Tema Claro/Escuro implementado. Acessibilidade WCAG e Design System unificados.
+- **Testes**: 37 testes passando (Testes E2E `App.test.jsx`, unitários `api.test.js`, `hooks.test.jsx`, `schemas.test.js`). UI Drift resolvido.
 - **Artefatos Gerados**:
   - [constitution.md](constitution.md) — Princípios e regras técnicas inegociáveis.
   - [REQUIREMENTS.md](REQUIREMENTS.md) — Índice de capabilities.

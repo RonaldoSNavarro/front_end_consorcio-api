@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { X, Search, Loader2 } from 'lucide-react';
 
 // Zod Schema for Cliente validation (Evita Lixo no Banco de Dados)
 const clienteSchema = z.object({
@@ -23,6 +24,18 @@ const clienteSchema = z.object({
   rendaMensal: z.coerce.number().min(0, "A renda mensal não pode ser negativa").default(0),
   nivelRisco: z.enum(['BAIXO', 'MEDIO', 'ALTO']).default('MEDIO'),
 });
+
+const FormField = ({ label, id, error, children, className = '' }) => (
+  <div className={`form-group ${className}`}>
+    <label htmlFor={id}>{label}</label>
+    {children}
+    {error && (
+      <span id={`error-${id}`} className="error-text" role="alert">
+        {error.message}
+      </span>
+    )}
+  </div>
+);
 
 export const ClienteForm = ({ onClose, editClienteId }) => {
   const { triggerToast } = useToast();
@@ -74,107 +87,120 @@ export const ClienteForm = ({ onClose, editClienteId }) => {
   };
 
   return (
-    <div className="modal-overlay animate-fade-in">
-      <div className="modal-content glass-panel" style={{ maxWidth: '700px' }}>
-        <h3>{editClienteId ? 'Editar' : 'Novo'} Cliente Consorciado</h3>
-        <p style={{ marginBottom: '20px', color: '#9ca3af' }}>Validação Estrita por Zod (Compliance BACEN)</p>
+    <div className="modal-backdrop" onClick={onClose}>
+      <div 
+        className="w-full max-w-2xl mx-4 p-6 rounded-2xl animate-scale-up
+                   bg-white dark:bg-slate-800 
+                   border border-slate-200 dark:border-slate-700/60
+                   shadow-2xl max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-lg font-title font-bold text-slate-900 dark:text-white">
+              {editClienteId ? 'Editar' : 'Novo'} Cliente Consorciado
+            </h3>
+            <p className="text-xs text-slate-400 mt-1">
+              Validação Estrita por Zod (Compliance BACEN)
+            </p>
+          </div>
+          <button onClick={onClose} className="btn-ghost p-2 rounded-lg" aria-label="Fechar">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
         
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* DADOS PESSOAIS */}
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label htmlFor="nome">Nome / Razão Social *</label>
-              <input id="nome" type="text" {...register('nome')} placeholder="Nome completo" />
-              {errors.nome && <span className="error-text" style={{ color: '#ef4444', fontSize: '0.8rem' }}>{errors.nome.message}</span>}
-            </div>
+            <FormField label="Nome / Razão Social *" id="cliente-nome" error={errors.nome} className="md:col-span-2">
+              <input 
+                id="cliente-nome" type="text" {...register('nome')} 
+                placeholder="Nome completo"
+                aria-required="true"
+                aria-invalid={!!errors.nome}
+                aria-describedby={errors.nome ? 'error-cliente-nome' : undefined}
+              />
+            </FormField>
             
-            <div className="form-group">
-              <label htmlFor="cpfCnpj">CPF / CNPJ (Números) *</label>
-              <input id="cpfCnpj" type="text" {...register('cpfCnpj')} placeholder="Ex: 12345678901" />
-              {errors.cpfCnpj && <span className="error-text" style={{ color: '#ef4444', fontSize: '0.8rem' }}>{errors.cpfCnpj.message}</span>}
-            </div>
+            <FormField label="CPF / CNPJ (Números) *" id="cliente-cpf" error={errors.cpfCnpj}>
+              <input 
+                id="cliente-cpf" type="text" {...register('cpfCnpj')} 
+                placeholder="Ex: 12345678901"
+                aria-required="true"
+                aria-invalid={!!errors.cpfCnpj}
+              />
+            </FormField>
             
-            <div className="form-group">
-              <label htmlFor="nivelRisco">Nível de Risco (Compliance)</label>
-              <select id="nivelRisco" {...register('nivelRisco')}>
+            <FormField label="Nível de Risco (Compliance)" id="cliente-risco" error={null}>
+              <select id="cliente-risco" {...register('nivelRisco')}>
                 <option value="BAIXO">BAIXO - Perfil Conservador</option>
                 <option value="MEDIO">MÉDIO - Perfil Moderado</option>
                 <option value="ALTO">ALTO - Necessita Aprovação</option>
               </select>
-            </div>
+            </FormField>
             
-            <div className="form-group">
-              <label htmlFor="email">E-mail</label>
-              <input id="email" type="email" {...register('email')} placeholder="Ex: nome@empresa.com" />
-              {errors.email && <span className="error-text" style={{ color: '#ef4444', fontSize: '0.8rem' }}>{errors.email.message}</span>}
-            </div>
+            <FormField label="E-mail" id="cliente-email" error={errors.email}>
+              <input id="cliente-email" type="email" {...register('email')} placeholder="Ex: nome@empresa.com" />
+            </FormField>
             
-            <div className="form-group">
-              <label htmlFor="telefone">Telefone</label>
-              <input id="telefone" type="text" {...register('telefone')} placeholder="Ex: 11999999999" />
-              {errors.telefone && <span className="error-text" style={{ color: '#ef4444', fontSize: '0.8rem' }}>{errors.telefone.message}</span>}
-            </div>
+            <FormField label="Telefone" id="cliente-telefone" error={errors.telefone}>
+              <input id="cliente-telefone" type="text" {...register('telefone')} placeholder="Ex: 11999999999" />
+            </FormField>
 
-            <div className="form-group">
-              <label htmlFor="patrimonio">Patrimônio Declarado (R$)</label>
-              <input id="patrimonio" type="number" step="0.01" {...register('patrimonio')} />
-              {errors.patrimonio && <span className="error-text" style={{ color: '#ef4444', fontSize: '0.8rem' }}>{errors.patrimonio.message}</span>}
-            </div>
+            <FormField label="Patrimônio Declarado (R$)" id="cliente-patrimonio" error={errors.patrimonio}>
+              <input id="cliente-patrimonio" type="number" step="0.01" {...register('patrimonio')} />
+            </FormField>
             
-            <div className="form-group">
-              <label htmlFor="rendaMensal">Renda Mensal (R$)</label>
-              <input id="rendaMensal" type="number" step="0.01" {...register('rendaMensal')} />
-              {errors.rendaMensal && <span className="error-text" style={{ color: '#ef4444', fontSize: '0.8rem' }}>{errors.rendaMensal.message}</span>}
-            </div>
+            <FormField label="Renda Mensal (R$)" id="cliente-renda" error={errors.rendaMensal}>
+              <input id="cliente-renda" type="number" step="0.01" {...register('rendaMensal')} />
+            </FormField>
 
             {/* ENDEREÇO */}
-            <hr style={{ gridColumn: 'span 2', borderColor: 'rgba(255,255,255,0.1)' }} />
+            <div className="md:col-span-2 border-t border-slate-200 dark:border-slate-700/50 pt-4 mt-2">
+              <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Endereço</h4>
+            </div>
 
-            <div className="form-group">
-              <label htmlFor="cep">CEP (Apenas números)</label>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <input id="cep" type="text" {...register('cep')} placeholder="Ex: 01001000" />
-                <button type="button" className="btn btn-outline btn-sm" onClick={handleCepSearch}>
-                  Buscar ViaCEP
+            <FormField label="CEP (Apenas números)" id="cliente-cep" error={errors.cep}>
+              <div className="flex gap-2">
+                <input id="cliente-cep" type="text" {...register('cep')} placeholder="Ex: 01001000" />
+                <button type="button" className="btn btn-outline btn-sm shrink-0" onClick={handleCepSearch}>
+                  <Search className="w-3.5 h-3.5" />
+                  Buscar
                 </button>
               </div>
-              {errors.cep && <span className="error-text" style={{ color: '#ef4444', fontSize: '0.8rem' }}>{errors.cep.message}</span>}
-            </div>
+            </FormField>
             
-            <div className="form-group">
-              <label htmlFor="localidade">Localidade / UF</label>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <input id="localidade" type="text" {...register('localidade')} placeholder="Cidade" style={{ flex: 3 }} />
-                <input id="uf" aria-label="UF" type="text" {...register('uf')} placeholder="UF" maxLength={2} style={{ textTransform: 'uppercase', flex: 1 }} />
+            <FormField label="Localidade / UF" id="cliente-localidade" error={null}>
+              <div className="flex gap-2">
+                <input id="cliente-localidade" type="text" {...register('localidade')} placeholder="Cidade" className="flex-[3]" />
+                <input id="cliente-uf" aria-label="UF" type="text" {...register('uf')} placeholder="UF" maxLength={2} className="flex-1 uppercase" />
               </div>
-            </div>
+            </FormField>
 
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label htmlFor="logradouro">Logradouro Completo (Rua e Número)</label>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <input id="logradouro" type="text" {...register('logradouro')} placeholder="Rua/Avenida" style={{ flex: 3 }} />
-                <input id="numero" aria-label="Número" type="text" {...register('numero')} placeholder="Número" style={{ flex: 1 }} />
+            <FormField label="Logradouro" id="cliente-logradouro" error={null} className="md:col-span-2">
+              <div className="flex gap-2">
+                <input id="cliente-logradouro" type="text" {...register('logradouro')} placeholder="Rua/Avenida" className="flex-[3]" />
+                <input id="cliente-numero" aria-label="Número" type="text" {...register('numero')} placeholder="Nº" className="flex-1" />
               </div>
-            </div>
+            </FormField>
 
-            <div className="form-group">
-              <label htmlFor="complemento">Complemento</label>
-              <input id="complemento" type="text" {...register('complemento')} />
-            </div>
+            <FormField label="Complemento" id="cliente-complemento" error={null}>
+              <input id="cliente-complemento" type="text" {...register('complemento')} />
+            </FormField>
 
-            <div className="form-group">
-              <label htmlFor="bairro">Bairro</label>
-              <input id="bairro" type="text" {...register('bairro')} />
-            </div>
+            <FormField label="Bairro" id="cliente-bairro" error={null}>
+              <input id="cliente-bairro" type="text" {...register('bairro')} />
+            </FormField>
 
           </div>
           
-          <div className="modal-actions" style={{ marginTop: '30px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+          <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-200 dark:border-slate-700/50">
             <button type="button" className="btn btn-outline" onClick={onClose} disabled={mutation.isPending}>
               Cancelar
             </button>
             <button type="submit" className="btn btn-primary" disabled={mutation.isPending}>
+              {mutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
               {mutation.isPending ? 'Validando & Salvando...' : 'Salvar Consorciado'}
             </button>
           </div>

@@ -4,6 +4,12 @@ import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { CotaForm } from '../components/forms/CotaForm';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { Plus, XCircle, Calculator, X } from 'lucide-react';
+
+const cotaStatusBadge = (status) => {
+  const map = { 'ATIVA': 'badge-success', 'CONTEMPLADA': 'badge-info', 'CANCELADA': 'badge-danger', 'ENCERRADA': 'badge-neutral' };
+  return map[status] || 'badge-neutral';
+};
 
 export const CotasPage = () => {
   const { triggerToast } = useToast();
@@ -42,64 +48,46 @@ export const CotasPage = () => {
     onError: (err) => triggerToast(err.message, "danger")
   });
 
-  const handleCancelarCota = (id) => {
-    setCotaCancelarId(id);
-  };
-
-  const handleReembolsarCota = (id) => {
-    reembolsarMutation.mutate(id);
-  };
-
-  if (error) return <div style={{ color: '#ff6b6b' }}>Erro: {error.message}</div>;
+  if (error) return <div className="p-6 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 text-sm">Erro: {error.message}</div>;
 
   return (
-    <div className="view-container animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="mb-4">
-        <div className="header-title">
-          <h2>🎫 Emissão & Venda de Cotas</h2>
-          <p>Vinculação de Clientes a Grupos</p>
+    <div className="animate-fade-in space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="font-title text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Emissão & Venda de Cotas</h2>
+          <p className="text-sm text-slate-400 mt-1">Vinculação de Clientes a Grupos</p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-          + Emitir Nova Cota
+          <Plus className="w-4 h-4" /> Emitir Nova Cota
         </button>
       </div>
 
       {isLoading ? (
-        <div style={{ color: '#fff' }}>Carregando cotas...</div>
+        <div className="space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-16 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />)}</div>
       ) : (
-        <div className="glass-panel table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Nº da Cota</th>
-                <th>Cliente ID</th>
-                <th>Grupo ID</th>
-                <th>Status da Cota</th>
-                <th>Ações e Baixas</th>
-              </tr>
-            </thead>
+        <div className="table-container">
+          <table>
+            <thead><tr><th>Nº da Cota</th><th>Cliente ID</th><th>Grupo ID</th><th>Status</th><th>Ações</th></tr></thead>
             <tbody>
               {Array.isArray(cotas) && cotas.map(c => (
                 <tr key={c.id}>
-                  <td><strong>Cota {c.numeroCota}</strong></td>
-                  <td>Ref: {c.clienteId}</td>
-                  <td>Grupo: {c.grupoId}</td>
+                  <td className="font-semibold text-slate-900 dark:text-white">Cota {c.numeroCota}</td>
+                  <td className="text-sm">Ref: {c.clienteId}</td>
+                  <td className="text-sm">Grupo: {c.grupoId}</td>
+                  <td><span className={`badge ${cotaStatusBadge(c.status)}`}>{c.status}</span></td>
                   <td>
-                    <span className={`badge badge-${c.status?.toLowerCase() || 'ativa'}`}>
-                      {c.status}
-                    </span>
-                  </td>
-                  <td className="actions-cell">
-                    {c.status !== 'CANCELADA' && c.status !== 'ENCERRADA' && (
-                      <button className="btn-sm btn-danger" onClick={() => handleCancelarCota(c.id)}>
-                        Cancelar
-                      </button>
-                    )}
-                    {c.status === 'CANCELADA' && (
-                      <button className="btn-sm btn-outline" onClick={() => handleReembolsarCota(c.id)}>
-                        Simular Devolução
-                      </button>
-                    )}
+                    <div className="flex gap-1.5">
+                      {c.status !== 'CANCELADA' && c.status !== 'ENCERRADA' && (
+                        <button className="btn btn-danger btn-xs" onClick={() => setCotaCancelarId(c.id)}>
+                          <XCircle className="w-3.5 h-3.5" /> Cancelar
+                        </button>
+                      )}
+                      {c.status === 'CANCELADA' && (
+                        <button className="btn btn-outline btn-xs" onClick={() => reembolsarMutation.mutate(c.id)}>
+                          <Calculator className="w-3.5 h-3.5" /> Simular Devolução
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -108,9 +96,7 @@ export const CotasPage = () => {
         </div>
       )}
 
-      {showModal && (
-        <CotaForm onClose={() => setShowModal(false)} />
-      )}
+      {showModal && <CotaForm onClose={() => setShowModal(false)} />}
 
       <ConfirmDialog
         isOpen={cotaCancelarId !== null}
@@ -124,36 +110,37 @@ export const CotasPage = () => {
       />
 
       {simulationResult && (
-        <div className="modal-backdrop animate-fade-in" style={{ zIndex: 1000 }} onClick={() => setSimulationResult(null)}>
-          <div className="modal-card glass-panel" style={{ maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
-            <div className="header-title mb-4">
-              <h3 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 600 }}>Simulador de Devoluções Rescisórias</h3>
-              <p style={{ color: '#9ca3af', fontSize: '0.85rem' }}>Conformidade com Circular BCB</p>
+        <div className="modal-backdrop" onClick={() => setSimulationResult(null)}>
+          <div className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-title font-bold text-slate-900 dark:text-white">Simulador de Devoluções Rescisórias</h3>
+                <p className="text-xs text-slate-400 mt-1">Conformidade com Circular BCB</p>
+              </div>
+              <button onClick={() => setSimulationResult(null)} className="btn-ghost p-2 rounded-lg" aria-label="Fechar"><X className="w-5 h-5" /></button>
             </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', color: '#f3f4f6', margin: '20px 0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
-                <span style={{ color: '#9ca3af' }}>Cota</span>
-                <strong>nº {simulationResult.numeroCota}</strong>
+            <div className="space-y-3 my-5">
+              <div className="flex justify-between pb-3 border-b border-slate-200 dark:border-slate-700/50">
+                <span className="text-sm text-slate-400">Cota</span>
+                <strong className="text-sm text-slate-900 dark:text-white">nº {simulationResult.numeroCota}</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
-                <span style={{ color: '#9ca3af' }}>Total Pago ao Fundo Comum</span>
-                <strong>R$ {simulationResult.totalPagoFundoComum.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+              <div className="flex justify-between pb-3 border-b border-slate-200 dark:border-slate-700/50">
+                <span className="text-sm text-slate-400">Total Pago ao Fundo Comum</span>
+                <strong className="text-sm text-slate-900 dark:text-white">R$ {simulationResult.totalPagoFundoComum.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px' }}>
-                <span style={{ color: '#ef4444' }}>Retenção Penal Rescisória (10%)</span>
-                <strong style={{ color: '#ef4444' }}>R$ {simulationResult.multaRescisoria.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+              <div className="flex justify-between pb-3 border-b border-slate-200 dark:border-slate-700/50">
+                <span className="text-sm text-rose-500">Retenção Penal Rescisória (10%)</span>
+                <strong className="text-sm text-rose-500">R$ {simulationResult.multaRescisoria.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '10px', fontSize: '1.1rem' }}>
-                <span style={{ fontWeight: 600 }}>Valor Líquido a Reembolsar</span>
-                <strong style={{ color: '#F59E0B' }}>R$ {simulationResult.valorLiquidoAReembolsar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+              <div className="flex justify-between pt-2 text-base">
+                <span className="font-semibold text-slate-900 dark:text-white">Valor Líquido a Reembolsar</span>
+                <strong className="text-brand-500">R$ {simulationResult.valorLiquidoAReembolsar.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
               </div>
             </div>
 
-            <div className="modal-buttons" style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-              <button className="btn btn-primary" onClick={() => setSimulationResult(null)}>
-                Fechar
-              </button>
+            <div className="flex justify-end mt-5">
+              <button className="btn btn-primary" onClick={() => setSimulationResult(null)}>Fechar</button>
             </div>
           </div>
         </div>

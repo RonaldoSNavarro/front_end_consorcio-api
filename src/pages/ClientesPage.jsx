@@ -4,6 +4,7 @@ import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { ClienteForm } from '../components/forms/ClienteForm';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { Plus, ScrollText, Trash2, Loader2 } from 'lucide-react';
 
 export const ClientesPage = () => {
   const { triggerToast } = useToast();
@@ -25,7 +26,6 @@ export const ClientesPage = () => {
     mutationFn: (id) => api.clientes.inativar(id),
     onSuccess: () => {
       triggerToast("Cliente inativado logicamente conforme RGPD/LGPD.", "warning");
-      // Força a atualização da lista automaticamente!
       queryClient.invalidateQueries({ queryKey: ['clientes'] });
     },
     onError: (err) => triggerToast(err.message, "danger")
@@ -36,26 +36,36 @@ export const ClientesPage = () => {
   };
 
   if (error) {
-    return <div style={{ color: '#ff6b6b' }}>Erro ao carregar clientes: {error.message}</div>;
+    return (
+      <div className="p-6 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 text-sm">
+        Erro ao carregar clientes: {error.message}
+      </div>
+    );
   }
 
   return (
-    <div className="view-container animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="mb-4">
-        <div className="header-title">
-          <h2>👥 Cadastro de Consorciados</h2>
-          <p>Gerenciamento e Validação Legal</p>
+    <div className="animate-fade-in space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="font-title text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            Cadastro de Consorciados
+          </h2>
+          <p className="text-sm text-slate-400 mt-1">Gerenciamento e Validação Legal</p>
         </div>
         <button className="btn btn-primary" onClick={() => { setEditClienteId(null); setShowModal(true); }}>
-          + Novo Cliente
+          <Plus className="w-4 h-4" /> Novo Cliente
         </button>
       </div>
 
       {isLoading ? (
-        <div style={{ color: '#fff' }}>Carregando consorciados...</div>
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-16 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+          ))}
+        </div>
       ) : (
-        <div className="glass-panel table-container">
-          <table className="data-table">
+        <div className="table-container">
+          <table>
             <thead>
               <tr>
                 <th>ID</th>
@@ -68,36 +78,47 @@ export const ClientesPage = () => {
             </thead>
             <tbody>
               {Array.isArray(clientes) && clientes.map(c => (
-                <tr key={c.id} className={(c.statusCliente === 'INATIVO') ? 'row-inative' : ''}>
-                  <td>#{c.id}</td>
-                  <td><strong>{c.nome}</strong></td>
-                  <td className="mono">{c.cpfCnpj}</td>
+                <tr key={c.id} className={c.statusCliente === 'INATIVO' ? 'opacity-50' : ''}>
+                  <td className="font-mono text-xs text-slate-400">#{c.id}</td>
+                  <td className="font-semibold text-slate-900 dark:text-white">{c.nome}</td>
+                  <td className="font-mono text-xs">{c.cpfCnpj}</td>
                   <td>
-                    <span className={`badge badge-${c.nivelRisco?.toLowerCase() || 'medio'}`}>
+                    <span className={`badge badge-${(c.nivelRisco?.toLowerCase()) === 'baixo' ? 'success' : c.nivelRisco?.toLowerCase() === 'alto' ? 'danger' : 'warning'}`}>
                       {c.nivelRisco}
                     </span>
                   </td>
                   <td>
                     {c.statusCliente === 'INATIVO' ? 
-                      <span className="status-indicator error">Inativo</span> : 
-                      <span className="status-indicator success">Ativo</span>
+                      <span className="badge badge-danger">Inativo</span> : 
+                      <span className="badge badge-success">Ativo</span>
                     }
                   </td>
-                  <td className="actions-cell">
-                    <button className="btn-icon view" title="Histórico de Auditoria" aria-label="Histórico de Auditoria">
-                      📜
-                    </button>
-                    {c.statusCliente !== 'INATIVO' && (
-                      <button className="btn-icon danger" onClick={() => handleInativar(c.id)} title="Inativar Consorciado" aria-label="Inativar Consorciado">
-                        🗑️
+                  <td>
+                    <div className="flex gap-1.5">
+                      <button 
+                        className="btn btn-ghost btn-xs" 
+                        title="Histórico de Auditoria" 
+                        aria-label="Histórico de Auditoria"
+                      >
+                        <ScrollText className="w-3.5 h-3.5" />
                       </button>
-                    )}
+                      {c.statusCliente !== 'INATIVO' && (
+                        <button 
+                          className="btn btn-danger btn-xs" 
+                          onClick={() => handleInativar(c.id)} 
+                          title="Inativar Consorciado" 
+                          aria-label="Inativar Consorciado"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
               {clientes.length === 0 && (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>
+                  <td colSpan="6" className="text-center py-8 text-slate-400 text-sm">
                     Nenhum cliente cadastrado no momento.
                   </td>
                 </tr>

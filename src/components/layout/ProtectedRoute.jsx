@@ -1,14 +1,18 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 export const ProtectedRoute = ({ allowedRoles }) => {
   const { token, user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#6366f1' }}>
-        Verificando sessão...
+      <div className="flex flex-col items-center justify-center h-screen gap-4 bg-slate-50 dark:bg-slate-900">
+        <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+        <p className="text-sm font-medium text-slate-400 dark:text-slate-500 animate-pulse">
+          Verificando sessão...
+        </p>
       </div>
     );
   }

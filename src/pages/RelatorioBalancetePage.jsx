@@ -1,27 +1,7 @@
 import React, { useState, useMemo } from 'react';
-// TODO (Dev): Substituir mock por hooks reais
-// import { useQuery } from '@tanstack/react-query';
-// import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { FileText, Download, AlertTriangle, CheckCircle2, TrendingUp, TrendingDown, Activity } from 'lucide-react';
 
-// ============================================================
-// 📌 HOOKS & SCHEMAS — Identificados para integração futura
-// ============================================================
-// useQuery(['balancete', grupoId, dataReferencia],
-//   () => api.relatorios.balancete(grupoId, dataReferencia),
-//   { enabled: !!grupoId && !!dataReferencia }
-// )
-//
-// Zod Schema para validação dos filtros:
-// const balanceteFiltroSchema = z.object({
-//   grupoId: z.number().positive('Selecione um grupo'),
-//   dataReferencia: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
-// });
-// ============================================================
-
-// ========================
-// 📊 DADOS MOCK ESTÁTICOS
-// ========================
 const MOCK_GRUPOS = [
   { id: 1, codigo: 'GRP-2024-001' },
   { id: 2, codigo: 'GRP-2024-002' },
@@ -45,15 +25,11 @@ const MOCK_BALANCETE = [
   { codigoContabil: '8.1.1.10.00-7', descricao: 'Despesas com Provisão de PDD', tipo: 'RESULTADO', natureza: 'DEVEDORA', saldoDebito: 34520.00, saldoCredito: 0 },
 ];
 
-// ========================
-// 🎨 COMPONENTE PRINCIPAL
-// ========================
 export const RelatorioBalancetePage = () => {
   const { triggerToast } = useToast();
   const [grupoId, setGrupoId] = useState('');
   const [dataReferencia, setDataReferencia] = useState('2026-06-13');
 
-  // --- Dados agrupados por tipo COSIF ---
   const agrupado = useMemo(() => {
     const tipos = ['ATIVO', 'PASSIVO', 'RESULTADO'];
     const result = {};
@@ -66,235 +42,165 @@ export const RelatorioBalancetePage = () => {
     return result;
   }, []);
 
-  // --- Verificação de quadratura ---
   const quadratura = useMemo(() => {
     const totalAtivo = agrupado.ATIVO?.totalDebito - agrupado.ATIVO?.totalCredito;
     const totalPassivo = agrupado.PASSIVO?.totalCredito - agrupado.PASSIVO?.totalDebito;
     const totalResultado = agrupado.RESULTADO?.totalCredito - agrupado.RESULTADO?.totalDebito;
     const diferenca = totalAtivo - (totalPassivo + totalResultado);
-    return {
-      totalAtivo,
-      totalPassivo,
-      totalResultado,
-      diferenca,
-      equilibrado: Math.abs(diferenca) < 0.01,
-    };
+    return { totalAtivo, totalPassivo, totalResultado, diferenca, equilibrado: Math.abs(diferenca) < 0.01 };
   }, [agrupado]);
 
-  const formatCurrency = (val) =>
-    val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-  const handleExportCSV = () => {
-    // TODO (Dev): Implementar exportação real via blob download
-    triggerToast('📥 Exportação CSV do Balancete iniciada.', 'info');
-  };
+  const formatCurrency = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const handleExportCSV = () => triggerToast('Exportação CSV do Balancete iniciada.', 'info');
 
   const getTipoLabel = (tipo) => {
-    const labels = { ATIVO: '📗 ATIVO', PASSIVO: '📕 PASSIVO', RESULTADO: '📘 RESULTADO' };
+    const labels = { ATIVO: 'Ativo', PASSIVO: 'Passivo', RESULTADO: 'Resultado' };
     return labels[tipo] || tipo;
   };
 
   const getTipoColor = (tipo) => {
-    const colors = { ATIVO: 'var(--success)', PASSIVO: 'var(--danger)', RESULTADO: 'var(--info)' };
-    return colors[tipo] || 'var(--text-main)';
+    const colors = { ATIVO: 'text-emerald-600 dark:text-emerald-400', PASSIVO: 'text-rose-600 dark:text-rose-400', RESULTADO: 'text-blue-600 dark:text-blue-400' };
+    return colors[tipo] || 'text-slate-900 dark:text-slate-100';
+  };
+
+  const getTipoIcon = (tipo) => {
+    if (tipo === 'ATIVO') return <TrendingUp className="w-5 h-5 text-emerald-500" />;
+    if (tipo === 'PASSIVO') return <TrendingDown className="w-5 h-5 text-rose-500" />;
+    return <Activity className="w-5 h-5 text-blue-500" />;
   };
 
   return (
-    <div className="view-container animate-fade-in">
-      {/* ===== HEADER ===== */}
-      <div className="header-panel">
-        <div className="header-title">
-          <h2>📄 Balancete — Documento 4110</h2>
-          <p>Demonstração de Recursos de Grupos de Consórcio — BCB</p>
+    <div className="animate-fade-in space-y-6">
+      
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <div>
+          <h2 className="font-title text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <FileText className="w-7 h-7 text-brand-500" /> Balancete — Documento 4110
+          </h2>
+          <p className="text-sm text-slate-400 mt-1">Demonstração de Recursos de Grupos de Consórcio — BCB</p>
         </div>
-        <div className="header-actions">
-          <button className="btn btn-outline" onClick={handleExportCSV} aria-label="Exportar balancete em CSV">
-            📥 Exportar CSV
-          </button>
+        <button className="btn btn-outline flex items-center gap-2" onClick={handleExportCSV}>
+          <Download className="w-4 h-4" /> Exportar CSV
+        </button>
+      </div>
+
+      {/* FILTROS */}
+      <div className="glass-panel p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="form-group">
+          <label htmlFor="select-grupo">Grupo</label>
+          <select id="select-grupo" value={grupoId} onChange={(e) => setGrupoId(e.target.value)}>
+            <option value="">Selecione um grupo...</option>
+            {MOCK_GRUPOS.map((g) => <option key={g.id} value={g.id}>{g.codigo}</option>)}
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="input-data-ref">Data de Referência</label>
+          <input id="input-data-ref" type="date" value={dataReferencia} onChange={(e) => setDataReferencia(e.target.value)} />
         </div>
       </div>
 
-      {/* ===== FILTROS ===== */}
-      <div className="glass-panel" style={{ padding: '20px 24px', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-end' }}>
-          <div style={{ flex: 1 }}>
-            <label htmlFor="select-grupo">Grupo</label>
-            <select
-              id="select-grupo"
-              value={grupoId}
-              onChange={(e) => setGrupoId(e.target.value)}
-              aria-label="Selecionar grupo para o balancete"
-            >
-              <option value="">Selecione um grupo...</option>
-              {MOCK_GRUPOS.map((g) => (
-                <option key={g.id} value={g.id}>{g.codigo}</option>
-              ))}
-            </select>
-          </div>
-          <div style={{ flex: 1 }}>
-            <label htmlFor="input-data-ref">Data de Referência</label>
-            <input
-              id="input-data-ref"
-              type="date"
-              value={dataReferencia}
-              onChange={(e) => setDataReferencia(e.target.value)}
-              aria-label="Data de referência do balancete"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* ===== VERIFICAÇÃO DE QUADRATURA ===== */}
+      {/* VERIFICAÇÃO DE QUADRATURA */}
       {quadratura.equilibrado ? (
-        <div style={{
-          background: 'var(--success-bg)',
-          border: '1px solid var(--success-border)',
-          borderRadius: '12px',
-          padding: '14px 20px',
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          fontSize: '0.88rem',
-          fontWeight: 600,
-          color: 'var(--success)',
-        }}>
-          <span>✅</span>
-          <span>Quadratura verificada — Ativo = Passivo + Resultado (diferença: {formatCurrency(quadratura.diferenca)})</span>
+        <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-sm flex gap-3 items-center font-semibold text-emerald-700 dark:text-emerald-400">
+          <CheckCircle2 className="w-5 h-5 shrink-0" />
+          <span>Quadratura verificada — Ativo = Passivo + Resultado (Diferença: {formatCurrency(quadratura.diferenca)})</span>
         </div>
       ) : (
-        <div style={{
-          background: 'var(--danger-bg)',
-          border: '1px solid var(--danger-border)',
-          borderRadius: '12px',
-          padding: '14px 20px',
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          fontSize: '0.88rem',
-          fontWeight: 600,
-          color: 'var(--danger)',
-        }}
-          role="alert"
-        >
-          <span>⛔</span>
-          <span>
-            ALERTA DE QUADRATURA — Diferença de {formatCurrency(Math.abs(quadratura.diferenca))} detectada!
-            (Ativo: {formatCurrency(quadratura.totalAtivo)} ≠ Passivo + Resultado: {formatCurrency(quadratura.totalPassivo + quadratura.totalResultado)})
-          </span>
+        <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-sm flex gap-3 items-center font-semibold text-rose-700 dark:text-rose-400">
+          <AlertTriangle className="w-5 h-5 shrink-0" />
+          <span>ALERTA DE QUADRATURA — Diferença de {formatCurrency(Math.abs(quadratura.diferenca))} detectada! (Ativo: {formatCurrency(quadratura.totalAtivo)} ≠ Passivo + Resultado: {formatCurrency(quadratura.totalPassivo + quadratura.totalResultado)})</span>
         </div>
       )}
 
-      {/* ===== KPIs DE RESUMO ===== */}
-      <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '24px' }}>
-        <div className="glass-panel kpi-card">
-          <div className="kpi-icon">📗</div>
-          <div className="kpi-info">
-            <p>Total Ativo</p>
-            <h3 style={{ color: 'var(--success)' }}>{formatCurrency(quadratura.totalAtivo)}</h3>
+      {/* KPIs DE RESUMO */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="glass-panel p-6 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-500/20 flex items-center justify-center border border-emerald-100 dark:border-emerald-500/30">
+            <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Total Ativo</p>
+            <h3 className="font-title text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(quadratura.totalAtivo)}</h3>
           </div>
         </div>
-        <div className="glass-panel kpi-card">
-          <div className="kpi-icon">📕</div>
-          <div className="kpi-info">
-            <p>Total Passivo</p>
-            <h3 style={{ color: 'var(--danger)' }}>{formatCurrency(quadratura.totalPassivo)}</h3>
+        <div className="glass-panel p-6 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-500/20 flex items-center justify-center border border-rose-100 dark:border-rose-500/30">
+            <TrendingDown className="w-6 h-6 text-rose-600 dark:text-rose-400" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Total Passivo</p>
+            <h3 className="font-title text-2xl font-bold text-rose-600 dark:text-rose-400">{formatCurrency(quadratura.totalPassivo)}</h3>
           </div>
         </div>
-        <div className="glass-panel kpi-card">
-          <div className="kpi-icon">📘</div>
-          <div className="kpi-info">
-            <p>Total Resultado</p>
-            <h3 style={{ color: 'var(--info)' }}>{formatCurrency(quadratura.totalResultado)}</h3>
+        <div className="glass-panel p-6 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-500/20 flex items-center justify-center border border-blue-100 dark:border-blue-500/30">
+            <Activity className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Total Resultado</p>
+            <h3 className="font-title text-2xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(quadratura.totalResultado)}</h3>
           </div>
         </div>
       </div>
 
-      {/* ===== TABELA AGRUPADA POR TIPO COSIF ===== */}
+      {/* TABELA AGRUPADA POR TIPO COSIF */}
       {['ATIVO', 'PASSIVO', 'RESULTADO'].map((tipo) => (
-        <div key={tipo} className="table-container" style={{ marginBottom: '24px' }}>
-          {/* Header do grupo */}
-          <div style={{
-            padding: '14px 20px',
-            borderBottom: '1px solid var(--border-color)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            background: 'rgba(255,255,255,0.02)',
-          }}>
-            <span style={{
-              fontFamily: 'var(--font-title)',
-              fontWeight: 700,
-              fontSize: '0.95rem',
-              color: getTipoColor(tipo),
-            }}>
-              {getTipoLabel(tipo)}
+        <div key={tipo} className="glass-panel table-container">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20">
+            <span className={`font-title font-bold text-base flex items-center gap-2 ${getTipoColor(tipo)}`}>
+              {getTipoIcon(tipo)} {getTipoLabel(tipo)}
             </span>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-              {agrupado[tipo].contas.length} conta(s)
-            </span>
+            <span className="text-xs font-semibold text-slate-500">{agrupado[tipo].contas.length} conta(s)</span>
           </div>
 
-          <table>
+          <table className="w-full">
             <thead>
               <tr>
                 <th>Código COSIF</th>
                 <th>Descrição</th>
-                <th>Natureza</th>
-                <th style={{ textAlign: 'right' }}>Saldo Débito</th>
-                <th style={{ textAlign: 'right' }}>Saldo Crédito</th>
-                <th style={{ textAlign: 'right' }}>Saldo Líquido</th>
+                <th className="text-center">Natureza</th>
+                <th className="text-right">Saldo Débito</th>
+                <th className="text-right">Saldo Crédito</th>
+                <th className="text-right">Saldo Líquido</th>
               </tr>
             </thead>
             <tbody>
               {agrupado[tipo].contas.map((conta) => (
                 <tr key={conta.codigoContabil}>
                   <td>
-                    <span className="monospace" style={{ fontWeight: 600, color: 'var(--primary)' }}>
+                    <span className="font-mono text-xs font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-500/10 px-2 py-1 rounded">
                       {conta.codigoContabil}
                     </span>
                   </td>
-                  <td>{conta.descricao}</td>
-                  <td>
+                  <td className="font-medium text-slate-700 dark:text-slate-300">{conta.descricao}</td>
+                  <td className="text-center">
                     <span className={`badge ${conta.natureza === 'DEVEDORA' ? 'badge-danger' : 'badge-success'}`}>
                       {conta.natureza}
                     </span>
                   </td>
-                  <td style={{ textAlign: 'right', fontFamily: 'var(--font-title)', fontWeight: 600 }}>
+                  <td className="text-right font-mono text-slate-600 dark:text-slate-400">
                     {conta.saldoDebito > 0 ? formatCurrency(conta.saldoDebito) : '—'}
                   </td>
-                  <td style={{ textAlign: 'right', fontFamily: 'var(--font-title)', fontWeight: 600 }}>
+                  <td className="text-right font-mono text-slate-600 dark:text-slate-400">
                     {conta.saldoCredito > 0 ? formatCurrency(conta.saldoCredito) : '—'}
                   </td>
-                  <td style={{
-                    textAlign: 'right',
-                    fontFamily: 'var(--font-title)',
-                    fontWeight: 700,
-                    color: conta.natureza === 'DEVEDORA' ? 'var(--success)' : 'var(--danger)',
-                  }}>
+                  <td className={`text-right font-mono font-bold ${conta.natureza === 'DEVEDORA' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                     {formatCurrency(Math.abs(conta.saldoDebito - conta.saldoCredito))}
                   </td>
                 </tr>
               ))}
-              {/* Linha de subtotal */}
-              <tr style={{ background: 'rgba(255,255,255,0.03)' }}>
-                <td colSpan={3} style={{ fontWeight: 700, fontFamily: 'var(--font-title)', color: getTipoColor(tipo) }}>
+              <tr className="bg-slate-50 dark:bg-slate-900/50">
+                <td colSpan={3} className={`font-title font-bold uppercase tracking-wider text-xs ${getTipoColor(tipo)}`}>
                   SUBTOTAL {tipo}
                 </td>
-                <td style={{ textAlign: 'right', fontWeight: 700, fontFamily: 'var(--font-title)' }}>
+                <td className="text-right font-mono font-bold text-slate-700 dark:text-slate-300">
                   {agrupado[tipo].totalDebito > 0 ? formatCurrency(agrupado[tipo].totalDebito) : '—'}
                 </td>
-                <td style={{ textAlign: 'right', fontWeight: 700, fontFamily: 'var(--font-title)' }}>
+                <td className="text-right font-mono font-bold text-slate-700 dark:text-slate-300">
                   {agrupado[tipo].totalCredito > 0 ? formatCurrency(agrupado[tipo].totalCredito) : '—'}
                 </td>
-                <td style={{
-                  textAlign: 'right',
-                  fontWeight: 800,
-                  fontFamily: 'var(--font-title)',
-                  fontSize: '1.05rem',
-                  color: getTipoColor(tipo),
-                }}>
+                <td className={`text-right font-mono font-bold text-lg ${getTipoColor(tipo)}`}>
                   {formatCurrency(Math.abs(agrupado[tipo].totalDebito - agrupado[tipo].totalCredito))}
                 </td>
               </tr>

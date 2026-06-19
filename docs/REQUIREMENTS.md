@@ -43,20 +43,20 @@ O frontend não mantém entidades persistidas, mas consome os DTOs de resposta d
 
 ## 🎨 3. Design Tokens Globais
 
-### Cores (HSL)
+### Cores (Tailwind CSS v3)
 
-| Token | Hex | Uso |
+O projeto utiliza as paletas nativas do Tailwind com suporte a `dark mode: class`.
+
+| Elemento | Tema Claro | Tema Escuro |
 |-------|-----|-----|
-| `--bg-principal` | `#0F172A` | Background geral (slate-900) |
-| `--bg-card` | `#1E293B` | Cards e painéis (slate-800) |
-| `--bg-input` | `#334155` | Campos de formulário (slate-700) |
-| `--acento` | `#F59E0B` | Botões primários, links, badges (amber-500) |
-| `--acento-hover` | `#D97706` | Hover de botões (amber-600) |
-| `--texto-principal` | `#F1F5F9` | Texto primário (slate-100) |
-| `--texto-secundario` | `#94A3B8` | Texto secundário, labels (slate-400) |
-| `--sucesso` | `#10B981` | Feedback positivo (emerald-500) |
-| `--erro` | `#EF4444` | Feedback negativo (red-500) |
-| `--aviso` | `#F59E0B` | Avisos (amber-500) |
+| Background Principal | `bg-slate-50` | `dark:bg-slate-900` |
+| Background Card | `bg-white` | `dark:bg-slate-800` |
+| Acento Primário | `bg-amber-500` | `bg-amber-500` |
+| Texto Principal | `text-slate-900` | `dark:text-white` |
+| Texto Secundário | `text-slate-500` | `dark:text-slate-400` |
+| Bordas | `border-slate-200` | `dark:border-slate-700/60` |
+| Status Positivo | `text-emerald-500` | `text-emerald-400` |
+| Status Negativo | `text-rose-500` | `text-rose-400` |
 
 ### Tipografia
 

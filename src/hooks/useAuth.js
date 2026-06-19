@@ -20,14 +20,8 @@ export function useAuthSource() {
       api.setMockMode(isMock);
 
       if (isMock) {
-        try {
-          const savedToken = localStorage.getItem('consorcio_api_token');
-          if (savedToken && savedToken !== 'undefined' && savedToken !== 'null') {
-            setToken(savedToken);
-          }
-        } catch (e) {
-          console.warn("Storage read blocked:", e);
-        }
+        // Modo Mock: JWT mantido apenas em memory state (não persistido)
+        // Ao atualizar a página, será necessário autenticar novamente.
       } else {
         setToken('cookie_managed');
       }
@@ -60,10 +54,10 @@ export function useAuthSource() {
       return api.login(username, password);
     },
     onSuccess: async (res, variables) => {
-      setToken(res.token);
+      setToken(res.token); // Atualiza o memory state
       if (isMockMode) {
         try {
-          localStorage.setItem('consorcio_api_token', res.token);
+          // Nunca salvar JWT no LocalStorage. Apenas mock profile info
           const userData = {
             login: variables.username,
             role: variables.username === 'admin' ? 'ADMIN' : 'OPERADOR',
@@ -89,7 +83,6 @@ export function useAuthSource() {
     onSuccess: () => {
       setToken(null);
       try {
-        localStorage.removeItem('consorcio_api_token');
         localStorage.removeItem('consorcio_api_user');
       } catch (e) {
         console.warn("Storage write blocked:", e);
@@ -105,7 +98,6 @@ export function useAuthSource() {
     api.setMockMode(newMock);
     setToken(null);
     try {
-      localStorage.removeItem('consorcio_api_token');
       localStorage.removeItem('consorcio_api_user');
     } catch (e) {}
     queryClient.clear();

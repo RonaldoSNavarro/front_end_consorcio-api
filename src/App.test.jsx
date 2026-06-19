@@ -98,7 +98,7 @@ describe('Integração de Componentes do Front-End (App.jsx)', () => {
       fireEvent.change(cepInput, { target: { value: '01001000' } });
 
       // Dispara explicitamente a busca pelo ViaCEP clicando no botão do formulário
-      const btnBuscarCep = screen.getByRole('button', { name: /Buscar ViaCEP/i });
+      const btnBuscarCep = screen.getByRole('button', { name: /Buscar/i });
       fireEvent.click(btnBuscarCep);
 
       // Espera o autopreenenchimento do ViaCEP disparado pelo evento onChange
@@ -124,7 +124,7 @@ describe('Integração de Componentes do Front-End (App.jsx)', () => {
       
       // Endereço e disparo da busca
       fireEvent.change(screen.getByPlaceholderText('Ex: 01001000'), { target: { value: '01001000' } });
-      const btnBuscarCep = screen.getByRole('button', { name: /Buscar ViaCEP/i });
+      const btnBuscarCep = screen.getByRole('button', { name: /Buscar/i });
       fireEvent.click(btnBuscarCep);
 
       // Aguarda o autocomplete do endereço para que a validação do formulário seja satisfeita
@@ -132,7 +132,7 @@ describe('Integração de Componentes do Front-End (App.jsx)', () => {
         expect(screen.getByPlaceholderText('Rua/Avenida').value).toContain('Avenida Paulista');
       });
 
-      fireEvent.change(screen.getByPlaceholderText('Número'), { target: { value: '1200' } });
+      fireEvent.change(screen.getByPlaceholderText('Nº'), { target: { value: '1200' } });
       
       // Compliance e Risco
       fireEvent.change(screen.getByLabelText('Patrimônio Declarado (R$)'), { target: { value: '350000.00' } });
@@ -140,8 +140,8 @@ describe('Integração de Componentes do Front-End (App.jsx)', () => {
       fireEvent.change(screen.getByLabelText('Nível de Risco (Compliance)'), { target: { value: 'BAIXO' } });
 
       // Clica em Salvar
-      const form = screen.getByText('Novo Cliente Consorciado').closest('div').querySelector('form');
-      fireEvent.submit(form);
+      const btnSalvar = screen.getByRole('button', { name: /Salvar Consorciado/i });
+      fireEvent.submit(btnSalvar.closest('form'));
 
       // Espera fechar o modal e o novo cliente estar presente na lista
       await waitFor(() => {
