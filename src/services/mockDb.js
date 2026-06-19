@@ -6,10 +6,10 @@ const DB_KEY = 'consorcio_api_mock_db';
 // Dados Iniciais para o Efeito "WOW"
 const INITIAL_DATA = {
   clientes: [
-    { id: 1, nome: "Ronaldo Navarro", cpfCnpj: "11122233344", email: "ronaldo@dev.com", telefone: "11999999999", dataCadastro: "2026-04-10", statusCliente: "ATIVO" },
-    { id: 2, nome: "Ana Maria Souza", cpfCnpj: "98765432100", email: "ana.souza@gmail.com", telefone: "11988888888", dataCadastro: "2026-04-12", statusCliente: "ATIVO" },
-    { id: 3, nome: "Tech Solutions Ltda", cpfCnpj: "12345678000199", email: "financeiro@techsolutions.com.br", telefone: "1133334444", dataCadastro: "2026-04-15", statusCliente: "ATIVO" },
-    { id: 4, nome: "Carlos Eduardo Santos", cpfCnpj: "55566677788", email: "carlos.edu@yahoo.com", telefone: "21977777777", dataCadastro: "2026-04-20", statusCliente: "ATIVO" }
+    { id: 1, nome: "Ronaldo Navarro", cpfCnpj: "11122233344", email: "ronaldo@dev.com", telefone: "11999999999", dataCadastro: "2026-04-10", statusCliente: "ATIVO", patrimonioEstimado: 0, rendaMensalDeclarada: 0 },
+    { id: 2, nome: "Ana Maria Souza", cpfCnpj: "98765432100", email: "ana.souza@gmail.com", telefone: "11988888888", dataCadastro: "2026-04-12", statusCliente: "ATIVO", patrimonioEstimado: 0, rendaMensalDeclarada: 0 },
+    { id: 3, nome: "Tech Solutions Ltda", cpfCnpj: "12345678000199", email: "financeiro@techsolutions.com.br", telefone: "1133334444", dataCadastro: "2026-04-15", statusCliente: "ATIVO", patrimonioEstimado: 0, rendaMensalDeclarada: 0 },
+    { id: 4, nome: "Carlos Eduardo Santos", cpfCnpj: "55566677788", email: "carlos.edu@yahoo.com", telefone: "21977777777", dataCadastro: "2026-04-20", statusCliente: "ATIVO", patrimonioEstimado: 0, rendaMensalDeclarada: 0 }
   ],
   grupos: [
     { id: 1, codigo: "GRP-AUTO-002", valorCredito: 60000.00, prazoMeses: 60, taxaAdministracao: 15.00, status: "EM_ANDAMENTO", dataCriacao: "2026-04-01", dataInauguracao: "2026-04-05" },
@@ -44,6 +44,10 @@ const INITIAL_DATA = {
   ],
   contemplacoes: [
     { id: 1, cotaId: 4, assembleiaId: 1, tipoContemplacao: "SORTEIO", valorLance: 0, lanceEmbutido: false, dataContemplacao: "2026-02-05" }
+  ],
+  alertasCompliance: [
+    { alertaId: 1054, clienteId: 1, nomeCliente: "Ronaldo Navarro", cpfCnpj: "111.222.333-44", origemLista: "OFAC", nomeEncontradoLista: "RONALDO NAVARRO", scoreSimilaridade: 1.0, status: "PENDENTE_ANALISE", dataDeteccao: "2026-06-19T11:00:00" },
+    { alertaId: 1055, clienteId: 2, nomeCliente: "Ana Maria Souza", cpfCnpj: "987.654.321-00", origemLista: "PEP", nomeEncontradoLista: "ANA M SOUZA", scoreSimilaridade: 0.95, status: "PENDENTE_ANALISE", dataDeteccao: "2026-06-19T11:00:00" }
   ]
 };
 
@@ -61,6 +65,7 @@ const getDb = () => {
     if (!db.historicos) { db.historicos = []; updated = true; }
     if (!db.versoes) { db.versoes = []; updated = true; }
     if (!db.movimentos) { db.movimentos = []; updated = true; }
+    if (!db.alertasCompliance) { db.alertasCompliance = []; updated = true; }
     if (updated) {
       localStorage.setItem(DB_KEY, JSON.stringify(db));
     }
@@ -163,8 +168,8 @@ export const mockDb = {
         bairro: dto.bairro || "Bela Vista",
         localidade: dto.localidade || "São Paulo",
         uf: dto.uf || "SP",
-        patrimonio: Number(dto.patrimonio || 0),
-        rendaMensal: Number(dto.rendaMensal || 0),
+        patrimonioEstimado: Number(dto.patrimonioEstimado || 0),
+        rendaMensalDeclarada: Number(dto.rendaMensalDeclarada || 0),
         nivelRisco: dto.nivelRisco || "MEDIO",
         dataCadastro: new Date().toISOString().split('T')[0],
         statusCliente: "ATIVO"
@@ -176,7 +181,7 @@ export const mockDb = {
         id: db.historicos.length > 0 ? Math.max(...db.historicos.map(h => h.id)) + 1 : 1,
         clienteId: novoCliente.id,
         tipoInteracao: "CADASTRO",
-        descricao: `Adesão inicial e cadastro do cliente consorciado. Risco: ${novoCliente.nivelRisco}. Renda: R$ ${novoCliente.rendaMensal.toLocaleString('pt-BR')}. Patrimônio: R$ ${novoCliente.patrimonio.toLocaleString('pt-BR')}.`,
+        descricao: `Adesão inicial e cadastro do cliente consorciado. Risco: ${novoCliente.nivelRisco}. Renda: R$ ${novoCliente.rendaMensalDeclarada.toLocaleString('pt-BR')}. Patrimônio: R$ ${novoCliente.patrimonioEstimado.toLocaleString('pt-BR')}.`,
         dataInteracao: new Date().toISOString(),
         nomeUsuario: "admin"
       };
@@ -202,8 +207,8 @@ export const mockDb = {
         bairro: dto.bairro || db.clientes[idx].bairro,
         localidade: dto.localidade || db.clientes[idx].localidade,
         uf: dto.uf || db.clientes[idx].uf,
-        patrimonio: Number(dto.patrimonio || db.clientes[idx].patrimonio || 0),
-        rendaMensal: Number(dto.rendaMensal || db.clientes[idx].rendaMensal || 0),
+        patrimonioEstimado: Number(dto.patrimonioEstimado || db.clientes[idx].patrimonioEstimado || 0),
+        rendaMensalDeclarada: Number(dto.rendaMensalDeclarada || db.clientes[idx].rendaMensalDeclarada || 0),
         nivelRisco: dto.nivelRisco || db.clientes[idx].nivelRisco || "MEDIO"
       };
 
@@ -239,8 +244,8 @@ export const mockDb = {
         bairro: "Removido",
         localidade: "Removido",
         uf: "XX",
-        patrimonio: 0,
-        rendaMensal: 0,
+        patrimonioEstimado: 0,
+        rendaMensalDeclarada: 0,
         inativado: true,
         statusCliente: "INATIVO"
       };
@@ -1108,6 +1113,37 @@ export const mockDb = {
         totalContemplacoesLance,
         valorTotalCreditosLiberados: financeiro.creditosPagos
       };
+    }
+  },
+  
+  // === COMPLIANCE (PLD/FT) ===
+  compliance: {
+    sincronizar: async () => {
+      // Simula delay de integração
+      return new Promise((resolve) => setTimeout(() => {
+        resolve({
+          mensagem: "Sincronização de listas restritivas iniciada em background.",
+          dataHora: new Date().toISOString()
+        });
+      }, 1000));
+    },
+    listarAlertas: () => {
+      const db = getDb();
+      return db.alertasCompliance || [];
+    },
+    deliberarAlerta: (id, payload) => {
+      const db = getDb();
+      const idx = db.alertasCompliance.findIndex(a => a.alertaId === Number(id));
+      if (idx === -1) throw new Error("Alerta não encontrado.");
+      
+      db.alertasCompliance[idx] = {
+        ...db.alertasCompliance[idx],
+        status: payload.novoStatus,
+        justificativa: payload.justificativa,
+        dataDeliberacao: new Date().toISOString()
+      };
+      saveDb(db);
+      return true;
     }
   }
 };

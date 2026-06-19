@@ -22,6 +22,7 @@ import { EncerrarGrupoPage } from './pages/EncerrarGrupoPage';
 import { RelatorioBalancetePage } from './pages/RelatorioBalancetePage';
 import { RelatorioEstatisticasPage } from './pages/RelatorioEstatisticasPage';
 import { RelatorioPldFtPage } from './pages/RelatorioPldFtPage';
+import { CompliancePainelPage } from './pages/CompliancePainelPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,6 +65,11 @@ export default function App() {
                     <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'DIRETOR']} />}>
                       <Route path="/relatorios/balancete" element={<RelatorioBalancetePage />} />
                       <Route path="/relatorios/pld-ft" element={<RelatorioPldFtPage />} />
+                    </Route>
+
+                    {/* Compliance (Listas Restritivas) exclusivo para ADMIN e COMPLIANCE */}
+                    <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'COMPLIANCE']} />}>
+                      <Route path="/compliance/alertas" element={<CompliancePainelPage />} />
                     </Route>
 
                     {/* Encerramento de Grupo exclusivo para ADMIN */}

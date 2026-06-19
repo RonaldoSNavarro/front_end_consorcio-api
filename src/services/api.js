@@ -429,5 +429,47 @@ export const api = {
       if (!response.ok) throw await handleResponseError(response, "Erro ao registrar contemplação na API.");
       return response.json();
     }
+  },
+  
+  // --- COMPLIANCE (PLD/FT) ---
+  compliance: {
+    sincronizar: async () => {
+      if (isMockMode) return mockDb.compliance.sincronizar();
+      const response = await fetchApi(`${BASE_URL}/api/compliance/sincronizar`, {
+        method: 'POST'
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao iniciar a sincronização.");
+      return true; // 202 Accepted
+    },
+    listarAlertas: async (status = '', origemLista = '') => {
+      if (isMockMode) {
+        const content = mockDb.compliance.listarAlertas();
+        // Filtros básicos no mock
+        let filtrado = content;
+        if (status) filtrado = filtrado.filter(a => a.status === status);
+        if (origemLista) filtrado = filtrado.filter(a => a.origemLista === origemLista);
+        return { content: filtrado, isMock: true };
+      }
+      
+      const params = new URLSearchParams();
+      if (status) params.append('status', status);
+      if (origemLista) params.append('origemLista', origemLista);
+      
+      const query = params.toString() ? `?${params.toString()}` : '';
+      const response = await fetchApi(`${BASE_URL}/api/compliance/alertas${query}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar alertas.");
+      const data = await response.json();
+      return { content: data, isMock: false };
+    },
+    deliberarAlerta: async (id, dto) => {
+      if (isMockMode) return mockDb.compliance.deliberarAlerta(id, dto);
+      const response = await fetchApi(`${BASE_URL}/api/compliance/alertas/${id}/deliberar`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao deliberar alerta.");
+      return true; // 200 OK
+    }
   }
 };

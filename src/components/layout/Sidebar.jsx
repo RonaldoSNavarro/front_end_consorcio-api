@@ -5,7 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { 
   Building2, LayoutDashboard, Users, Grid3X3, CircleHelp, 
   CalendarDays, ArrowUpDown, DollarSign, Clock,
-  FileText, BarChart3, Shield, LogOut, Sun, Moon, X
+  FileText, BarChart3, Shield, ShieldAlert, LogOut, Sun, Moon, X
 } from 'lucide-react';
 
 const navLinks = [
@@ -23,6 +23,7 @@ const reportLinks = [
   { to: '/relatorios/balancete', label: 'Balancete (4110)', icon: FileText, roles: ['ADMIN', 'DIRETOR'] },
   { to: '/relatorios/estatisticas', label: 'Estatísticas (2080)', icon: BarChart3 },
   { to: '/relatorios/pld-ft', label: 'Monitoramento PLD/FT', icon: Shield, roles: ['ADMIN', 'DIRETOR'] },
+  { to: '/compliance/alertas', label: 'Listas Restritivas (PLD)', icon: ShieldAlert, roles: ['ADMIN', 'COMPLIANCE'] },
 ];
 
 export const Sidebar = ({ onClose }) => {
