@@ -204,36 +204,30 @@ export const api = {
       if (!response.ok) throw await handleResponseError(response, "Erro ao obter saldo atual do grupo na API.");
       return response.json();
     },
-    // --- RELATÓRIOS BCB ---
-    relatorios: {
-      balancete: async (grupoId, dataReferencia) => {
-        if (isMockMode) {
-          // mock data placeholder
-          return { dataReferencia: dataReferencia || new Date().toISOString().split('T')[0], contas: [] };
-        }
-        const url = dataReferencia ? `${BASE_URL}/api/relatorios/balancete/${grupoId}?dataReferencia=${dataReferencia}` : `${BASE_URL}/api/relatorios/balancete/${grupoId}`;
-        const response = await fetchApi(url);
-        if (!response.ok) throw await handleResponseError(response, "Erro ao gerar balancete.");
-        return response.json();
-      },
-      estatisticas: async (grupoId, dataInicio, dataFim) => {
-        if (isMockMode) {
-          return { dataInicio, dataFim, resumo: {} };
-        }
-        const url = `${BASE_URL}/api/relatorios/estatisticas/${grupoId}?dataInicio=${dataInicio}&dataFim=${dataFim}`;
-        const response = await fetchApi(url);
-        if (!response.ok) throw await handleResponseError(response, "Erro ao gerar estatísticas.");
-        return response.json();
-      },
-      pldFt: async (dataInicio, dataFim) => {
-        if (isMockMode) {
-          return [];
-        }
-        const url = `${BASE_URL}/api/relatorios/pld-ft?dataInicio=${dataInicio}&dataFim=${dataFim}`;
-        const response = await fetchApi(url);
-        if (!response.ok) throw await handleResponseError(response, "Erro ao buscar alertas PLD/FT.");
-        return response.json();
-      }
+  },
+
+  // --- RELATÓRIOS ---
+  relatorios: {
+    balancete: async (grupoId, dataReferencia) => {
+      if (isMockMode) return mockDb.relatorios.getBalancete(grupoId, dataReferencia);
+      const url = dataReferencia ? `${BASE_URL}/api/relatorios/balancete/${grupoId}?dataReferencia=${dataReferencia}` : `${BASE_URL}/api/relatorios/balancete/${grupoId}`;
+      const response = await fetchApi(url);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao gerar balancete.");
+      return response.json();
+    },
+    estatisticas: async (grupoId, dataInicio, dataFim) => {
+      if (isMockMode) return mockDb.relatorios.getEstatisticas(grupoId, dataInicio, dataFim);
+      const url = `${BASE_URL}/api/relatorios/estatisticas/${grupoId}?dataInicio=${dataInicio}&dataFim=${dataFim}`;
+      const response = await fetchApi(url);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao gerar estatísticas.");
+      return response.json();
+    },
+    pldFt: async (dataInicio, dataFim) => {
+      if (isMockMode) return mockDb.relatorios.getPldFt(dataInicio, dataFim);
+      const url = `${BASE_URL}/api/relatorios/pld-ft?dataInicio=${dataInicio}&dataFim=${dataFim}`;
+      const response = await fetchApi(url);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao buscar alertas PLD/FT.");
+      return response.json();
     }
   },
 

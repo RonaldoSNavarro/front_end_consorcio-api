@@ -1012,5 +1012,102 @@ export const mockDb = {
       saveDb(db);
       return novaContemplacao;
     }
+  },
+  
+  // === RELATÓRIOS (PLD/FT, BALANCETE, ESTATÍSTICAS) ===
+  relatorios: {
+    getPldFt: (dataInicio, dataFim) => {
+      // Simula uma busca no banco de lances acima de 50.000 (Regra PLD/FT)
+      // Como é mock, vamos retornar dados estáticos ou filtrados levemente baseados no contrato
+      return [
+        {
+          lanceId: 1054,
+          cotaId: 98,
+          nomeConsorciado: "João da Silva",
+          cpfCnpj: "123.456.789-00",
+          valorOferta: 55000.00,
+          tipoLance: "LIVRE",
+          dataOferta: "2026-06-18T14:30:00",
+          grupoId: 12,
+          codigoGrupo: "GRUPO-XYZ"
+        },
+        {
+          lanceId: 2100,
+          cotaId: 15,
+          nomeConsorciado: "Empresa Laranja ME",
+          cpfCnpj: "00.000.000/0001-91",
+          valorOferta: 120000.00,
+          tipoLance: "LIVRE",
+          dataOferta: "2026-06-19T09:15:00",
+          grupoId: 2,
+          codigoGrupo: "GRP-IMOVEL-010"
+        }
+      ];
+    },
+    getBalancete: (grupoId, dataReferencia) => {
+      const db = getDb();
+      const grupo = db.grupos.find(g => g.id === Number(grupoId));
+      if (!grupo) throw new Error("Grupo não encontrado para o balancete.");
+      
+      const financeiro = mockDb.grupos.obterFinanceiro(grupoId);
+      
+      return {
+        grupoId: grupo.id,
+        codigoGrupo: grupo.codigo,
+        dataReferencia: dataReferencia || new Date().toISOString().split('T')[0],
+        contas: [
+          {
+            codigoCosif: "2.1.2.10.10-6",
+            nome: "Disponibilidades (Fundo Comum)",
+            natureza: "DEVEDORA",
+            saldo: financeiro.saldoDisponivelFundoComum
+          },
+          {
+            codigoCosif: "3.1.1.20.10-4",
+            nome: "Taxa de Administração Arrecadada",
+            natureza: "CREDORA",
+            saldo: financeiro.taxaAdministracaoArrecadada
+          },
+          {
+            codigoCosif: "2.1.2.10.20-9",
+            nome: "Fundo de Reserva",
+            natureza: "CREDORA",
+            saldo: financeiro.fundoReservaArrecadado
+          }
+        ]
+      };
+    },
+    getEstatisticas: (grupoId, dataInicio, dataFim) => {
+      const db = getDb();
+      const grupo = db.grupos.find(g => g.id === Number(grupoId));
+      if (!grupo) throw new Error("Grupo não encontrado.");
+      
+      const cotasDoGrupo = db.cotas.filter(c => c.grupoId === grupo.id);
+      const totalAdesoes = cotasDoGrupo.length;
+      const totalExclusoes = cotasDoGrupo.filter(c => c.status === "CANCELADA").length;
+      
+      const contemplacoesGrupo = db.contemplacoes.filter(c => cotasDoGrupo.some(cota => cota.id === c.cotaId));
+      const totalContemplacoesSorteio = contemplacoesGrupo.filter(c => c.tipoContemplacao === "SORTEIO").length;
+      const totalContemplacoesLance = contemplacoesGrupo.filter(c => c.tipoContemplacao === "LANCE_LIVRE" || c.tipoContemplacao === "LANCE_FIXO").length;
+      
+      // Lances mockados
+      const totalLancesOfertados = totalContemplacoesLance * 3 + 5; // Fake number para o mock
+      
+      const financeiro = mockDb.grupos.obterFinanceiro(grupoId);
+
+      return {
+        grupoId: grupo.id,
+        codigoGrupo: grupo.codigo,
+        dataInicio: dataInicio,
+        dataFim: dataFim,
+        totalAdesoes,
+        totalExclusoes,
+        totalLancesOfertados,
+        totalLancesVencedores: totalContemplacoesLance,
+        totalContemplacoesSorteio,
+        totalContemplacoesLance,
+        valorTotalCreditosLiberados: financeiro.creditosPagos
+      };
+    }
   }
 };
