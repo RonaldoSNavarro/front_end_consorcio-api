@@ -44,7 +44,7 @@ Nossa malha de formulários e exibições garante total aderência contábil e d
 ## 📑 SDD (Spec-Driven Development) & Capabilities
 
 O projeto é guiado estritamente por especificações de UI (`docs/specs/`) vinculadas aos contratos de API do backend. 
-Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 9 capabilities (`IMPLEMENTED v1.0`):
+Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 11 capabilities (`IMPLEMENTED v1.0`):
 1. Autenticação e Sessão (com F5-Safety)
 2. Gestão de Assembleias
 3. Composição de Fundos e Parcelas
@@ -55,9 +55,10 @@ Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 9 capabi
 8. Restituição de Excluídos
 9. Reajustes e Encerramento
 10. Relatórios (PLD/FT, Balancete e Estatísticas)
+11. Compliance e Listas Restritivas (PLD/FT)
 
 **Em Andamento:**
-* (Nenhuma capability no momento. Todas as 10 capabilities essenciais foram implementadas.)
+* (Nenhuma capability no momento. Todas as 11 capabilities essenciais foram implementadas.)
 
 ---
 
@@ -109,4 +110,4 @@ A aplicação conta com validação automatizada contínua por meio de Vitest, c
 *   **TanStack Hooks**: Validação de cache, queries e mutações em modo simulação.
 *   **Integração do DOM**: Testes em `App.test.jsx` cobrindo o fluxo de login e criação de clientes.
 
-Todos os **37 testes integrados** passam com 100% de sucesso.
+Todos os **44 testes integrados** passam com 100% de sucesso.
