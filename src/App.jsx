@@ -61,8 +61,8 @@ export default function App() {
                     {/* Relatório de Estatísticas (Doc 2080) - Aberto para todos os perfis */}
                     <Route path="/relatorios/estatisticas" element={<RelatorioEstatisticasPage />} />
                     
-                    {/* Relatórios do BCB exclusivos para ADMIN e DIRETOR */}
-                    <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'DIRETOR']} />}>
+                    {/* Relatórios do BCB exclusivos para ADMIN e AUDITOR */}
+                    <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'AUDITOR']} />}>
                       <Route path="/relatorios/balancete" element={<RelatorioBalancetePage />} />
                       <Route path="/relatorios/pld-ft" element={<RelatorioPldFtPage />} />
                     </Route>

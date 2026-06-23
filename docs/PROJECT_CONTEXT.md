@@ -33,9 +33,9 @@ Este documento descreve o estado atual do frontend, a stack de referência, as A
 | Reembolsos Excluídos | `ReembolsosExcluidosPage.jsx` | `/reembolsos-excluidos` | 🔒 Autenticado |
 | Financeiro | `FinanceiroPage.jsx` | `/financeiro` | 🔒 Autenticado |
 | Encerrar Grupo | `EncerrarGrupoPage.jsx` | `/grupos/:id/encerrar` | 🔒 ADMIN |
-| Relatório Balancete | `RelatorioBalancetePage.jsx` | `/relatorios/balancete` | 🔒 ADMIN, DIRETOR |
+| Relatório Balancete | `RelatorioBalancetePage.jsx` | `/relatorios/balancete` | 🔒 ADMIN, AUDITOR |
 | Relatório Estatísticas | `RelatorioEstatisticasPage.jsx` | `/relatorios/estatisticas` | 🔒 Autenticado |
-| Relatório PLD/FT | `RelatorioPldFtPage.jsx` | `/relatorios/pld-ft` | 🔒 ADMIN, DIRETOR |
+| Relatório PLD/FT | `RelatorioPldFtPage.jsx` | `/relatorios/pld-ft` | 🔒 ADMIN, AUDITOR |
 
 ### Componentes (9)
 

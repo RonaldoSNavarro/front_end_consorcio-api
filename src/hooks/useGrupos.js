@@ -90,29 +90,4 @@ export function useGrupoSaldo(grupoId) {
   });
 }
 
-/**
- * Hooks para Relatórios do Banco Central (BCB) e PLD/FT
- */
-export function useRelatorioBalancete(grupoId, dataReferencia) {
-  return useQuery({
-    queryKey: ['relatorios', 'balancete', grupoId, dataReferencia],
-    queryFn: () => api.grupos.relatorios.balancete(grupoId, dataReferencia),
-    enabled: !!grupoId,
-  });
-}
 
-export function useRelatorioEstatisticas(grupoId, dataInicio, dataFim) {
-  return useQuery({
-    queryKey: ['relatorios', 'estatisticas', grupoId, dataInicio, dataFim],
-    queryFn: () => api.grupos.relatorios.estatisticas(grupoId, dataInicio, dataFim),
-    enabled: !!grupoId && !!dataInicio && !!dataFim,
-  });
-}
-
-export function useRelatorioPldFt(dataInicio, dataFim) {
-  return useQuery({
-    queryKey: ['relatorios', 'pldFt', dataInicio, dataFim],
-    queryFn: () => api.grupos.relatorios.pldFt(dataInicio, dataFim),
-    enabled: !!dataInicio && !!dataFim,
-  });
-}

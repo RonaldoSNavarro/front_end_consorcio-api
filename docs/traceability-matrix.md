@@ -98,14 +98,26 @@
 
 ---
 
+## compliance — Compliance e Listas Restritivas (PLD/FT)
+
+| REQ-ID | Regra | Componente(s) JSX | Hook TanStack | Schema Zod | Teste |
+|--------|-------|-------------------|---------------|-----------|-------|
+| REQ-COMP-002 | Sincronização Manual | `CompliancePainelPage.jsx` | useMutation (sincronizar) | — | `CompliancePainelPage.test.jsx` |
+| REQ-COMP-003 | Coleta Renda/Patrimônio | `ClienteForm.jsx` | — | clienteSchema | `schemas.test.js`, `App.test.jsx` |
+| REQ-COMP-005 | Painel e Deliberação | `CompliancePainelPage.jsx` | useQuery (alertas), useMutation (deliberar) | — | `CompliancePainelPage.test.jsx` |
+
+---
+
 ## ⚠️ Cobertura de Testes
 
 | Métrica | Valor |
 |---------|-------|
-| Total de REQ-IDs rastreados | 25 |
-| REQ-IDs com componente mapeado | 25/25 (100%) |
-| REQ-IDs com hook TanStack mapeado | 18/25 (72%) |
-| REQ-IDs com schema Zod mapeado | 8/25 (32%) |
-| REQ-IDs com teste Vitest | 0/25 (0%) ⚠️ |
+| Total de REQ-IDs rastreados | 28 |
+| REQ-IDs com componente mapeado | 28/28 (100%) |
+| REQ-IDs com hook TanStack mapeado | 20/28 (71%) |
+| REQ-IDs com schema Zod mapeado | 9/28 (32%) |
+| REQ-IDs com teste Vitest | 3/28 (10%) |
+
+> **Nota**: A cobertura de testes automatizados está sendo progressivamente expandida. A capabilidade de Compliance está 100% coberta por testes no frontend.
 
 > **Nota**: A cobertura de testes é o próximo passo a ser endereçado na próxima sprint. Os hooks e schemas ainda não extraídos estão marcados nas `tasks.md` de cada capability.

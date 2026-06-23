@@ -23,7 +23,12 @@ export function useAuthSource() {
         // Modo Mock: JWT mantido apenas em memory state (não persistido)
         // Ao atualizar a página, será necessário autenticar novamente.
       } else {
-        setToken('cookie_managed');
+        try {
+          await api.obterUsuarioLogado();
+          setToken('cookie_managed');
+        } catch {
+          setToken(null);
+        }
       }
       setIsDetecting(false);
     };

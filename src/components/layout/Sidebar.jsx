@@ -20,9 +20,9 @@ const navLinks = [
 ];
 
 const reportLinks = [
-  { to: '/relatorios/balancete', label: 'Balancete (4110)', icon: FileText, roles: ['ADMIN', 'DIRETOR'] },
+  { to: '/relatorios/balancete', label: 'Balancete (4110)', icon: FileText, roles: ['ADMIN', 'AUDITOR'] },
   { to: '/relatorios/estatisticas', label: 'Estatísticas (2080)', icon: BarChart3 },
-  { to: '/relatorios/pld-ft', label: 'Monitoramento PLD/FT', icon: Shield, roles: ['ADMIN', 'DIRETOR'] },
+  { to: '/relatorios/pld-ft', label: 'Monitoramento PLD/FT', icon: Shield, roles: ['ADMIN', 'AUDITOR'] },
   { to: '/compliance/alertas', label: 'Listas Restritivas (PLD)', icon: ShieldAlert, roles: ['ADMIN', 'COMPLIANCE'] },
 ];
 
@@ -141,7 +141,7 @@ export const Sidebar = ({ onClose }) => {
               {user?.nome || 'Ronaldo Navarro'}
             </h4>
             <p className="text-[0.65rem] text-slate-400 dark:text-slate-500">
-              {user?.role === 'ADMIN' ? 'Administrador' : user?.role === 'DIRETOR' ? 'Diretor' : 'Operador'}
+              {user?.role === 'ADMIN' ? 'Administrador' : user?.role === 'AUDITOR' ? 'Auditor' : user?.role === 'COMPLIANCE' ? 'Compliance' : 'Operador'}
             </p>
           </div>
           <button 

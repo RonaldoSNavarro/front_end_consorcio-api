@@ -47,7 +47,7 @@ Este documento define os princípios fundamentais, regras inegociáveis e padrõ
 
 1. **Gestão de Sessão Segura**: O JWT de autenticação é gerenciado exclusivamente via cookies HTTP seguros (`HttpOnly = true`, `SameSite = Strict`, `Secure = true` em produção). O frontend **NUNCA** deve persistir tokens no LocalStorage.
 2. **F5-Safety (ADR 007)**: Ao recarregar a página, o `AuthContext` deve validar a sessão ativamente via `GET /api/login/me` em vez de ler tokens do `localStorage`.
-3. **RBAC (Role-Based Access Control)**: Rotas protegidas devem verificar o perfil do usuário (`ROLE_OPERADOR`, `ROLE_ADMIN`, `ROLE_DIRETOR`) antes de renderizar. Acesso negado redireciona para `/dashboard`.
+3. **RBAC (Role-Based Access Control)**: Rotas protegidas devem verificar o perfil do usuário (`ROLE_OPERADOR`, `ROLE_ADMIN`, `ROLE_AUDITOR`, `ROLE_COMPLIANCE`) antes de renderizar. Acesso negado redireciona para `/dashboard`.
 4. **Prevenção de XSS**: Sanitização de inputs via schemas Zod. Nunca usar `dangerouslySetInnerHTML` sem sanitização explícita.
 5. **LGPD**: Dados sensíveis do consorciado (CPF, endereço, renda) nunca devem aparecer em `console.log`, `console.error` ou logs de desenvolvimento em produção.
 

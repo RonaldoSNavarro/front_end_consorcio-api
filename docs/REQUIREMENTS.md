@@ -19,6 +19,7 @@ Cada capability do backend possui sua especificação de UI isolada no frontend,
 | 7 | Seguros (seguros) | [ui-spec.md](specs/seguros/ui-spec.md) | [spec.md](../../consorcio-api/docs/specs/seguros/spec.md) | [api-contract.md](../../consorcio-api/docs/specs/seguros/api-contract.md) | `FinanceiroPage` |
 | 8 | Restituição de Excluídos (excluidos) | [ui-spec.md](specs/excluidos/ui-spec.md) | [spec.md](../../consorcio-api/docs/specs/excluidos/spec.md) | [api-contract.md](../../consorcio-api/docs/specs/excluidos/api-contract.md) | `ReembolsosExcluidosPage`, `CotasPage` |
 | 9 | Reajustes e Encerramento (encerramento) | [ui-spec.md](specs/encerramento/ui-spec.md) | [spec.md](../../consorcio-api/docs/specs/encerramento/spec.md) | [api-contract.md](../../consorcio-api/docs/specs/encerramento/api-contract.md) | `EncerrarGrupoPage`, `GruposPage` |
+| 10 | Compliance e Listas Restritivas (compliance) | [ui-spec.md](specs/compliance/ui-spec.md) | [spec.md](../../consorcio-api/docs/specs/compliance/spec.md) | [api-contract.md](../../consorcio-api/docs/specs/compliance/api-contract.md) | `CompliancePainelPage` |
 
 ---
 
@@ -38,6 +39,7 @@ O frontend não mantém entidades persistidas, mas consome os DTOs de resposta d
 | `Lance` | `LanceResponseDTO` | `AssembleiasPage`, `LancesPendentesPage` |
 | `Contemplacao` | `ContemplacaoResponseDTO` | `AssembleiasPage`, `LancesPendentesPage` |
 | `LancamentoContabil` | `LancamentoContabilResponseDTO` | `FinanceiroPage`, `RelatorioBalancetePage` |
+| `AlertaCompliance` | `AlertaComplianceResponseDTO` | `CompliancePainelPage` |
 
 ---
 
@@ -77,5 +79,5 @@ O projeto utiliza as paletas nativas do Tailwind com suporte a `dark mode: class
 | `/assembleias`, `/lances-pendentes`, `/financeiro` | 🔒 Autenticado | `ProtectedRoute` |
 | `/reembolsos-excluidos` | 🔒 Autenticado | `ProtectedRoute` |
 | `/relatorios/estatisticas` | 🔒 Autenticado | `ProtectedRoute` |
-| `/relatorios/balancete`, `/relatorios/pld-ft` | 🔒 ADMIN, DIRETOR | `ProtectedRoute(allowedRoles)` |
+| `/relatorios/balancete`, `/relatorios/pld-ft` | 🔒 ADMIN, AUDITOR | `ProtectedRoute(allowedRoles)` |
 | `/grupos/:id/encerrar` | 🔒 ADMIN | `ProtectedRoute(allowedRoles)` |
