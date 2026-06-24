@@ -110,4 +110,4 @@ A aplicação conta com validação automatizada contínua por meio de Vitest, c
 *   **TanStack Hooks**: Validação de cache, queries e mutações em modo simulação.
 *   **Integração do DOM**: Testes em `App.test.jsx` cobrindo o fluxo de login e criação de clientes.
 
-Todos os **44 testes integrados** passam com 100% de sucesso.
+Todos os **47 testes integrados** passam com 100% de sucesso.
