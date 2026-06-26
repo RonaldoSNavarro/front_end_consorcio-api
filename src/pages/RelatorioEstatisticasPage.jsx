@@ -1,6 +1,7 @@
 import React from 'react';
 import { useToast } from '../context/ToastContext';
 import { BarChart3, Download, UserPlus, UserMinus, Tags, Trophy, Calendar, Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { estatisticasFiltroSchema } from '../schemas/relatoriosSchema';
@@ -157,6 +158,49 @@ export const RelatorioEstatisticasPage = () => {
               </div>
             </div>
           </div>
+
+          {/* GRÁFICOS */}
+          {detalhes.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="glass-panel p-6">
+                <h3 className="font-title font-bold text-base text-slate-800 dark:text-slate-200 mb-6">Adesões vs Exclusões</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={detalhes}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} vertical={false} />
+                      <XAxis dataKey="mesAno" tick={{fontSize: 10}} tickMargin={10} axisLine={false} tickLine={false} />
+                      <YAxis tick={{fontSize: 10}} axisLine={false} tickLine={false} />
+                      <Tooltip 
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
+                        cursor={{ fill: 'transparent' }}
+                      />
+                      <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                      <Bar dataKey="adesoes" name="Adesões" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                      <Bar dataKey="exclusoes" name="Exclusões" fill="#f43f5e" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="glass-panel p-6">
+                <h3 className="font-title font-bold text-base text-slate-800 dark:text-slate-200 mb-6">Evolução do Valor Total de Lances</h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={detalhes}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} vertical={false} />
+                      <XAxis dataKey="mesAno" tick={{fontSize: 10}} tickMargin={10} axisLine={false} tickLine={false} />
+                      <YAxis tickFormatter={(val) => `R$ ${(val/1000).toFixed(0)}k`} tick={{fontSize: 10}} axisLine={false} tickLine={false} />
+                      <Tooltip 
+                        formatter={(value) => `R$ ${value.toLocaleString('pt-BR')}`}
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
+                      />
+                      <Line type="monotone" dataKey="valorTotalLances" name="Valor Lances" stroke="#f59e0b" strokeWidth={3} dot={{r: 4, strokeWidth: 2}} activeDot={{r: 6}} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* TABELA DETALHADA */}
           <div className="glass-panel table-container">

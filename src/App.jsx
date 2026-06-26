@@ -23,6 +23,8 @@ import { RelatorioBalancetePage } from './pages/RelatorioBalancetePage';
 import { RelatorioEstatisticasPage } from './pages/RelatorioEstatisticasPage';
 import { RelatorioPldFtPage } from './pages/RelatorioPldFtPage';
 import { CompliancePainelPage } from './pages/CompliancePainelPage';
+import { TiposDeVendaPage } from './pages/TiposDeVendaPage';
+import { VendaPropostaPage } from './pages/VendaPropostaPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -70,6 +72,12 @@ export default function App() {
                     {/* Compliance (Listas Restritivas) exclusivo para ADMIN e COMPLIANCE */}
                     <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'COMPLIANCE']} />}>
                       <Route path="/compliance/alertas" element={<CompliancePainelPage />} />
+                    </Route>
+
+                    {/* Módulo de Vendas */}
+                    <Route path="/vendas/proposta" element={<VendaPropostaPage />} />
+                    <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'GERENTE']} />}>
+                      <Route path="/vendas/tipos" element={<TiposDeVendaPage />} />
                     </Route>
 
                     {/* Encerramento de Grupo exclusivo para ADMIN */}

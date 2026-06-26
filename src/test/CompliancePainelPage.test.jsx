@@ -43,11 +43,11 @@ describe('CompliancePainelPage', () => {
   it('deve renderizar a página de compliance com título e botões', async () => {
     render(<CompliancePainelPage />, { wrapper: createTestWrapper() });
 
-    expect(screen.getByText('Gestão de Alertas PLD/FT')).toBeInTheDocument();
+    expect(await screen.findByText('Ronaldo Navarro')).toBeInTheDocument();
+    expect(screen.getByText('Gestão de Compliance e PLD/FT')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Sincronizar Bases/i })).toBeInTheDocument();
 
     // Deve listar os alertas mockados iniciais do mockDb
-    expect(await screen.findByText('Ronaldo Navarro')).toBeInTheDocument();
     expect(screen.getByText('Ana Maria Souza')).toBeInTheDocument();
     expect(screen.getByText('OFAC')).toBeInTheDocument();
     expect(screen.getByText('PEP')).toBeInTheDocument();
@@ -172,6 +172,102 @@ describe('CompliancePainelPage', () => {
     await waitFor(() => {
       expect(spySincronizar).toHaveBeenCalled();
       expect(mockTriggerToast).toHaveBeenCalledWith('Sincronização iniciada em background com sucesso.', 'success');
+    });
+  });
+
+  it('deve alternar entre as abas corretamente', async () => {
+    render(<CompliancePainelPage />, { wrapper: createTestWrapper() });
+
+    // Padrão: aba de Alertas
+    expect(await screen.findByText('Ronaldo Navarro')).toBeInTheDocument();
+
+    // Clica na aba de Importação de Listas
+    const tabUpload = screen.getByRole('tab', { name: /Importar Listas/i });
+    fireEvent.click(tabUpload);
+
+    expect(screen.getByText('Lista PEP (CSV)')).toBeInTheDocument();
+    expect(screen.getByText('Lista ONU (XML)')).toBeInTheDocument();
+    expect(screen.getByText('Lista IBGE (XLS/XLSX)')).toBeInTheDocument();
+
+    // Clica na aba de Agendamento
+    const tabConfig = screen.getByRole('tab', { name: /Agendamento de Job/i });
+    fireEvent.click(tabConfig);
+
+    expect(await screen.findByText('Configurar Processamento Automático')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Frequência de Execução/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Horário de Disparo/i)).toBeInTheDocument();
+  });
+
+  it('deve validar extensões e fazer upload de arquivos com sucesso', async () => {
+    const spyUploadPep = vi.spyOn(api.compliance, 'uploadPep').mockResolvedValue({
+      mensagem: "Arquivo PEP processado com sucesso. 1500 registros inseridos/atualizados."
+    });
+
+    render(<CompliancePainelPage />, { wrapper: createTestWrapper() });
+
+    const tabUpload = screen.getByRole('tab', { name: /Importar Listas/i });
+    fireEvent.click(tabUpload);
+
+    const inputPep = screen.getByLabelText(/Upload de arquivo para Lista PEP/i);
+
+    // Upload de tipo incorreto
+    const invalidFile = new File(['dummy content'], 'test.pdf', { type: 'application/pdf' });
+    fireEvent.change(inputPep, { target: { files: [invalidFile] } });
+
+    expect(mockTriggerToast).toHaveBeenCalledWith('Extensão de arquivo inválida. Esperado: .csv', 'danger');
+
+    // Upload correto
+    const validFile = new File(['cpf;nome\n11122233344;Test Pep'], 'pep.csv', { type: 'text/csv' });
+    fireEvent.change(inputPep, { target: { files: [validFile] } });
+
+    // O arquivo deve estar selecionado
+    expect(screen.getByText('pep.csv')).toBeInTheDocument();
+
+    // Clica no botão "Enviar Arquivo" da seção PEP
+    const btnEnviar = screen.getAllByRole('button', { name: /Enviar Arquivo/i })[0];
+    fireEvent.click(btnEnviar);
+
+    await waitFor(() => {
+      expect(spyUploadPep).toHaveBeenCalledWith(validFile);
+      expect(mockTriggerToast).toHaveBeenCalledWith('Arquivo PEP processado com sucesso. 1500 registros inseridos/atualizados.', 'success');
+      expect(screen.getByText('Arquivo PEP processado com sucesso. 1500 registros inseridos/atualizados.')).toBeInTheDocument();
+    });
+  });
+
+  it('deve carregar a configuração e salvar novas alterações com sucesso', async () => {
+    const spyUpdateConfig = vi.spyOn(api.compliance, 'updateConfig').mockResolvedValue({
+      cronExpression: "0 30 4 1 * *",
+      frequencia: "MENSAL",
+      horario: "04:30",
+      dataAtualizacao: new Date().toISOString()
+    });
+
+    render(<CompliancePainelPage />, { wrapper: createTestWrapper() });
+
+    const tabConfig = screen.getByRole('tab', { name: /Agendamento de Job/i });
+    fireEvent.click(tabConfig);
+
+    // Verifica que a configuração padrão carregou do mockDb (DIARIO e 03:00)
+    const selectFreq = await screen.findByLabelText(/Frequência de Execução/i);
+    const inputHora = screen.getByLabelText(/Horário de Disparo/i);
+
+    expect(selectFreq.value).toBe('DIARIO');
+    expect(inputHora.value).toBe('03:00');
+
+    // Altera valores
+    fireEvent.change(selectFreq, { target: { value: 'MENSAL' } });
+    fireEvent.change(inputHora, { target: { value: '04:30' } });
+
+    // Salva
+    const btnSalvar = screen.getByRole('button', { name: /Salvar Configuração/i });
+    fireEvent.click(btnSalvar);
+
+    await waitFor(() => {
+      expect(spyUpdateConfig).toHaveBeenCalledWith({
+        frequencia: 'MENSAL',
+        horario: '04:30'
+      });
+      expect(mockTriggerToast).toHaveBeenCalledWith('Configuração de agendamento atualizada com sucesso.', 'success');
     });
   });
 });

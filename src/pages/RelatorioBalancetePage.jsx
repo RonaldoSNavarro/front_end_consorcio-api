@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useToast } from '../context/ToastContext';
 import { FileText, Download, AlertTriangle, CheckCircle2, TrendingUp, TrendingDown, Activity, Loader2 } from 'lucide-react';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { balanceteFiltroSchema } from '../schemas/relatoriosSchema';
@@ -189,6 +190,49 @@ export const RelatorioBalancetePage = () => {
               </div>
             </div>
           </div>
+
+          {/* GRÁFICO DE ROSCA */}
+          {(quadratura.totalAtivo > 0 || quadratura.totalPassivo > 0 || quadratura.totalResultado > 0) && (
+            <div className="glass-panel p-6">
+              <h3 className="font-title font-bold text-base text-slate-800 dark:text-slate-200 mb-6 flex items-center justify-center">
+                Distribuição Contábil
+              </h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Ativo', value: quadratura.totalAtivo, color: '#10b981' },
+                        { name: 'Passivo', value: quadratura.totalPassivo, color: '#f43f5e' },
+                        { name: 'Resultado', value: quadratura.totalResultado, color: '#3b82f6' }
+                      ].filter(d => d.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {
+                        [
+                          { name: 'Ativo', value: quadratura.totalAtivo, color: '#10b981' },
+                          { name: 'Passivo', value: quadratura.totalPassivo, color: '#f43f5e' },
+                          { name: 'Resultado', value: quadratura.totalResultado, color: '#3b82f6' }
+                        ].filter(d => d.value > 0).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(255,255,255,0.1)" strokeWidth={2} />
+                        ))
+                      }
+                    </Pie>
+                    <RechartsTooltip 
+                      formatter={(value) => formatCurrency(value)}
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
 
           {/* TABELA AGRUPADA POR TIPO COSIF */}
           {['ATIVO', 'PASSIVO', 'RESULTADO'].map((tipo) => (

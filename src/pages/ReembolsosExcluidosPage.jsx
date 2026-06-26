@@ -1,38 +1,55 @@
 import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
-import { Undo2, Info, Calculator, Scale, AlertTriangle, Inbox, Check, X } from 'lucide-react';
-
-const MOCK_REEMBOLSOS = [
-  { id: 801, cotaNumero: "078", grupoCodigo: "GRP-03", clienteNome: "Juliana Mendes Ramos", clienteCpfCnpj: "402.193.847-12", percentualFundoComumPago: 40.00, valorHistoricoPago: 18000.00, valorBemReferenciaAGO: 60000.00, dataContemplacaoAGO: "2026-06-08", numeroAssembleiaAGO: "AGO-35", status: "PENDENTE_PROCESSAMENTO" },
-  { id: 802, cotaNumero: "142", grupoCodigo: "GRP-03", clienteNome: "Auto Posto Aliança Ltda", clienteCpfCnpj: "12.345.678/0001-00", percentualFundoComumPago: 15.50, valorHistoricoPago: 9300.00, valorBemReferenciaAGO: 65000.00, dataContemplacaoAGO: "2026-06-08", numeroAssembleiaAGO: "AGO-35", status: "PENDENTE_PROCESSAMENTO" },
-  { id: 805, cotaNumero: "219", grupoCodigo: "GRP-05", clienteNome: "Marcos Paulo Ferreira", clienteCpfCnpj: "089.432.111-50", percentualFundoComumPago: 70.00, valorHistoricoPago: 70000.00, valorBemReferenciaAGO: 110000.00, dataContemplacaoAGO: "2026-06-02", numeroAssembleiaAGO: "AGO-24", status: "PENDENTE_PROCESSAMENTO" }
-];
+import { Undo2, Info, Calculator, Scale, AlertTriangle, Inbox, Check, X, RefreshCw, Loader2 } from 'lucide-react';
 
 export const ReembolsosExcluidosPage = () => {
   const { triggerToast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedReembolso, setSelectedReembolso] = useState(null);
   const [showPayModal, setShowPayModal] = useState(false);
   const [showCalculationModal, setShowCalculationModal] = useState(false);
-  
-  const [simulatedState, setSimulatedState] = useState({ isLoading: false, isError: false, isEmpty: false, data: MOCK_REEMBOLSOS });
 
-  const calcularValoresReembolso = (item) => {
-    if (!item) return { valorBruto: 0, multa: 0, valorLiquido: 0 };
-    const valorBruto = (item.percentualFundoComumPago / 100) * item.valorBemReferenciaAGO;
-    const multa = valorBruto * 0.10;
-    const valorLiquido = valorBruto - multa;
-    return { valorBruto, multa, valorLiquido };
+  const { data: cotasData, isLoading, isError, refetch } = useQuery({
+    queryKey: ['cotasCanceladas'],
+    queryFn: async () => {
+      const result = await api.cotas.listarPendentesReembolso();
+      return result.content || result || [];
+    },
+  });
+
+  const reembolsarMutation = useMutation({
+    mutationFn: (id) => api.cotas.reembolsar(id),
+    onSuccess: (data) => {
+      const d = data?.data || data;
+      const valorLiq = d?.valorReembolsado
+        ? `R$ ${Number(d.valorReembolsado).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+        : '';
+      triggerToast(`Reembolso processado com sucesso! ${valorLiq ? `Valor líquido: ${valorLiq}` : ''}`, 'success');
+      queryClient.invalidateQueries({ queryKey: ['cotasCanceladas'] });
+      setShowPayModal(false);
+      setSelectedReembolso(null);
+    },
+    onError: (err) => triggerToast(err.message, 'danger'),
+  });
+
+  const simulatedState = {
+    isLoading,
+    isError,
+    isEmpty: !isLoading && !isError && (!cotasData || cotasData.length === 0),
+    data: cotasData || [],
   };
+
 
   const handlePayClick = (reembolso) => { setSelectedReembolso(reembolso); setShowPayModal(true); };
   const handleCalculationClick = (reembolso) => { setSelectedReembolso(reembolso); setShowCalculationModal(true); };
 
   const handlePaymentSubmit = (e) => {
     e.preventDefault();
-    const { valorLiquido } = calcularValoresReembolso(selectedReembolso);
-    triggerToast(`Reembolso da Cota ${selectedReembolso.cotaNumero} processado com sucesso! Lançamento COSIF: R$ ${valorLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} liquidado.`, "success");
-    setSimulatedState(prev => ({ ...prev, data: prev.data.filter(r => r.id !== selectedReembolso.id) }));
-    setShowPayModal(false); setSelectedReembolso(null);
+    if (selectedReembolso) {
+      reembolsarMutation.mutate(selectedReembolso.id);
+    }
   };
 
   return (
@@ -47,12 +64,10 @@ export const ReembolsosExcluidosPage = () => {
           <p className="text-sm text-slate-400 mt-1">Cálculo e processamento de reembolsos de cotas canceladas sorteadas na AGO (ADR 005).</p>
         </div>
 
-        {/* CONTROLES MOCK */}
-        <div className="flex gap-2 bg-slate-100 dark:bg-slate-800/60 p-2 rounded-lg border border-slate-200 dark:border-slate-700/50 text-xs">
-          <button onClick={() => setSimulatedState(p => ({ ...p, isLoading: !p.isLoading }))} className={`px-2 py-1 rounded transition-colors ${simulatedState.isLoading ? 'bg-brand-500 text-white' : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300'}`}>Toggle Loading</button>
-          <button onClick={() => setSimulatedState(p => ({ ...p, isError: !p.isError }))} className={`px-2 py-1 rounded transition-colors ${simulatedState.isError ? 'bg-rose-500 text-white' : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300'}`}>Toggle Error</button>
-          <button onClick={() => setSimulatedState(p => ({ ...p, isEmpty: !p.isEmpty }))} className={`px-2 py-1 rounded transition-colors ${simulatedState.isEmpty ? 'bg-amber-500 text-white' : 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300'}`}>Toggle Empty</button>
-        </div>
+        <button className="btn btn-outline flex items-center gap-2" onClick={() => refetch()} disabled={isLoading}>
+          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+          Atualizar
+        </button>
       </div>
 
       {/* COMPLIANCE ALERT */}
@@ -105,36 +120,36 @@ export const ReembolsosExcluidosPage = () => {
             </thead>
             <tbody>
               {simulatedState.data.map(item => {
-                const { valorLiquido } = calcularValoresReembolso(item);
+                const valorLiquido = item.valorLiquidoRestituicao || 0;
                 return (
                   <tr key={item.id}>
                     <td>
-                      <div className="font-bold text-slate-900 dark:text-white">{item.grupoCodigo} / Cota {item.cotaNumero}</div>
-                      <div className="text-xs font-semibold text-slate-700 dark:text-slate-300">{item.clienteNome}</div>
-                      <div className="text-[10px] font-mono text-slate-500">{item.clienteCpfCnpj}</div>
+                      <div className="font-bold text-slate-900 dark:text-white">Cota #{item.numeroCota || item.id}</div>
+                      <div className="text-xs font-semibold text-slate-700 dark:text-slate-300">{item.clienteNome || `Cliente #${item.clienteId}`}</div>
+                      <div className="text-[10px] font-mono text-slate-500">{item.cpfCnpj || item.clienteCpfCnpj || ''}</div>
                     </td>
                     <td>
-                      <div className="text-xs font-bold text-brand-600 dark:text-brand-400">{item.numeroAssembleiaAGO}</div>
-                      <div className="text-[10px] text-slate-500">{new Date(item.dataContemplacaoAGO).toLocaleDateString('pt-BR')}</div>
+                      <div className="text-xs font-bold text-brand-600 dark:text-brand-400">{item.numeroAssembleiaAGO || 'AGO-N/A'}</div>
+                      <div className="text-[10px] text-slate-500">{item.dataContemplacaoAGO ? new Date(item.dataContemplacaoAGO).toLocaleDateString('pt-BR') : '—'}</div>
                     </td>
-                    <td className="text-slate-700 dark:text-slate-300">R$ {item.valorBemReferenciaAGO.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td className="text-slate-700 dark:text-slate-300">R$ {(item.valorBemReferenciaAGO || item.valorCredito || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td>
                       <div className="flex items-center gap-2">
                         <div className="w-16 bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
-                          <div className="bg-amber-500 h-full" style={{ width: `${item.percentualFundoComumPago}%` }}></div>
+                          <div className="bg-amber-500 h-full" style={{ width: `${item.percentualFundoComumPago || 0}%` }}></div>
                         </div>
-                        <span className="font-semibold text-xs text-amber-600 dark:text-amber-500">{item.percentualFundoComumPago}%</span>
+                        <span className="font-semibold text-xs text-amber-600 dark:text-amber-500">{(item.percentualFundoComumPago || 0).toFixed(2)}%</span>
                       </div>
                     </td>
-                    <td className="text-right font-mono text-xs text-slate-500">R$ {item.valorHistoricoPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td className="text-right font-mono text-xs text-slate-500">R$ {(item.valorHistoricoPago || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td className="text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">R$ {valorLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td>
                       <div className="flex justify-center gap-2">
                         <button onClick={() => handleCalculationClick(item)} className="btn btn-outline btn-xs flex items-center gap-1" title="Visualizar Memória de Cálculo detalhada">
                           <Calculator className="w-3.5 h-3.5" /> Memória
                         </button>
-                        <button onClick={() => handlePayClick(item)} className="btn btn-primary btn-xs !bg-amber-500 hover:!bg-amber-600 !text-slate-900 !border-none flex items-center gap-1" title="Processar quitação bancária">
-                          <Undo2 className="w-3.5 h-3.5" /> Pagar Reembolso
+                        <button onClick={() => handlePayClick(item)} className="btn btn-primary btn-xs !bg-amber-500 hover:!bg-amber-600 !text-slate-900 !border-none flex items-center gap-1" title="Processar quitação bancária" disabled={reembolsarMutation.isPending}>
+                          {reembolsarMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Undo2 className="w-3.5 h-3.5" />} Pagar Reembolso
                         </button>
                       </div>
                     </td>
@@ -145,15 +160,17 @@ export const ReembolsosExcluidosPage = () => {
           </table>
           <div className="p-3 text-slate-500 text-xs flex justify-between bg-slate-50 dark:bg-slate-900/20 border-t border-slate-200 dark:border-slate-800">
             <span>Listando {simulatedState.data.length} cotas pendentes.</span>
-            <span>Total a restituir: R$ {simulatedState.data.reduce((acc, curr) => acc + calcularValoresReembolso(curr).valorLiquido, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+            <span>Total a restituir: R$ {simulatedState.data.reduce((acc, curr) => acc + (curr.valorLiquidoRestituicao || 0), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
           </div>
         </div>
       )}
 
       {/* MODAL 1: MEMÓRIA DE CÁLCULO */}
       {showCalculationModal && selectedReembolso && (() => {
-        const { valorBruto, multa, valorLiquido } = calcularValoresReembolso(selectedReembolso);
-        const diferenca = valorLiquido - selectedReembolso.valorHistoricoPago;
+        const valorBruto = selectedReembolso.valorBrutoRestituicao || 0;
+        const multa = selectedReembolso.valorMultaRestituicao || 0;
+        const valorLiquido = selectedReembolso.valorLiquidoRestituicao || 0;
+        const diferenca = valorLiquido - (selectedReembolso.valorHistoricoPago || 0);
         const isDiferencaPositiva = diferenca > 0;
         
         return (
@@ -169,21 +186,21 @@ export const ReembolsosExcluidosPage = () => {
               <div className="space-y-4 text-sm">
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700/50">
                   <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400">
-                    <div>Cota: <strong className="text-slate-900 dark:text-white">{selectedReembolso.grupoCodigo} / {selectedReembolso.cotaNumero}</strong></div>
-                    <div>Cliente: <strong className="text-slate-900 dark:text-white">{selectedReembolso.clienteNome}</strong></div>
-                    <div>AGO Contemplação: <strong className="text-slate-900 dark:text-white">{selectedReembolso.numeroAssembleiaAGO}</strong></div>
-                    <div>Data AGO: <strong className="text-slate-900 dark:text-white">{new Date(selectedReembolso.dataContemplacaoAGO).toLocaleDateString('pt-BR')}</strong></div>
+                    <div>Cota: <strong className="text-slate-900 dark:text-white">#{selectedReembolso.numeroCota || selectedReembolso.id}</strong></div>
+                    <div>Cliente: <strong className="text-slate-900 dark:text-white">{selectedReembolso.clienteNome || `Cliente #${selectedReembolso.clienteId}`}</strong></div>
+                    <div>AGO Contemplação: <strong className="text-slate-900 dark:text-white">{selectedReembolso.numeroAssembleiaAGO || 'AGO-N/A'}</strong></div>
+                    <div>Data AGO: <strong className="text-slate-900 dark:text-white">{selectedReembolso.dataContemplacaoAGO ? new Date(selectedReembolso.dataContemplacaoAGO).toLocaleDateString('pt-BR') : '—'}</strong></div>
                   </div>
                 </div>
 
                 <div className="space-y-2 text-slate-600 dark:text-slate-300">
                   <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800/50 py-1.5">
                     <span>1. Valor do Bem (Data AGO)</span>
-                    <strong className="text-slate-900 dark:text-white">R$ {selectedReembolso.valorBemReferenciaAGO.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+                    <strong className="text-slate-900 dark:text-white">R$ {(selectedReembolso.valorBemReferenciaAGO || selectedReembolso.valorCredito || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
                   </div>
                   <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800/50 py-1.5">
                     <span>2. % Fundo Comum Pago</span>
-                    <strong className="text-amber-600 dark:text-amber-500">{selectedReembolso.percentualFundoComumPago.toFixed(2)}%</strong>
+                    <strong className="text-amber-600 dark:text-amber-500">{(selectedReembolso.percentualFundoComumPago || 0).toFixed(2)}%</strong>
                   </div>
                   <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800/50 py-2 bg-slate-50 dark:bg-slate-800/30 px-2 rounded">
                     <span className="text-xs font-semibold">3. Valor Bruto (1 × 2)</span>
@@ -202,7 +219,7 @@ export const ReembolsosExcluidosPage = () => {
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg text-xs border border-slate-200 dark:border-slate-700/50 space-y-1">
                   <div className="flex justify-between text-slate-500 dark:text-slate-400">
                     <span>Valor Histórico Nominal Pago:</span>
-                    <span>R$ {selectedReembolso.valorHistoricoPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <span>R$ {(selectedReembolso.valorHistoricoPago || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between text-slate-500 dark:text-slate-400">
                     <span>Diferença pelo Reajuste Legal (Art. 30):</span>
@@ -228,7 +245,7 @@ export const ReembolsosExcluidosPage = () => {
 
       {/* MODAL 2: FORMULÁRIO DE PAGAMENTO */}
       {showPayModal && selectedReembolso && (() => {
-        const { valorLiquido } = calcularValoresReembolso(selectedReembolso);
+        const valorLiquido = selectedReembolso.valorLiquidoRestituicao || 0;
         return (
           <div className="modal-backdrop" onClick={() => { setShowPayModal(false); setSelectedReembolso(null); }}>
             <div className="w-full max-w-lg mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl" onClick={(e) => e.stopPropagation()}>
@@ -240,8 +257,8 @@ export const ReembolsosExcluidosPage = () => {
               </div>
 
               <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700/50 text-xs mb-4 grid grid-cols-2 gap-2 text-slate-600 dark:text-slate-400">
-                <div>Cota: <span className="font-semibold text-slate-900 dark:text-white">{selectedReembolso.grupoCodigo} / {selectedReembolso.cotaNumero}</span></div>
-                <div>Cliente: <span className="font-semibold text-slate-900 dark:text-white">{selectedReembolso.clienteNome}</span></div>
+                <div>Cota: <span className="font-semibold text-slate-900 dark:text-white">#{selectedReembolso.numeroCota || selectedReembolso.id}</span></div>
+                <div>Cliente: <span className="font-semibold text-slate-900 dark:text-white">{selectedReembolso.clienteNome || `Cliente #${selectedReembolso.clienteId}`}</span></div>
                 <div className="col-span-2 text-sm">Total Líquido: <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">R$ {valorLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
               </div>
 
@@ -293,8 +310,10 @@ export const ReembolsosExcluidosPage = () => {
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-                  <button type="button" onClick={() => { setShowPayModal(false); setSelectedReembolso(null); }} className="btn btn-outline">Voltar</button>
-                  <button type="submit" className="btn btn-primary !bg-amber-500 hover:!bg-amber-600 !text-slate-900 !border-none">Efetuar Quitação</button>
+                  <button type="button" onClick={() => { setShowPayModal(false); setSelectedReembolso(null); }} className="btn btn-outline" disabled={reembolsarMutation.isPending}>Voltar</button>
+                  <button type="submit" className="btn btn-primary !bg-amber-500 hover:!bg-amber-600 !text-slate-900 !border-none" disabled={reembolsarMutation.isPending}>
+                    {reembolsarMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Efetuar Quitação
+                  </button>
                 </div>
               </form>
             </div>

@@ -5,7 +5,8 @@ import { useTheme } from '../../context/ThemeContext';
 import { 
   Building2, LayoutDashboard, Users, Grid3X3, CircleHelp, 
   CalendarDays, ArrowUpDown, DollarSign, Clock,
-  FileText, BarChart3, Shield, ShieldAlert, LogOut, Sun, Moon, X
+  FileText, BarChart3, Shield, ShieldAlert, LogOut, Sun, Moon, X,
+  ShoppingCart, Tag
 } from 'lucide-react';
 
 const navLinks = [
@@ -17,6 +18,11 @@ const navLinks = [
   { to: '/lances-pendentes', label: 'Integralizar Lances', icon: ArrowUpDown },
   { to: '/reembolsos-excluidos', label: 'Reembolso Excluídos', icon: DollarSign },
   { to: '/financeiro', label: 'Amortização / Parcelas', icon: Clock },
+];
+
+const vendaLinks = [
+  { to: '/vendas/proposta', label: 'Nova Proposta', icon: ShoppingCart },
+  { to: '/vendas/tipos', label: 'Tipos de Venda', icon: Tag, roles: ['ADMIN', 'GERENTE'] },
 ];
 
 const reportLinks = [
@@ -70,6 +76,27 @@ export const Sidebar = ({ onClose }) => {
             <span>{label}</span>
           </NavLink>
         ))}
+
+        {/* Vendas Section */}
+        <div className="pt-5 pb-2 px-3">
+          <div className="flex items-center gap-2">
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700/50" />
+            <span className="text-[0.65rem] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">
+              Vendas
+            </span>
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700/50" />
+          </div>
+        </div>
+
+        {vendaLinks.map(({ to, label, icon: Icon, roles }) => {
+          if (roles && !roles.includes(user?.role)) return null;
+          return (
+            <NavLink key={to} to={to} className={linkClass} onClick={onClose}>
+              <Icon className="w-[18px] h-[18px] shrink-0" />
+              <span>{label}</span>
+            </NavLink>
+          );
+        })}
 
         {/* Relatórios BCB Section */}
         <div className="pt-5 pb-2 px-3">

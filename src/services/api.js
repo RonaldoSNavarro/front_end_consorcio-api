@@ -248,7 +248,29 @@ export const api = {
       const response = await fetchApi(`${BASE_URL}/api/cotas?size=2000`);
       if (!response.ok) throw new Error("Erro ao buscar cotas da API.");
       const data = await response.json();
-      return { content: data.content || data, isMock: false };
+      return { content: data.content, isMock: false };
+    },
+    listarPendentesReembolso: async () => {
+      if (isMockMode) {
+        // Mock fallback to old logic if mocked
+        const todas = mockDb.cotas.listar();
+        return todas.filter(c => c.status === 'CANCELADA' && !c.reembolsada).map(c => {
+          const valorBruto = ((c.percentualFundoComumPago || 0) / 100) * (c.valorBemReferenciaAGO || c.valorCredito || 0);
+          const multa = valorBruto * 0.10;
+          return {
+            ...c,
+            valorBrutoRestituicao: valorBruto,
+            valorMultaRestituicao: multa,
+            valorLiquidoRestituicao: valorBruto - multa,
+            valorHistoricoPago: c.valorHistoricoPago || 0,
+            percentualFundoComumPago: c.percentualFundoComumPago || 0,
+            valorBemReferenciaAGO: c.valorBemReferenciaAGO || c.valorCredito || 0,
+          };
+        });
+      }
+      const response = await fetchApi(`${BASE_URL}/api/cotas/canceladas/pendentes-reembolso`);
+      if (!response.ok) throw new Error("Erro ao buscar cotas canceladas elegíveis a reembolso da API.");
+      return response.json();
     },
     listarPorCliente: async (clienteId) => {
       if (isMockMode) return mockDb.cotas.listarPorCliente(clienteId);
@@ -407,6 +429,28 @@ export const api = {
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao agendar assembleia na API.");
       return response.json();
+    },
+    abrirCaptacao: async (id) => {
+      if (isMockMode) return { mensagem: 'Captação aberta (mock)' };
+      const response = await fetchApi(`${BASE_URL}/api/assembleias/${id}/abrir-captacao`, { method: 'POST' });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao abrir captação.");
+      return response.json();
+    },
+    fecharCaptacao: async (id) => {
+      if (isMockMode) return { mensagem: 'Captação fechada (mock)' };
+      const response = await fetchApi(`${BASE_URL}/api/assembleias/${id}/fechar-captacao`, { method: 'POST' });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao fechar captação.");
+      return response.json();
+    },
+    apurar: async (id, params) => {
+      if (isMockMode) return { mensagem: 'Apuração concluída (mock)', sorteioRealizado: params?.realizarSorteio || false };
+      const response = await fetchApi(`${BASE_URL}/api/assembleias/${id}/apurar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params || {})
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao apurar assembleia.");
+      return response.json();
     }
   },
 
@@ -428,6 +472,29 @@ export const api = {
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao registrar contemplação na API.");
       return response.json();
+    },
+    listarPendentesIntegralizacao: async () => {
+      if (isMockMode) return [];
+      const response = await fetchApi(`${BASE_URL}/api/contemplacoes/pendentes-integralizacao`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao buscar lances pendentes de integralização.");
+      const data = await response.json();
+      return data.content || data;
+    },
+    confirmarIntegralizacao: async (id) => {
+      if (isMockMode) return { id, status: 'AGUARDANDO_ANALISE' };
+      const response = await fetchApi(`${BASE_URL}/api/contemplacoes/lances/${id}/integralizar`, {
+        method: 'POST'
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao confirmar integralização do lance.");
+      return response.json();
+    },
+    cancelar: async (id) => {
+      if (isMockMode) return { id, status: 'CANCELADA' };
+      const response = await fetchApi(`${BASE_URL}/api/contemplacoes/lances/${id}/cancelar`, {
+        method: 'POST'
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao cancelar contemplação.");
+      return true;
     }
   },
   
@@ -439,7 +506,8 @@ export const api = {
         method: 'POST'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao iniciar a sincronização.");
-      return true; // 202 Accepted
+      // Tenta retornar JSON (ComplianceSyncResultDTO), ignora se vazio (202 sem body)
+      try { return await response.json(); } catch { return { ofacStatus: 'INICIADO_EM_BACKGROUND' }; }
     },
     listarAlertas: async (status = '', origemLista = '') => {
       if (isMockMode) {
@@ -470,6 +538,113 @@ export const api = {
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao deliberar alerta.");
       return true; // 200 OK
+    },
+    uploadPep: async (file) => {
+      if (isMockMode) return mockDb.compliance.uploadPep(file);
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetchApi(`${BASE_URL}/api/compliance/upload/pep`, {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao processar arquivo PEP.");
+      return response.json();
+    },
+    uploadOnu: async (file) => {
+      if (isMockMode) return mockDb.compliance.uploadOnu(file);
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetchApi(`${BASE_URL}/api/compliance/upload/onu`, {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao processar arquivo ONU.");
+      return response.json();
+    },
+    uploadIbge: async (file) => {
+      if (isMockMode) return mockDb.compliance.uploadIbge(file);
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetchApi(`${BASE_URL}/api/compliance/upload/ibge`, {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao processar arquivo IBGE.");
+      return response.json();
+    },
+    getConfig: async () => {
+      if (isMockMode) return mockDb.compliance.getConfig();
+      const response = await fetchApi(`${BASE_URL}/api/compliance/config`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao obter configuração de agendamento.");
+      return response.json();
+    },
+    updateConfig: async (dto) => {
+      if (isMockMode) return { ...dto };
+      const response = await fetchApi(`${BASE_URL}/api/compliance/config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao atualizar configuração de agendamento.");
+      return response.json();
+    },
+    listarExecucoes: async () => {
+      if (isMockMode) return [];
+      const response = await fetchApi(`${BASE_URL}/api/compliance/execucoes`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao obter histórico de execuções.");
+      return response.json();
+    }
+  },
+
+  // --- VENDAS DE PROPOSTA ---
+  vendas: {
+    listarTiposAtivos: async () => {
+      if (isMockMode) return [];
+      const response = await fetchApi(`${BASE_URL}/api/vendas/tipos`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar tipos de venda.");
+      return response.json();
+    },
+    listarTiposTodos: async () => {
+      if (isMockMode) return [];
+      const response = await fetchApi(`${BASE_URL}/api/vendas/tipos/todos`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar tipos de venda.");
+      return response.json();
+    },
+    criarTipo: async (dto) => {
+      if (isMockMode) return { id: Date.now(), ...dto, ativo: true, dataCriacao: new Date().toISOString() };
+      const response = await fetchApi(`${BASE_URL}/api/vendas/tipos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao criar tipo de venda.");
+      return response.json();
+    },
+    atualizarTipo: async (id, dto) => {
+      if (isMockMode) return { id, ...dto };
+      const response = await fetchApi(`${BASE_URL}/api/vendas/tipos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao atualizar tipo de venda.");
+      return response.json();
+    },
+    inativarTipo: async (id) => {
+      if (isMockMode) return true;
+      const response = await fetchApi(`${BASE_URL}/api/vendas/tipos/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao inativar tipo de venda.");
+      return true;
+    },
+    efetivarVenda: async (dto) => {
+      if (isMockMode) return { id: Date.now(), numeroCota: 1, status: 'ATIVA' };
+      const response = await fetchApi(`${BASE_URL}/api/vendas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao efetivar venda de proposta.");
+      return response.json();
     }
   }
 };

@@ -57,7 +57,7 @@ const getDb = () => {
     const data = localStorage.getItem(DB_KEY);
     let db;
     if (!data) {
-      db = INITIAL_DATA;
+      db = JSON.parse(JSON.stringify(INITIAL_DATA));
     } else {
       db = JSON.parse(data);
     }
@@ -77,7 +77,7 @@ const getDb = () => {
     } catch (writeErr) {
       console.error("Unable to write reset data to localStorage:", writeErr);
     }
-    return INITIAL_DATA;
+    return JSON.parse(JSON.stringify(INITIAL_DATA));
   }
 };
 
@@ -1144,6 +1144,62 @@ export const mockDb = {
       };
       saveDb(db);
       return true;
+    },
+    uploadPep: async () => {
+      return new Promise((resolve) => setTimeout(() => {
+        resolve({
+          mensagem: "Arquivo PEP processado com sucesso. 1500 registros inseridos/atualizados."
+        });
+      }, 1000));
+    },
+    uploadOnu: async () => {
+      return new Promise((resolve) => setTimeout(() => {
+        resolve({
+          mensagem: "Arquivo ONU processado com sucesso. 350 registros inseridos/atualizados."
+        });
+      }, 1000));
+    },
+    uploadIbge: async () => {
+      return new Promise((resolve) => setTimeout(() => {
+        resolve({
+          mensagem: "Arquivo IBGE processado com sucesso. 120 municípios de fronteira indexados."
+        });
+      }, 1000));
+    },
+    getConfig: () => {
+      const db = getDb();
+      if (!db.complianceConfig) {
+        db.complianceConfig = {
+          cronExpression: "0 0 3 * * *",
+          frequencia: "DIARIO",
+          horario: "03:00",
+          dataAtualizacao: "2026-06-22T23:00:00"
+        };
+        saveDb(db);
+      }
+      return db.complianceConfig;
+    },
+    updateConfig: (payload) => {
+      const db = getDb();
+      const timeParts = payload.horario ? payload.horario.split(':') : ["03", "00"];
+      const minute = timeParts[1] || "00";
+      const hour = timeParts[0] || "03";
+      
+      let cron = `0 ${minute} ${hour} * * *`;
+      if (payload.frequencia === 'SEMANAL') {
+        cron = `0 ${minute} ${hour} * * MON`;
+      } else if (payload.frequencia === 'MENSAL') {
+        cron = `0 ${minute} ${hour} 1 * *`;
+      }
+      
+      db.complianceConfig = {
+        cronExpression: cron,
+        frequencia: payload.frequencia,
+        horario: payload.horario,
+        dataAtualizacao: new Date().toISOString()
+      };
+      saveDb(db);
+      return db.complianceConfig;
     }
   }
 };

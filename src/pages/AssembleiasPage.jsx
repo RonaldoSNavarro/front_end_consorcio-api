@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
-import { CalendarDays, Scale, Award, Loader2 } from 'lucide-react';
+import { CalendarDays, Scale, Award, Loader2, Play, Square, Zap, Dice5 } from 'lucide-react';
 
 export const AssembleiasPage = () => {
   const { triggerToast } = useToast();
@@ -16,6 +16,9 @@ export const AssembleiasPage = () => {
   const [tipoContemplacao, setTipoContemplacao] = useState('SORTEIO');
   const [valorLanceInput, setValorLanceInput] = useState('');
   const [lanceEmbutido, setLanceEmbutido] = useState(false);
+  const [showApurarModal, setShowApurarModal] = useState(false);
+  const [dezenaSorteio, setDezenaSorteio] = useState('');
+  const [realizarSorteio, setRealizarSorteio] = useState(true);
 
   const { data: gruposData } = useQuery({ queryKey: ['grupos'], queryFn: () => api.grupos.listar() });
   const grupos = gruposData?.content || gruposData || [];
@@ -61,6 +64,38 @@ export const AssembleiasPage = () => {
       setCotaIdParaContemplar('');
       setValorLanceInput('');
       setLanceEmbutido(false);
+    },
+    onError: (err) => triggerToast(err.message, "danger")
+  });
+
+  const abrirCaptacaoMutation = useMutation({
+    mutationFn: (id) => api.assembleias.abrirCaptacao(id),
+    onSuccess: () => {
+      triggerToast("Captação de lances aberta!", "success");
+      queryClient.invalidateQueries({ queryKey: ['assembleias', grupoId] });
+    },
+    onError: (err) => triggerToast(err.message, "danger")
+  });
+
+  const fecharCaptacaoMutation = useMutation({
+    mutationFn: (id) => api.assembleias.fecharCaptacao(id),
+    onSuccess: () => {
+      triggerToast("Captação encerrada! Assembleia marcada como REALIZADA.", "success");
+      queryClient.invalidateQueries({ queryKey: ['assembleias', grupoId] });
+    },
+    onError: (err) => triggerToast(err.message, "danger")
+  });
+
+  const apurarMutation = useMutation({
+    mutationFn: ({ id, params }) => api.assembleias.apurar(id, params),
+    onSuccess: (data) => {
+      const msg = data.sorteioRealizado
+        ? `Apuração concluída! Sorteio realizado com dezena: ${data.dezenaSorteio}.`
+        : `Apuração de lances concluída com sucesso!`;
+      triggerToast(msg, "success");
+      queryClient.invalidateQueries({ queryKey: ['contemplacoes-assembleia', selectedAssembleiaId] });
+      queryClient.invalidateQueries({ queryKey: ['assembleias', grupoId] });
+      setShowApurarModal(false);
     },
     onError: (err) => triggerToast(err.message, "danger")
   });
@@ -162,14 +197,43 @@ export const AssembleiasPage = () => {
             ) : (
               <div className="overflow-x-auto">
                 <table>
-                  <thead><tr><th>ID</th><th>Data</th><th>Tipo</th><th>Ações</th></tr></thead>
+                  <thead><tr><th>ID</th><th>Data</th><th>Tipo</th><th>Status</th><th>Ações</th></tr></thead>
                   <tbody>
                     {assemblies.map(ass => (
                       <tr key={ass.id} className={selectedAssembleiaId === String(ass.id) ? 'bg-brand-50 dark:bg-brand-500/10' : ''}>
                         <td className="font-mono text-xs text-slate-400">#{ass.id}</td>
                         <td>{new Date(ass.dataAssembleia + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
                         <td><span className="badge badge-info">{ass.tipo}</span></td>
-                        <td><button className="btn btn-outline btn-xs" onClick={() => setSelectedAssembleiaId(String(ass.id))}>Selecionar</button></td>
+                        <td>
+                          {ass.status && (
+                            <span className={`badge ${ass.status === 'CAPTANDO' ? 'badge-warning' : ass.status === 'REALIZADA' ? 'badge-info' : ass.status === 'FECHADA' ? 'badge-success' : 'badge-neutral'}`}>
+                              {ass.status}
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          <div className="flex gap-1">
+                            <button className="btn btn-outline btn-xs" onClick={() => setSelectedAssembleiaId(String(ass.id))}>Selecionar</button>
+                            {(ass.status === 'AGENDADA' || !ass.status) && (
+                              <button className="btn btn-outline btn-xs !text-emerald-600" onClick={() => abrirCaptacaoMutation.mutate(ass.id)} disabled={abrirCaptacaoMutation.isPending}>
+                                <Play className="w-3 h-3" /> Abrir
+                              </button>
+                            )}
+                            {ass.status === 'CAPTANDO' && (
+                              <button className="btn btn-outline btn-xs !text-amber-600" onClick={() => fecharCaptacaoMutation.mutate(ass.id)} disabled={fecharCaptacaoMutation.isPending}>
+                                <Square className="w-3 h-3" /> Fechar
+                              </button>
+                            )}
+                            <button 
+                              className="btn btn-primary btn-xs" 
+                              disabled={ass.status !== 'REALIZADA'}
+                              onClick={() => { setSelectedAssembleiaId(String(ass.id)); setShowApurarModal(true); }}
+                              title={ass.status !== 'REALIZADA' ? 'Encerre a captação para apurar' : 'Apurar Motor'}
+                            >
+                              <Zap className="w-3 h-3" /> Apurar
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -254,6 +318,76 @@ export const AssembleiasPage = () => {
           )}
         </div>
       </div>
+
+      {/* MODAL: Motor de Apuração */}
+      {showApurarModal && (
+        <div className="modal-backdrop" onClick={() => setShowApurarModal(false)}>
+          <div className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center">
+                <Zap className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h3 className="font-title font-bold text-slate-900 dark:text-white">Motor de Apuração</h3>
+                <p className="text-xs text-slate-400">Assembleia #{selectedAssembleiaId}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                <div><strong>Critério de Desempate (Lances):</strong> {activeGrupo?.criterioDesempateLance?.replace(/_/g, ' ')}</div>
+                <div><strong>Como funciona:</strong> O motor processa lances livres e fixos por saldo disponível no fundo comum. Se ativado, o sorteio inclui cotas ATIVAS e CANCELADAS (BCB).</div>
+              </div>
+
+              <label className="flex items-start gap-3 cursor-pointer p-3 rounded-xl border border-slate-200 dark:border-slate-700/50 hover:border-brand-300 dark:hover:border-brand-500/50 transition-all">
+                <input type="checkbox" checked={realizarSorteio} onChange={e => setRealizarSorteio(e.target.checked)} className="mt-0.5 w-4 h-4 rounded text-brand-500" />
+                <div>
+                  <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">Realizar Sorteio</div>
+                  <div className="text-xs text-slate-400">Inclui cotas ATIVAS e CANCELADAS no sorteio (conforme BCB)</div>
+                </div>
+              </label>
+
+              {realizarSorteio && (
+                <div className="form-group">
+                  <label htmlFor="dezena-sorteio" className="flex items-center gap-1.5">
+                    <Dice5 className="w-3.5 h-3.5 text-brand-500" />
+                    Dezena da Loteria Federal / Pedra Chave
+                  </label>
+                  <input
+                    id="dezena-sorteio"
+                    type="number" min="1" max="99"
+                    value={dezenaSorteio}
+                    onChange={e => setDezenaSorteio(e.target.value)}
+                    placeholder="1-99 (deixe vazio para aleatório)"
+                  />
+                  <span className="text-xs text-slate-400 mt-1">Se omitido, um número aleatório será usado como fallback.</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button className="btn btn-outline flex-1" onClick={() => setShowApurarModal(false)} disabled={apurarMutation.isPending}>Cancelar</button>
+              <button
+                className="btn btn-primary flex-1"
+                disabled={apurarMutation.isPending}
+                onClick={() => apurarMutation.mutate({
+                  id: Number(selectedAssembleiaId),
+                  params: {
+                    dezenaSorteio: dezenaSorteio ? parseInt(dezenaSorteio) : null,
+                    realizarSorteio
+                  }
+                })}
+              >
+                {apurarMutation.isPending ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Apurando...</>
+                ) : (
+                  <><Zap className="w-4 h-4" /> Executar Apuração</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

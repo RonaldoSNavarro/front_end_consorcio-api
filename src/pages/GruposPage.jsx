@@ -102,6 +102,7 @@ export const GruposPage = () => {
               <tr>
                 <th>Código BCB</th>
                 <th>Status</th>
+                <th>Categoria</th>
                 <th>Prazo</th>
                 <th>Crédito Base</th>
                 <th>Fundo Comum (Saldo)</th>
@@ -116,6 +117,13 @@ export const GruposPage = () => {
                     <span className={`badge ${statusBadge(g.status)}`}>
                       {g.status?.replace('_', ' ')}
                     </span>
+                  </td>
+                  <td>
+                    {g.categoriaBem && (
+                      <span className="badge bg-slate-100 text-slate-600 dark:bg-slate-700/50 dark:text-slate-300">
+                        {g.categoriaBem.replace('_', ' ')}
+                      </span>
+                    )}
                   </td>
                   <td>{g.prazoMeses}x</td>
                   <td className="font-mono text-sm">R$ {g.valorCredito?.toLocaleString('pt-BR')}</td>
@@ -195,13 +203,13 @@ export const GruposPage = () => {
         <div className="modal-backdrop" onClick={() => setReajustarGrupoId(null)}>
           <div className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-title font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-brand-500" /> Reajustar Crédito do Grupo
+              <TrendingUp className="w-5 h-5 text-brand-500" /> Ajustar Valor do Bem de Referência
             </h3>
             <p className="mt-2 mb-5 text-sm text-slate-400">
-              Informe o novo valor de crédito do grupo. As parcelas em aberto serão reajustadas proporcionalmente.
+              Informe o novo valor do bem de referência do grupo. O crédito e as parcelas em aberto serão reajustados proporcionalmente.
             </p>
             <div className="form-group">
-              <label htmlFor="novoCredito">Novo Valor do Crédito (R$) *</label>
+              <label htmlFor="novoCredito">Novo Valor do Bem (R$) *</label>
               <input 
                 id="novoCredito" type="number" step="0.01" 
                 value={novoValorInput} 

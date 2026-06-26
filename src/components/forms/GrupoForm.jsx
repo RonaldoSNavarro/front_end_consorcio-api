@@ -13,6 +13,9 @@ const grupoSchema = z.object({
   valorCredito: z.coerce.number().min(1000, "O crédito mínimo para formar um grupo é R$ 1.000,00"),
   prazoMeses: z.coerce.number().min(12, "O prazo mínimo permitido é de 12 meses").max(240, "Prazo máximo estourado (240 meses)"),
   taxaAdministracao: z.coerce.number().min(1, "A taxa de administração mínima permitida é 1%"),
+  categoriaBem: z.enum(['VEICULOS_LEVES', 'VEICULOS_PESADOS', 'IMOVEIS', 'ELETROELETRONICOS', 'SERVICOS'], {
+    errorMap: () => ({ message: "Categoria do Bem é obrigatória" })
+  })
 });
 
 export const GrupoForm = ({ onClose }) => {
@@ -25,6 +28,7 @@ export const GrupoForm = ({ onClose }) => {
       valorCredito: 80000,
       prazoMeses: 60,
       taxaAdministracao: 15,
+      categoriaBem: 'VEICULOS_LEVES'
     }
   });
 
@@ -76,6 +80,18 @@ export const GrupoForm = ({ onClose }) => {
             <label htmlFor="grupo-credito">Carta de Crédito Base (R$) *</label>
             <input id="grupo-credito" type="number" step="0.01" {...register('valorCredito')} aria-required="true" aria-invalid={!!errors.valorCredito} />
             {errors.valorCredito && <span className="error-text" role="alert">{errors.valorCredito.message}</span>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="grupo-categoria">Categoria do Bem (BCB) *</label>
+            <select id="grupo-categoria" {...register('categoriaBem')} aria-required="true" aria-invalid={!!errors.categoriaBem}>
+              <option value="VEICULOS_LEVES">Veículos Automotores (Leves)</option>
+              <option value="VEICULOS_PESADOS">Veículos Automotores (Pesados)</option>
+              <option value="IMOVEIS">Bens Imóveis</option>
+              <option value="ELETROELETRONICOS">Eletroeletrônicos e Outros Bens Móveis</option>
+              <option value="SERVICOS">Serviços</option>
+            </select>
+            {errors.categoriaBem && <span className="error-text" role="alert">{errors.categoriaBem.message}</span>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

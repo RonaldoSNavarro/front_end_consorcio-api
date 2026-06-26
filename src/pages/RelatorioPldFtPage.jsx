@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useToast } from '../context/ToastContext';
 import { ShieldAlert, Download, Search, AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { pldFtFiltroSchema } from '../schemas/relatoriosSchema';
@@ -41,7 +42,35 @@ export const RelatorioPldFtPage = () => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('pt-BR');
   };
-  const handleExportCSV = () => triggerToast('Exportação CSV do relatório PLD/FT iniciada.', 'info');
+  const handleExportCSV = () => {
+    if (!relatorioData || relatorioData.length === 0) {
+      triggerToast('Nenhum dado para exportar.', 'warning');
+      return;
+    }
+
+    const headers = ['Nome Consorciado', 'CPF/CNPJ', 'Valor Oferta', 'Tipo Lance', 'Data Oferta', 'Grupo', 'Cota'];
+    const rows = relatorioData.map(a => [
+      a.nomeConsorciado || '',
+      a.cpfCnpj || '',
+      a.valorOferta || '',
+      a.tipoLance || '',
+      a.dataOferta ? new Date(a.dataOferta).toLocaleDateString('pt-BR') : '',
+      a.codigoGrupo || '',
+      a.cotaId || ''
+    ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `pld_ft_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    triggerToast('Download do arquivo .csv iniciado com sucesso!', 'success');
+  };
 
   const getRiskBadge = (valor) => {
     // Regra local para inferir risco apenas para exibição
@@ -129,6 +158,46 @@ export const RelatorioPldFtPage = () => {
           </div>
         </div>
       </div>
+
+      {/* GRÁFICO DE DISTRIBUIÇÃO DE RISCO */}
+      {(riskCounts.ALTO > 0 || riskCounts.MEDIO > 0) && (
+        <div className="glass-panel p-6">
+          <h3 className="font-title font-bold text-base text-slate-800 dark:text-slate-200 mb-6 flex items-center justify-center">
+            Distribuição de Nível de Risco
+          </h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Risco Alto', value: riskCounts.ALTO || 0, color: '#f43f5e' },
+                    { name: 'Risco Médio', value: riskCounts.MEDIO || 0, color: '#f59e0b' }
+                  ].filter(d => d.value > 0)}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {
+                    [
+                      { name: 'Risco Alto', value: riskCounts.ALTO || 0, color: '#f43f5e' },
+                      { name: 'Risco Médio', value: riskCounts.MEDIO || 0, color: '#f59e0b' }
+                    ].filter(d => d.value > 0).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(255,255,255,0.1)" strokeWidth={2} />
+                    ))
+                  }
+                </Pie>
+                <RechartsTooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       {/* TABELA PLD/FT */}
       <div className="glass-panel table-container min-h-[300px]">

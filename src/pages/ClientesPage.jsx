@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { ClienteForm } from '../components/forms/ClienteForm';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-import { Plus, ScrollText, Trash2, Loader2 } from 'lucide-react';
+import { Plus, ScrollText, Trash2, Loader2, X, Clock } from 'lucide-react';
 
 export const ClientesPage = () => {
   const { triggerToast } = useToast();
@@ -12,6 +12,19 @@ export const ClientesPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editClienteId, setEditClienteId] = useState(null);
   const [confirmInativarId, setConfirmInativarId] = useState(null);
+  const [historicoClienteId, setHistoricoClienteId] = useState(null);
+  const [showHistoricoModal, setShowHistoricoModal] = useState(false);
+
+  const { data: historicoData, isLoading: historicoLoading } = useQuery({
+    queryKey: ['clienteHistorico', historicoClienteId],
+    queryFn: () => api.clientes.obterHistorico(historicoClienteId),
+    enabled: !!historicoClienteId,
+  });
+
+  const handleHistoricoClick = (id) => {
+    setHistoricoClienteId(id);
+    setShowHistoricoModal(true);
+  };
   
   // React Query gerenciando o Fetch e Cache!
   const { data: clientesData, isLoading, error } = useQuery({
@@ -99,6 +112,7 @@ export const ClientesPage = () => {
                         className="btn btn-ghost btn-xs" 
                         title="Histórico de Auditoria" 
                         aria-label="Histórico de Auditoria"
+                        onClick={() => handleHistoricoClick(c.id)}
                       >
                         <ScrollText className="w-3.5 h-3.5" />
                       </button>
@@ -133,6 +147,55 @@ export const ClientesPage = () => {
           onClose={() => setShowModal(false)} 
           editClienteId={editClienteId}
         />
+      )}
+
+      {/* Modal Histórico de Auditoria */}
+      {showHistoricoModal && (
+        <div className="modal-backdrop" onClick={() => { setShowHistoricoModal(false); setHistoricoClienteId(null); }}>
+          <div
+            className="w-full max-w-2xl mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl max-h-[80vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-title font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Clock className="w-5 h-5 text-brand-500" /> Histórico de Auditoria
+              </h3>
+              <button onClick={() => { setShowHistoricoModal(false); setHistoricoClienteId(null); }} className="btn-ghost p-2 rounded-lg" aria-label="Fechar">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {historicoLoading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => <div key={i} className="h-14 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse" />)}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {Array.isArray(historicoData) && historicoData.length > 0 ? (
+                  historicoData.map((h, i) => (
+                    <div key={i} className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 text-sm">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">{h.tipoInteracao || h.tipo}</span>
+                        <span className="text-xs text-slate-400 font-mono">
+                          {h.dataInteracao ? new Date(h.dataInteracao).toLocaleString('pt-BR') : ''}
+                        </span>
+                      </div>
+                      {h.descricao && <p className="text-xs text-slate-500 mt-1">{h.descricao}</p>}
+                      {h.usuarioResponsavel && (
+                        <p className="text-[10px] text-slate-400 mt-1">Por: {h.usuarioResponsavel}</p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-slate-400">
+                    <Clock className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">Nenhum histórico de auditoria encontrado.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       <ConfirmDialog 

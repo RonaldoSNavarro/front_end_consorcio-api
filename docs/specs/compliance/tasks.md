@@ -3,8 +3,8 @@
 *   **Capability**: compliance
 *   **UI Spec de referência**: [ui-spec.md](ui-spec.md)
 *   **API Contract Backend**: [api-contract.md](../../consorcio-api/docs/specs/compliance/api-contract.md)
-*   **Total de tarefas**: 5
-*   **REQ-IDs cobertos**: REQ-COMP-002, REQ-COMP-003, REQ-COMP-004, REQ-COMP-005
+*   **Total de tarefas**: 7
+*   **REQ-IDs cobertos**: REQ-COMP-002, REQ-COMP-003, REQ-COMP-004, REQ-COMP-005, REQ-COMP-006, REQ-COMP-008
 
 ---
 
@@ -40,9 +40,15 @@
 - [x] Adicionar rota `/compliance/alertas` no `App.jsx` protegida pelo componente de controle de acessos (apenas `ADMIN` e `COMPLIANCE`).
 - [x] Renderizar item "Listas Restritivas (PLD)" na barra lateral (`Sidebar.jsx`) condicionado ao perfil do usuário.
 
-### [FRONTEND] REQ-COMP-002, REQ-COMP-005: Cobertura de Testes Automatizados
-- [x] Criar arquivo de teste dedicado para `CompliancePainelPage.test.jsx` validando:
-  - Carregamento da tabela e filtros.
-  - Comportamento de clique e erro no modal de deliberação.
-  - Restrição de rota por RBAC (acesso autorizado/negado).
-  - Execução da sincronização manual de listas.
+### [FRONTEND] REQ-COMP-006: TASK-COMP-016 - Upload de Arquivos na UI
+- [x] Criar aba de uploads no painel de compliance com drag-and-drop para os arquivos PEP, ONU e IBGE, incluindo barras de progresso ou loaders.
+- [x] Adicionar validação de extensões (.csv, .xml, .xls, .xlsx) no frontend.
+- [x] Mapear as chamadas HTTP e mock correspondentes no `api.js` e `mockDb.js`.
+
+### [FRONTEND] REQ-COMP-008: TASK-COMP-017 - Configuração de Agendamento UI
+- [x] Criar formulário na UI para alterar a frequência (Diária, Semanal, Mensal) e o horário de execução do Job de Compliance.
+- [x] Implementar integração com endpoints `/api/compliance/config` (GET e PUT) em `api.js` e `mockDb.js`.
+
+### [FRONTEND] REQ-COMP-002, REQ-COMP-005, REQ-COMP-006, REQ-COMP-008: Cobertura de Testes Automatizados
+- [x] Criar arquivo de teste dedicado para `CompliancePainelPage.test.jsx` validando tabela, filtros, deliberação, sincronização manual.
+- [x] Incrementar testes no `CompliancePainelPage.test.jsx` cobrindo a troca de abas, upload de arquivos e salvamento da configuração do cron.
