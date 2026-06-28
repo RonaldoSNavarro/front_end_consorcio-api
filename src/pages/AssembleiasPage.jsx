@@ -335,7 +335,7 @@ export const AssembleiasPage = () => {
 
             <div className="space-y-4">
               <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                <div><strong>Critério de Desempate (Lances):</strong> {activeGrupo?.criterioDesempateLance?.replace(/_/g, ' ')}</div>
+                <div><strong>Critério de Desempate (Lances):</strong> {activeGrupo?.criterioDesempateLance?.replace?.(/_/g, ' ')}</div>
                 <div><strong>Como funciona:</strong> O motor processa lances livres e fixos por saldo disponível no fundo comum. Se ativado, o sorteio inclui cotas ATIVAS e CANCELADAS (BCB).</div>
               </div>
 

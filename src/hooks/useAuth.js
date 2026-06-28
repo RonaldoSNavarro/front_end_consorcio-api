@@ -21,7 +21,11 @@ export function useAuthSource() {
 
       if (isMock) {
         // Modo Mock: JWT mantido apenas em memory state (não persistido)
-        // Ao atualizar a página, será necessário autenticar novamente.
+        // Fix for E2E tests: se houver usuário salvo no localStorage, set token mock
+        const savedUser = localStorage.getItem('consorcio_api_user');
+        if (savedUser) {
+          setToken('mock_token');
+        }
       } else {
         try {
           await api.obterUsuarioLogado();

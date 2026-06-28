@@ -22,6 +22,9 @@ test.describe('Fluxo de Assembleia e Apuração', () => {
       await page.selectOption('select#select-grupo', { index: 1 });
     }
 
+    // Espera a tabela carregar e mostrar pelo menos uma linha com ações
+    await page.waitForSelector('table tbody tr', { timeout: 10000 }).catch(() => {});
+
     // Tenta encontrar o botão Apurar que não esteja desativado
     const apurarButton = page.locator('button:not(:disabled)', { hasText: 'Apurar' }).first();
     

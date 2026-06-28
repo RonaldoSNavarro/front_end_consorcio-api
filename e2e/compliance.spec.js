@@ -35,7 +35,7 @@ test.describe('Compliance e Testes Negativos', () => {
     await page.getByRole('button', { name: /Efetivar Proposta/i }).click();
 
     // 7. Espera-se o bloqueio por PLD/FT
-    const toast = page.locator('.toast, .alert, .text-rose-500').filter({ hasText: /bloqueada por PLD\/FT/i });
+    const toast = page.locator('text=/bloqueada por PLD\\/FT/i');
     await expect(toast).toBeVisible({ timeout: 5000 });
   });
 

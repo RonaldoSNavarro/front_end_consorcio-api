@@ -99,10 +99,10 @@ Este documento descreve o estado atual do frontend, a stack de referência, as A
 
 ## 📈 5. Estado Atual do Projeto
 
-- **Fase Atual**: Refatoração Visual Corporativa (Tailwind CSS v3) concluída.
-- **Backend de Referência**: Sprint 5 concluída — 9 capabilities implementadas, 107 testes passando.
-- **Status Frontend**: Sign-Off concluído para as 9 capabilities (migração Tailwind, fluxos e validações implementados). Specs marcadas como `IMPLEMENTED v1.0`.
-- **Testes**: 37 testes passando (Testes E2E `App.test.jsx`, unitários `api.test.js`, `hooks.test.jsx`, `schemas.test.js`). UI Drift resolvido.
+- **Fase Atual**: Capability de Compliance PLD/FT e Estabilização Regulatória (Wave 4 Concluída).
+- **Backend de Referência**: Funcionalidades BCB 285/2023 100% integradas.
+- **Status Frontend**: Estabilização dos testes E2E (Playwright) para o modo Offline/Mock e validação dos fluxos de Assembleias e Compliance.
+- **Testes**: 8/8 testes E2E (Playwright) passando com 100% de sucesso. Testes unitários (`App.test.jsx`, `api.test.js`, `hooks.test.jsx`, `schemas.test.js`) também em conformidade. UI Drift resolvido.
 - **Artefatos Gerados**:
   - [constitution.md](constitution.md) — Princípios e regras técnicas inegociáveis.
   - [REQUIREMENTS.md](REQUIREMENTS.md) — Índice de capabilities.

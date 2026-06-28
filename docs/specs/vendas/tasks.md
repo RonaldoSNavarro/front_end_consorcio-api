@@ -14,5 +14,6 @@
 - `[x]` Desenvolver a tela `TiposDeVendaPage.jsx`.
 - `[x]` Desenvolver a tela `VendaPropostaPage.jsx`.
 - `[x]` Revisão de código e testes end-to-end com backend rodando.
+- `[ ]` Estabilizar flakiness (timeout) nos testes Playwright para cenários negativos (Lista Restritiva OFAC/ONU).
 
-*Tudo finalizado!*
+*Aguardando estabilização dos testes Playwright E2E.*

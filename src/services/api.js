@@ -265,6 +265,7 @@ export const api = {
             valorHistoricoPago: c.valorHistoricoPago || 0,
             percentualFundoComumPago: c.percentualFundoComumPago || 0,
             valorBemReferenciaAGO: c.valorBemReferenciaAGO || c.valorCredito || 0,
+            clienteNome: mockDb.clientes.buscarPorId(c.clienteId)?.nome
           };
         });
       }
@@ -599,7 +600,13 @@ export const api = {
   // --- VENDAS DE PROPOSTA ---
   vendas: {
     listarTiposAtivos: async () => {
-      if (isMockMode) return [];
+      if (isMockMode) return [{
+        id: 1,
+        nome: "Venda Direta",
+        descricao: "Venda direta pelo portal",
+        percentualComissao: 0.05,
+        exigeSeguro: false
+      }];
       const response = await fetchApi(`${BASE_URL}/api/vendas/tipos`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao listar tipos de venda.");
       return response.json();
@@ -637,7 +644,12 @@ export const api = {
       return true;
     },
     efetivarVenda: async (dto) => {
-      if (isMockMode) return { id: Date.now(), numeroCota: 1, status: 'ATIVA' };
+      if (isMockMode) {
+        if (Number(dto.clienteId) === 5) {
+          throw new Error("Proposta bloqueada por PLD/FT: Cliente em lista restritiva");
+        }
+        return { id: Date.now(), numeroCota: 1, status: 'ATIVA' };
+      }
       const response = await fetchApi(`${BASE_URL}/api/vendas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -9,18 +9,22 @@ const INITIAL_DATA = {
     { id: 1, nome: "Ronaldo Navarro", cpfCnpj: "11122233344", email: "ronaldo@dev.com", telefone: "11999999999", dataCadastro: "2026-04-10", statusCliente: "ATIVO", patrimonioEstimado: 0, rendaMensalDeclarada: 0 },
     { id: 2, nome: "Ana Maria Souza", cpfCnpj: "98765432100", email: "ana.souza@gmail.com", telefone: "11988888888", dataCadastro: "2026-04-12", statusCliente: "ATIVO", patrimonioEstimado: 0, rendaMensalDeclarada: 0 },
     { id: 3, nome: "Tech Solutions Ltda", cpfCnpj: "12345678000199", email: "financeiro@techsolutions.com.br", telefone: "1133334444", dataCadastro: "2026-04-15", statusCliente: "ATIVO", patrimonioEstimado: 0, rendaMensalDeclarada: 0 },
-    { id: 4, nome: "Carlos Eduardo Santos", cpfCnpj: "55566677788", email: "carlos.edu@yahoo.com", telefone: "21977777777", dataCadastro: "2026-04-20", statusCliente: "ATIVO", patrimonioEstimado: 0, rendaMensalDeclarada: 0 }
+    { id: 4, nome: "Carlos Eduardo Santos", cpfCnpj: "55566677788", email: "carlos.edu@yahoo.com", telefone: "21977777777", dataCadastro: "2026-04-20", statusCliente: "ATIVO", patrimonioEstimado: 0, rendaMensalDeclarada: 0 },
+    { id: 5, nome: "OSAMA BIN LADEN", cpfCnpj: "00000000000", email: "osama@bad.com", telefone: "0000000000", dataCadastro: "2026-06-20", statusCliente: "ATIVO", patrimonioEstimado: 0, rendaMensalDeclarada: 0 },
+    { id: 6, nome: "João Consorciado Excluído", cpfCnpj: "99988877766", email: "joao@bad.com", telefone: "0000000000", dataCadastro: "2026-06-20", statusCliente: "ATIVO", patrimonioEstimado: 0, rendaMensalDeclarada: 0 }
   ],
   grupos: [
     { id: 1, codigo: "GRP-AUTO-002", valorCredito: 60000.00, prazoMeses: 60, taxaAdministracao: 15.00, status: "EM_ANDAMENTO", dataCriacao: "2026-04-01", dataInauguracao: "2026-04-05" },
     { id: 2, codigo: "GRP-IMOVEL-010", valorCredito: 250000.00, prazoMeses: 120, taxaAdministracao: 12.00, status: "EM_FORMACAO", dataCriacao: "2026-04-10", dataInauguracao: null },
-    { id: 3, codigo: "GRP-MOTO-005", valorCredito: 18000.00, prazoMeses: 36, taxaAdministracao: 18.00, status: "ENCERRADO", dataCriacao: "2026-01-01", dataInauguracao: "2026-01-05", dataEncerramento: "2026-05-20" }
+    { id: 3, codigo: "GRP-MOTO-005", valorCredito: 18000.00, prazoMeses: 36, taxaAdministracao: 18.00, status: "ENCERRADO", dataCriacao: "2026-01-01", dataInauguracao: "2026-01-05", dataEncerramento: "2026-05-20" },
+    { id: 4, codigo: "GRP-TESTE-REEMBOLSO", valorCredito: 100000.00, prazoMeses: 100, taxaAdministracao: 10.00, status: "EM_ANDAMENTO", dataCriacao: "2026-01-01", dataInauguracao: "2026-01-05" }
   ],
   cotas: [
     { id: 1, numeroCota: 12, clienteId: 1, grupoId: 1, status: "ATIVA" },
     { id: 2, numeroCota: 45, clienteId: 2, grupoId: 1, status: "ATIVA" },
     { id: 3, numeroCota: 7, clienteId: 3, grupoId: 2, status: "ATIVA" },
-    { id: 4, numeroCota: 22, clienteId: 4, grupoId: 3, status: "CONTEMPLADA" }
+    { id: 4, numeroCota: 22, clienteId: 4, grupoId: 3, status: "CONTEMPLADA" },
+    { id: 5, numeroCota: 99, clienteId: 6, grupoId: 4, status: "CANCELADA", percentualFundoComumPago: 10, valorHistoricoPago: 8000, valorCredito: 100000 }
   ],
   parcelas: [
     // Parcelas para cota 1 (Grupo 1) - Algumas pagas, algumas pendentes, algumas em atraso

@@ -34,3 +34,6 @@
 - [x] Prototipar tela com seletor de grupo, formulário e tabela de histórico
 - [x] Definir estados visuais: loading, error, empty state, success (confetti)
 - [x] Validar acessibilidade WCAG AA
+
+### [TESTE E2E] Estabilidade e Dados (Pendência)
+- [ ] Estabilizar teste Playwright `Deve impedir o processo de Apurar Assembleia se a Captação não estiver fechada`: Garantir a criação ou mock de uma Assembleia `AGENDADA` no banco de teste para que a UI consiga selecionar corretamente e o timeout de locator não dispare.
