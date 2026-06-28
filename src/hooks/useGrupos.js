@@ -42,7 +42,6 @@ export function useGrupos() {
 
   return {
     grupos: gruposQuery.data?.content || [],
-    isMock: gruposQuery.data?.isMock || false,
     isLoading: gruposQuery.isLoading,
     isError: gruposQuery.isError,
     error: gruposQuery.error,

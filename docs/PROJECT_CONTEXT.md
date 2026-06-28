@@ -55,8 +55,7 @@ Este documento descreve o estado atual do frontend, a stack de referência, as A
 
 | Service | Descrição |
 |---------|-----------|
-| `api.js` | Funções de chamada à API REST (17KB, `credentials: 'include'`) |
-| `mockDb.js` | Base de dados mock para desenvolvimento offline |
+| `api.js` | Funções de chamada à API REST (completamente livre de mocks, `credentials: 'include'`) |
 
 ### Context (2)
 
@@ -101,8 +100,8 @@ Este documento descreve o estado atual do frontend, a stack de referência, as A
 
 - **Fase Atual**: Capability de Compliance PLD/FT e Estabilização Regulatória (Wave 4 Concluída).
 - **Backend de Referência**: Funcionalidades BCB 285/2023 100% integradas.
-- **Status Frontend**: Estabilização dos testes E2E (Playwright) para o modo Offline/Mock e validação dos fluxos de Assembleias e Compliance.
-- **Testes**: 8/8 testes E2E (Playwright) passando com 100% de sucesso. Testes unitários (`App.test.jsx`, `api.test.js`, `hooks.test.jsx`, `schemas.test.js`) também em conformidade. UI Drift resolvido.
+- **Status Frontend**: Estética Premium aplicada (Skeletons de Loading, Glassmorphism Avançado, Temas Dinâmicos). Totalmente integrado à API real sem simuladores locais.
+- **Testes**: 8/8 testes E2E (Playwright) passando com 100% de sucesso. Testes unitários também em conformidade. UI Drift e Mocks completamente erradicados do código.
 - **Artefatos Gerados**:
   - [constitution.md](constitution.md) — Princípios e regras técnicas inegociáveis.
   - [REQUIREMENTS.md](REQUIREMENTS.md) — Índice de capabilities.

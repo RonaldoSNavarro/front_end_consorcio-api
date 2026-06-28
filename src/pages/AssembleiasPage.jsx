@@ -3,10 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { CalendarDays, Scale, Award, Loader2, Play, Square, Zap, Dice5 } from 'lucide-react';
+import { Confetti } from '../components/Confetti';
 
 export const AssembleiasPage = () => {
   const { triggerToast } = useToast();
   const queryClient = useQueryClient();
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const [grupoId, setGrupoId] = useState('');
   const [selectedAssembleiaId, setSelectedAssembleiaId] = useState('');
@@ -58,6 +60,8 @@ export const AssembleiasPage = () => {
     mutationFn: (dto) => api.contemplacoes.registrar(dto),
     onSuccess: () => {
       triggerToast("Cota contemplada com sucesso!", "success");
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 5000);
       queryClient.invalidateQueries({ queryKey: ['contemplacoes-assembleia', selectedAssembleiaId] });
       queryClient.invalidateQueries({ queryKey: ['grupos'] });
       queryClient.invalidateQueries({ queryKey: ['cotas-grupo', grupoId] });
@@ -93,6 +97,8 @@ export const AssembleiasPage = () => {
         ? `Apuração concluída! Sorteio realizado com dezena: ${data.dezenaSorteio}.`
         : `Apuração de lances concluída com sucesso!`;
       triggerToast(msg, "success");
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 5000);
       queryClient.invalidateQueries({ queryKey: ['contemplacoes-assembleia', selectedAssembleiaId] });
       queryClient.invalidateQueries({ queryKey: ['assembleias', grupoId] });
       setShowApurarModal(false);
@@ -292,25 +298,61 @@ export const AssembleiasPage = () => {
                 <h3 className="text-sm font-title font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2 flex items-center gap-2">
                   <Award className="w-4 h-4 text-brand-500" /> Contemplados (AGO #{selectedAssembleiaId})
                 </h3>
+                {showConfetti && <Confetti active={true} config={{ angle: 90, spread: 360, startVelocity: 40, elementCount: 70, decay: 0.95 }} />}
+                
                 {contemplacoes.length === 0 ? (
                   <p className="text-slate-400 text-xs text-center py-8">Nenhuma cota contemplada nesta AGO.</p>
                 ) : (
-                  <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                    {contemplacoes.map(c => (
-                      <div key={c.id} className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-slate-700/30 p-3 rounded-lg text-xs space-y-1">
-                        <div className="flex justify-between font-bold text-brand-600 dark:text-brand-400">
-                          <span>Cota #{c.cotaId || c.numeroCota}</span>
-                          <span>{c.tipoContemplacao}</span>
-                        </div>
-                        {c.valorLance > 0 && (
-                          <div className="text-slate-500 dark:text-slate-400">
-                            Lance: R$ {c.valorLance?.toLocaleString('pt-BR')} 
-                            {c.lanceEmbutido && <span className="text-brand-500 ml-1">(Embutido)</span>}
+                  <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+                    {/* AGRUPAMENTO: SORTEIO */}
+                    {contemplacoes.filter(c => c.tipoContemplacao === 'SORTEIO').length > 0 && (
+                      <div className="space-y-2">
+                        <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500">Sorteio da Loteria</div>
+                        {contemplacoes.filter(c => c.tipoContemplacao === 'SORTEIO').map(c => (
+                          <div key={c.id} className="bg-brand-50 dark:bg-brand-500/10 border border-brand-200 dark:border-brand-500/30 p-3 rounded-lg text-xs space-y-1">
+                            <div className="flex justify-between font-bold text-brand-700 dark:text-brand-300">
+                              <span>Cota #{c.cotaId || c.numeroCota}</span>
+                              <span className="badge badge-primary">Sorteio</span>
+                            </div>
+                            <div className="text-slate-500 dark:text-slate-400">Data: {new Date(c.dataContemplacao).toLocaleDateString('pt-BR')}</div>
                           </div>
-                        )}
-                        <div className="text-slate-400">Data: {new Date(c.dataContemplacao).toLocaleDateString('pt-BR')}</div>
+                        ))}
                       </div>
-                    ))}
+                    )}
+
+                    {/* AGRUPAMENTO: LANCE FIXO */}
+                    {contemplacoes.filter(c => c.tipoContemplacao === 'LANCE_FIXO').length > 0 && (
+                      <div className="space-y-2">
+                        <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500">Lances Fixos (Desempate pela Pedra Chave)</div>
+                        {contemplacoes.filter(c => c.tipoContemplacao === 'LANCE_FIXO').map(c => (
+                          <div key={c.id} className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 p-3 rounded-lg text-xs space-y-1">
+                            <div className="flex justify-between font-bold text-emerald-700 dark:text-emerald-300">
+                              <span>Cota #{c.cotaId || c.numeroCota}</span>
+                              <span className="badge badge-success">Lance Fixo</span>
+                            </div>
+                            <div className="text-emerald-600 dark:text-emerald-400">Lance Ofertado: R$ {c.valorLance?.toLocaleString('pt-BR')} {c.lanceEmbutido && '(Embutido)'}</div>
+                            <div className="text-slate-500 dark:text-slate-400">Data: {new Date(c.dataContemplacao).toLocaleDateString('pt-BR')}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* AGRUPAMENTO: LANCE LIVRE */}
+                    {contemplacoes.filter(c => c.tipoContemplacao === 'LANCE_LIVRE').length > 0 && (
+                      <div className="space-y-2">
+                        <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400 dark:text-slate-500">Lances Livres</div>
+                        {contemplacoes.filter(c => c.tipoContemplacao === 'LANCE_LIVRE').map(c => (
+                          <div key={c.id} className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 p-3 rounded-lg text-xs space-y-1">
+                            <div className="flex justify-between font-bold text-blue-700 dark:text-blue-300">
+                              <span>Cota #{c.cotaId || c.numeroCota}</span>
+                              <span className="badge badge-info">Lance Livre</span>
+                            </div>
+                            <div className="text-blue-600 dark:text-blue-400">Lance Ofertado: R$ {c.valorLance?.toLocaleString('pt-BR')} {c.lanceEmbutido && '(Embutido)'}</div>
+                            <div className="text-slate-500 dark:text-slate-400">Data: {new Date(c.dataContemplacao).toLocaleDateString('pt-BR')}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

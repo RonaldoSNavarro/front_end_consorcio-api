@@ -20,6 +20,15 @@ export const ThemeProvider = ({ children }) => {
     }
   });
 
+  const [brandTheme, setBrandTheme] = useState(() => {
+    try {
+      const savedBrand = localStorage.getItem('consorcio_brand');
+      return ['amber', 'ocean', 'emerald'].includes(savedBrand) ? savedBrand : 'amber';
+    } catch {
+      return 'amber';
+    }
+  });
+
   const isDark = theme === 'dark';
 
   useEffect(() => {
@@ -29,19 +38,28 @@ export const ThemeProvider = ({ children }) => {
     } else {
       root.classList.remove('dark');
     }
+    
+    // Set brand theme as a data attribute on root
+    root.setAttribute('data-theme', brandTheme);
+
     try {
       localStorage.setItem('consorcio_theme', theme);
+      localStorage.setItem('consorcio_brand', brandTheme);
     } catch (e) {
       console.warn('Storage write blocked:', e);
     }
-  }, [theme, isDark]);
+  }, [theme, isDark, brandTheme]);
 
   const toggleTheme = useCallback(() => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   }, []);
 
+  const changeBrandTheme = useCallback((newBrand) => {
+    setBrandTheme(newBrand);
+  }, []);
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isDark }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, isDark, brandTheme, changeBrandTheme }}>
       {children}
     </ThemeContext.Provider>
   );

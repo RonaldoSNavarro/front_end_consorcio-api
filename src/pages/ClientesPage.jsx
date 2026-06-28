@@ -5,6 +5,7 @@ import { useToast } from '../context/ToastContext';
 import { ClienteForm } from '../components/forms/ClienteForm';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { Plus, ScrollText, Trash2, Loader2, X, Clock, Search } from 'lucide-react';
+import { TableSkeleton, Skeleton } from '../components/ui/Skeleton';
 
 export const ClientesPage = () => {
   const { triggerToast } = useToast();
@@ -97,10 +98,8 @@ export const ClientesPage = () => {
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
-          ))}
+        <div className="animate-fade-in">
+          <TableSkeleton rows={10} columns={6} />
         </div>
       ) : (
         <div className="table-container">
@@ -236,7 +235,7 @@ export const ClientesPage = () => {
 
             {historicoLoading ? (
               <div className="space-y-3">
-                {[...Array(3)].map((_, i) => <div key={i} className="h-14 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse" />)}
+                {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
               </div>
             ) : (
               <div className="space-y-2">

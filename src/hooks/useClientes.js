@@ -41,7 +41,6 @@ export function useClientes(page = 0, size = 100) {
 
   return {
     clientes: clientesQuery.data?.content || [],
-    isMock: clientesQuery.data?.isMock || false,
     isLoading: clientesQuery.isLoading,
     isError: clientesQuery.isError,
     error: clientesQuery.error,

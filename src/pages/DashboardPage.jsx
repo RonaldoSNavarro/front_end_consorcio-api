@@ -4,17 +4,18 @@ import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { Banknote, Users, TrendingUp, Hash, BarChart3, Activity, CheckCircle, Clock } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Skeleton, CardSkeleton } from '../components/ui/Skeleton';
 
-const KPICard = ({ icon: Icon, label, value, trend, color, subValue }) => (
-  <div className="glass-panel flex items-center gap-4 p-5 hover:-translate-y-1 transition-all duration-300">
-    <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${color}`}>
+const KPICard = ({ icon: Icon, label, value, trend, color, subValue, staggerClass }) => (
+  <div className={`glass-panel flex items-center gap-4 p-5 hover:-translate-y-1.5 transition-all duration-300 animate-stagger-fade-in opacity-0 fill-mode-forwards ${staggerClass}`}>
+    <div className={`w-12 h-12 rounded-xl flex items-center justify-center border shadow-sm ${color}`}>
       <Icon className="w-5 h-5" />
     </div>
     <div className="min-w-0 flex-1">
       <p className="text-[0.7rem] uppercase tracking-wider font-semibold text-slate-400 dark:text-slate-500">{label}</p>
-      <h3 className="font-title text-xl font-bold text-slate-900 dark:text-white mt-0.5 truncate">{value}</h3>
-      {trend && <span className="text-xs font-semibold text-emerald-500">{trend}</span>}
-      {subValue && <span className="text-xs text-slate-400">{subValue}</span>}
+      <h3 className="font-title text-2xl font-bold text-slate-900 dark:text-white mt-0.5 truncate tracking-tight">{value}</h3>
+      {trend && <span className="text-[0.65rem] font-bold text-emerald-500 uppercase tracking-wide">{trend}</span>}
+      {subValue && <span className="text-[0.65rem] text-slate-400 uppercase tracking-wide">{subValue}</span>}
     </div>
   </div>
 );
@@ -114,14 +115,17 @@ export const DashboardPage = () => {
 
   if (isLoading) {
     return (
-      <div className="animate-fade-in space-y-6">
-        <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse" />
+      <div className="animate-fade-in space-y-8">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-48" />
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-28 bg-slate-200 dark:bg-slate-800 rounded-2xl animate-pulse" />
+            <CardSkeleton key={i} />
           ))}
         </div>
-        <div className="h-72 bg-slate-200 dark:bg-slate-800 rounded-2xl animate-pulse" />
+        <Skeleton className="h-96 w-full rounded-2xl" />
       </div>
     );
   }
@@ -144,6 +148,7 @@ export const DashboardPage = () => {
           value={`R$ ${s.arrecadacao.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
           trend="Soma de todos os grupos"
           color="bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+          staggerClass="animate-stagger-1"
         />
         <KPICard
           icon={Users}
@@ -151,6 +156,7 @@ export const DashboardPage = () => {
           value={s.clientes}
           trend="Consorciados validados"
           color="bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400"
+          staggerClass="animate-stagger-2"
         />
         <KPICard
           icon={TrendingUp}
@@ -158,6 +164,7 @@ export const DashboardPage = () => {
           value={s.gruposAtivos}
           subValue={`${s.gruposFormacao} em formação`}
           color="bg-brand-50 dark:bg-brand-500/10 border-brand-200 dark:border-brand-500/20 text-brand-600 dark:text-brand-400"
+          staggerClass="animate-stagger-3"
         />
         <KPICard
           icon={Hash}
@@ -165,6 +172,7 @@ export const DashboardPage = () => {
           value={s.cotas}
           trend="Ativas ou contempladas"
           color="bg-violet-50 dark:bg-violet-500/10 border-violet-200 dark:border-violet-500/20 text-violet-600 dark:text-violet-400"
+          staggerClass="animate-stagger-4"
         />
       </div>
 

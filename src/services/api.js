@@ -1,8 +1,7 @@
-import { mockDb } from './mockDb';
 
 const BASE_URL = import.meta.env?.VITE_API_URL || (typeof process !== 'undefined' && process.env.NODE_ENV === 'test' ? 'http://localhost:8080' : '');
 
-let isMockMode = true;
+
 
 const fetchApi = (url, options = {}) => {
   return fetch(url, { ...options, credentials: 'include' });
@@ -21,78 +20,17 @@ const handleResponseError = async (response, defaultMessage) => {
 };
 
 // Ping backend to detect online/offline status
-export const detectBackend = async () => {
-  // Em homolog/prod, VITE_ENABLE_MOCK_FALLBACK pode ser explicitamente "false"
-  const allowMockFallback = import.meta.env?.VITE_ENABLE_MOCK_FALLBACK !== 'false';
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 1000);
-  try {
-    // Apenas tenta um fetch leve com timeout curto. 
-    // Qualquer status de resposta HTTP (mesmo 403 ou 401 de acesso negado pelo JWT) prova que o Spring Boot está rodando!
-    const response = await fetchApi(`${BASE_URL}/api/clientes`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    
-    if (response.status === 502 || response.status === 504) {
-      throw new Error("Backend offline (Vite Proxy Error 502/504)");
-    }
-    
-    isMockMode = false;
-    console.log("🔌 backend: Spring Boot API ativa. Rodando em Modo Real.");
-    return false; // isMockMode = false
-  } catch (e) {
-    clearTimeout(timeoutId);
-    
-    if (!allowMockFallback) {
-      console.error("🔌 backend: API offline e fallback para simulação está DESABILITADO neste ambiente.");
-      isMockMode = false;
-      throw new Error("O sistema encontra-se indisponível no momento.");
-    }
 
-    isMockMode = true;
-    console.warn("🔌 backend: Spring Boot API offline. Ativando Modo Simulado.");
-    return true; // isMockMode = true
-  }
-};
-
-// --- LOTERIA FEDERAL (MOCK) ---
-let nextLoteriaId = 1;
-mockDb.loteriaFederal = {
-  listar: () => {
-    return [
-      {
-        id: nextLoteriaId++,
-        concurso: "5824",
-        dataSorteio: "2026-06-25",
-        premio1: "12345",
-        premio2: "67890",
-        premio3: "11111",
-        premio4: "22222",
-        premio5: "33333"
-      }
-    ];
-  },
-  registrar: (dto) => {
-    const reg = { id: nextLoteriaId++, ...dto };
-    return reg;
-  }
-};
 
 // Objeto unificado que decide se chama a API real ou a simulação local
 export const api = {
-  getIsMockMode: () => isMockMode,
-  setMockMode: (val) => { isMockMode = val; },
+  
+  
 
   // --- AUTH ---
   login: async (username, password) => {
-    if (isMockMode) {
-      return mockDb.login(username, password);
-    }
-    const response = await fetchApi(`${BASE_URL}/api/login`, {
+        const response = await fetchApi(`${BASE_URL}/api/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ login: username, senha: password })
@@ -103,17 +41,11 @@ export const api = {
   },
 
   logout: async () => {
-    if (isMockMode) {
-      return;
-    }
-    await fetchApi(`${BASE_URL}/api/login/logout`, { method: 'POST' });
+        await fetchApi(`${BASE_URL}/api/login/logout`, { method: 'POST' });
   },
 
   obterUsuarioLogado: async () => {
-    if (isMockMode) {
-      return { login: "admin", role: "ADMIN", isMock: true };
-    }
-    const response = await fetchApi(`${BASE_URL}/api/login/me`);
+        const response = await fetchApi(`${BASE_URL}/api/login/me`);
     if (!response.ok) throw new Error("Sessão inválida ou expirada.");
     return response.json();
   },
@@ -121,11 +53,7 @@ export const api = {
   // --- CLIENTES ---
   clientes: {
     listar: async (page = 0, size = 100, search = '') => {
-      if (isMockMode) {
-        const content = mockDb.clientes.listar();
-        return { content, totalPages: 1, last: true, totalElements: content.length, isMock: true };
-      }
-      const params = new URLSearchParams({ page, size });
+            const params = new URLSearchParams({ page, size });
       if (search) params.append('search', search);
       const response = await fetchApi(`${BASE_URL}/api/clientes?${params.toString()}`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar clientes da API.");
@@ -139,8 +67,7 @@ export const api = {
       };
     },
     salvar: async (dto) => {
-      if (isMockMode) return mockDb.clientes.salvar(dto);
-      const response = await fetchApi(`${BASE_URL}/api/clientes`, {
+            const response = await fetchApi(`${BASE_URL}/api/clientes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
@@ -149,8 +76,7 @@ export const api = {
       return response.json();
     },
     atualizar: async (id, dto) => {
-      if (isMockMode) return mockDb.clientes.atualizar(id, dto);
-      const response = await fetchApi(`${BASE_URL}/api/clientes/${id}`, {
+            const response = await fetchApi(`${BASE_URL}/api/clientes/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
@@ -159,22 +85,19 @@ export const api = {
       return response.json();
     },
     inativar: async (id) => {
-      if (isMockMode) return mockDb.clientes.inativar(id);
-      const response = await fetchApi(`${BASE_URL}/api/clientes/${id}`, {
+            const response = await fetchApi(`${BASE_URL}/api/clientes/${id}`, {
         method: 'DELETE'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao inativar cliente na API.");
       return true;
     },
     buscarCep: async (cep) => {
-      if (isMockMode) return mockDb.clientes.buscarCep(cep);
-      const response = await fetchApi(`${BASE_URL}/api/clientes/busca-cep/${cep}`);
+            const response = await fetchApi(`${BASE_URL}/api/clientes/busca-cep/${cep}`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar endereço pelo CEP.");
       return response.json();
     },
     obterHistorico: async (id, tipo = null) => {
-      if (isMockMode) return mockDb.clientes.obterHistorico(id, tipo);
-      const url = tipo 
+            const url = tipo 
         ? `${BASE_URL}/api/clientes/${id}/historico?tipo=${tipo}`
         : `${BASE_URL}/api/clientes/${id}/historico`;
       const response = await fetchApi(url);
@@ -186,14 +109,12 @@ export const api = {
   // --- LOTERIA FEDERAL ---
   loteriaFederal: {
     listar: async () => {
-      if (isMockMode) return mockDb.loteriaFederal.listar();
-      const response = await fetchApi(`${BASE_URL}/api/loteria-federal`);
+            const response = await fetchApi(`${BASE_URL}/api/loteria-federal`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar sorteios.");
       return response.json();
     },
     registrar: async (dto) => {
-      if (isMockMode) return mockDb.loteriaFederal.registrar(dto);
-      const response = await fetchApi(`${BASE_URL}/api/loteria-federal`, {
+            const response = await fetchApi(`${BASE_URL}/api/loteria-federal`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
@@ -206,15 +127,13 @@ export const api = {
   // --- GRUPOS ---
   grupos: {
     listar: async () => {
-      if (isMockMode) return { content: mockDb.grupos.listar(), isMock: true };
-      const response = await fetchApi(`${BASE_URL}/api/grupos?size=2000`);
+            const response = await fetchApi(`${BASE_URL}/api/grupos?size=2000`);
       if (!response.ok) throw new Error("Erro ao listar grupos da API.");
       const data = await response.json();
       return { content: data.content || data, isMock: false };
     },
     salvar: async (dto) => {
-      if (isMockMode) return mockDb.grupos.salvar(dto);
-      const response = await fetchApi(`${BASE_URL}/api/grupos`, {
+            const response = await fetchApi(`${BASE_URL}/api/grupos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
@@ -223,45 +142,39 @@ export const api = {
       return response.json();
     },
     inaugurar: async (id, dataAssembleia) => {
-      if (isMockMode) return mockDb.grupos.inaugurar(id, dataAssembleia);
-      const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/inaugurar?dataAssembleia=${dataAssembleia}`, {
+            const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/inaugurar?dataAssembleia=${dataAssembleia}`, {
         method: 'PUT'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao inaugurar grupo na API.");
       return response.json();
     },
     reajustar: async (id, novoValorCredito) => {
-      if (isMockMode) return mockDb.grupos.reajustar(id, novoValorCredito);
-      const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/reajuste?novoValorCredito=${novoValorCredito}`, {
+            const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/reajuste?novoValorCredito=${novoValorCredito}`, {
         method: 'PUT'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao reajustar crédito na API.");
       return response.json();
     },
     obterFinanceiro: async (id) => {
-      if (isMockMode) return { data: mockDb.grupos.obterFinanceiro(id), isMock: true };
-      const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/financeiro`);
+            const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/financeiro`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao obter relatório financeiro do grupo na API.");
       const data = await response.json();
       return { data, isMock: false };
     },
     encerrar: async (id) => {
-      if (isMockMode) return mockDb.grupos.encerrar(id);
-      const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/encerrar`, {
+            const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/encerrar`, {
         method: 'POST'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao encerrar grupo na API.");
       return response.json();
     },
     obterMovimentos: async (id) => {
-      if (isMockMode) return mockDb.grupos.obterMovimentos(id);
-      const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/movimentos`);
+            const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/movimentos`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao obter extrato de movimentos do grupo na API.");
       return response.json();
     },
     obterSaldo: async (id) => {
-      if (isMockMode) return mockDb.grupos.obterSaldo(id);
-      const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/saldo`);
+            const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/saldo`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao obter saldo atual do grupo na API.");
       return response.json();
     },
@@ -270,22 +183,19 @@ export const api = {
   // --- RELATÓRIOS ---
   relatorios: {
     balancete: async (grupoId, dataReferencia) => {
-      if (isMockMode) return mockDb.relatorios.getBalancete(grupoId, dataReferencia);
-      const url = dataReferencia ? `${BASE_URL}/api/relatorios/balancete/${grupoId}?dataReferencia=${dataReferencia}` : `${BASE_URL}/api/relatorios/balancete/${grupoId}`;
+            const url = dataReferencia ? `${BASE_URL}/api/relatorios/balancete/${grupoId}?dataReferencia=${dataReferencia}` : `${BASE_URL}/api/relatorios/balancete/${grupoId}`;
       const response = await fetchApi(url);
       if (!response.ok) throw await handleResponseError(response, "Erro ao gerar balancete.");
       return response.json();
     },
     estatisticas: async (grupoId, dataInicio, dataFim) => {
-      if (isMockMode) return mockDb.relatorios.getEstatisticas(grupoId, dataInicio, dataFim);
-      const url = `${BASE_URL}/api/relatorios/estatisticas/${grupoId}?dataInicio=${dataInicio}&dataFim=${dataFim}`;
+            const url = `${BASE_URL}/api/relatorios/estatisticas/${grupoId}?dataInicio=${dataInicio}&dataFim=${dataFim}`;
       const response = await fetchApi(url);
       if (!response.ok) throw await handleResponseError(response, "Erro ao gerar estatísticas.");
       return response.json();
     },
     pldFt: async (dataInicio, dataFim) => {
-      if (isMockMode) return mockDb.relatorios.getPldFt(dataInicio, dataFim);
-      const url = `${BASE_URL}/api/relatorios/pld-ft?dataInicio=${dataInicio}&dataFim=${dataFim}`;
+            const url = `${BASE_URL}/api/relatorios/pld-ft?dataInicio=${dataInicio}&dataFim=${dataFim}`;
       const response = await fetchApi(url);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar alertas PLD/FT.");
       return response.json();
@@ -295,52 +205,30 @@ export const api = {
   // --- COTAS ---
   cotas: {
     listar: async () => {
-      if (isMockMode) return { content: mockDb.cotas.listar(), isMock: true };
-      const response = await fetchApi(`${BASE_URL}/api/cotas?size=2000`);
+            const response = await fetchApi(`${BASE_URL}/api/cotas?size=2000`);
       if (!response.ok) throw new Error("Erro ao buscar cotas da API.");
       const data = await response.json();
       return { content: data.content, isMock: false };
     },
     listarPendentesReembolso: async () => {
-      if (isMockMode) {
-        // Mock fallback to old logic if mocked
-        const todas = mockDb.cotas.listar();
-        return todas.filter(c => c.status === 'CANCELADA' && !c.reembolsada).map(c => {
-          const valorBruto = ((c.percentualFundoComumPago || 0) / 100) * (c.valorBemReferenciaAGO || c.valorCredito || 0);
-          const multa = valorBruto * 0.10;
-          return {
-            ...c,
-            valorBrutoRestituicao: valorBruto,
-            valorMultaRestituicao: multa,
-            valorLiquidoRestituicao: valorBruto - multa,
-            valorHistoricoPago: c.valorHistoricoPago || 0,
-            percentualFundoComumPago: c.percentualFundoComumPago || 0,
-            valorBemReferenciaAGO: c.valorBemReferenciaAGO || c.valorCredito || 0,
-            clienteNome: mockDb.clientes.buscarPorId(c.clienteId)?.nome
-          };
-        });
-      }
-      const response = await fetchApi(`${BASE_URL}/api/cotas/canceladas/pendentes-reembolso`);
+            const response = await fetchApi(`${BASE_URL}/api/cotas/canceladas/pendentes-reembolso`);
       if (!response.ok) throw new Error("Erro ao buscar cotas canceladas elegíveis a reembolso da API.");
       return response.json();
     },
     listarPorCliente: async (clienteId) => {
-      if (isMockMode) return mockDb.cotas.listarPorCliente(clienteId);
-      const response = await fetchApi(`${BASE_URL}/api/cotas/cliente/${clienteId}`);
+            const response = await fetchApi(`${BASE_URL}/api/cotas/cliente/${clienteId}`);
       if (!response.ok) throw new Error("Erro ao buscar cotas do cliente.");
       const data = await response.json();
       return data.content || data;
     },
     listarPorGrupo: async (grupoId) => {
-      if (isMockMode) return mockDb.cotas.listarPorGrupo(grupoId);
-      const response = await fetchApi(`${BASE_URL}/api/cotas/grupo/${grupoId}`);
+            const response = await fetchApi(`${BASE_URL}/api/cotas/grupo/${grupoId}`);
       if (!response.ok) throw new Error("Erro ao buscar cotas do grupo.");
       const data = await response.json();
       return data.content || data;
     },
     salvar: async (dto) => {
-      if (isMockMode) return mockDb.cotas.salvar(dto);
-      const response = await fetchApi(`${BASE_URL}/api/cotas`, {
+            const response = await fetchApi(`${BASE_URL}/api/cotas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
@@ -349,30 +237,26 @@ export const api = {
       return response.json();
     },
     cancelar: async (id) => {
-      if (isMockMode) return mockDb.cotas.cancelar(id);
-      const response = await fetchApi(`${BASE_URL}/api/cotas/${id}/cancelar`, {
+            const response = await fetchApi(`${BASE_URL}/api/cotas/${id}/cancelar`, {
         method: 'POST'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao cancelar cota na API.");
       return response.json();
     },
     reembolsar: async (id) => {
-      if (isMockMode) return mockDb.cotas.reembolsar(id);
-      const response = await fetchApi(`${BASE_URL}/api/cotas/${id}/reembolsar`, {
+            const response = await fetchApi(`${BASE_URL}/api/cotas/${id}/reembolsar`, {
         method: 'POST'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao calcular reembolso da cota na API.");
       return response.json();
     },
     listarVersoes: async (id) => {
-      if (isMockMode) return mockDb.cotas.listarVersoes(id);
-      const response = await fetchApi(`${BASE_URL}/api/cotas/${id}/versoes`);
+            const response = await fetchApi(`${BASE_URL}/api/cotas/${id}/versoes`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar histórico de versões da cota na API.");
       return response.json();
     },
     obterMovimentos: async (id) => {
-      if (isMockMode) return mockDb.cotas.obterMovimentos(id);
-      const response = await fetchApi(`${BASE_URL}/api/cotas/${id}/movimentos`);
+            const response = await fetchApi(`${BASE_URL}/api/cotas/${id}/movimentos`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar extrato de movimentos da cota na API.");
       return response.json();
     }
@@ -381,19 +265,7 @@ export const api = {
   // --- LANCES ---
   lances: {
     salvar: async (dto) => {
-      if (isMockMode) {
-        return {
-          id: Math.floor(Math.random() * 1000) + 1,
-          cotaId: Number(dto.cotaId),
-          assembleiaId: Number(dto.assembleiaId),
-          tipo: dto.tipo,
-          modalidade: dto.modalidade,
-          valorOferta: Number(dto.valorOferta),
-          dataOferta: new Date().toISOString(),
-          statusApuracao: "PENDENTE"
-        };
-      }
-      const response = await fetchApi(`${BASE_URL}/api/lances`, {
+            const response = await fetchApi(`${BASE_URL}/api/lances`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
@@ -406,15 +278,13 @@ export const api = {
   // --- PARCELAS ---
   parcelas: {
     listarPorCota: async (cotaId) => {
-      if (isMockMode) return { content: mockDb.parcelas.listarPorCota(cotaId), isMock: true };
-      const response = await fetchApi(`${BASE_URL}/api/parcelas/cota/${cotaId}`);
+            const response = await fetchApi(`${BASE_URL}/api/parcelas/cota/${cotaId}`);
       if (!response.ok) throw new Error("Erro ao buscar histórico de parcelas.");
       const data = await response.json();
       return { content: data, isMock: false };
     },
     salvar: async (dto) => {
-      if (isMockMode) return mockDb.parcelas.salvar(dto);
-      const response = await fetchApi(`${BASE_URL}/api/parcelas`, {
+            const response = await fetchApi(`${BASE_URL}/api/parcelas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
@@ -423,39 +293,34 @@ export const api = {
       return response.json();
     },
     pagar: async (id, dataPagamento) => {
-      if (isMockMode) return mockDb.parcelas.pagar(id, dataPagamento);
-      const response = await fetchApi(`${BASE_URL}/api/parcelas/${id}/pagar?dataPagamento=${dataPagamento}`, {
+            const response = await fetchApi(`${BASE_URL}/api/parcelas/${id}/pagar?dataPagamento=${dataPagamento}`, {
         method: 'PUT'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao registrar pagamento na API.");
       return response.json();
     },
     obterInadimplenciaCota: async (cotaId) => {
-      if (isMockMode) return { data: mockDb.parcelas.obterInadimplenciaCota(cotaId), isMock: true };
-      const response = await fetchApi(`${BASE_URL}/api/cotas/${cotaId}/inadimplencia`);
+            const response = await fetchApi(`${BASE_URL}/api/cotas/${cotaId}/inadimplencia`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao obter inadimplência da cota.");
       const data = await response.json();
       return { data, isMock: false };
     },
     amortizarPorReducaoDePrazo: async (cotaId, valorLance) => {
-      if (isMockMode) return mockDb.parcelas.amortizarPorReducaoDePrazo(cotaId, valorLance);
-      const response = await fetchApi(`${BASE_URL}/api/parcelas/cota/${cotaId}/lance/reducao-prazo?valorLance=${valorLance}`, {
+            const response = await fetchApi(`${BASE_URL}/api/parcelas/cota/${cotaId}/lance/reducao-prazo?valorLance=${valorLance}`, {
         method: 'POST'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro na amortização por redução de prazo.");
       return true;
     },
     amortizarPorDiluicao: async (cotaId, valorLance) => {
-      if (isMockMode) return mockDb.parcelas.amortizarPorDiluicao(cotaId, valorLance);
-      const response = await fetchApi(`${BASE_URL}/api/parcelas/cota/${cotaId}/lance/diluicao?valorLance=${valorLance}`, {
+            const response = await fetchApi(`${BASE_URL}/api/parcelas/cota/${cotaId}/lance/diluicao?valorLance=${valorLance}`, {
         method: 'POST'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro na amortização por diluição.");
       return true;
     },
     estornar: async (id) => {
-      if (isMockMode) return mockDb.parcelas.estornar(id);
-      const response = await fetchApi(`${BASE_URL}/api/parcelas/${id}/estornar`, {
+            const response = await fetchApi(`${BASE_URL}/api/parcelas/${id}/estornar`, {
         method: 'POST'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao estornar pagamento da parcela na API.");
@@ -466,15 +331,13 @@ export const api = {
   // --- ASSEMBLEIAS ---
   assembleias: {
     listarPorGrupo: async (grupoId) => {
-      if (isMockMode) return { content: mockDb.assembleias.listarPorGrupo(grupoId), isMock: true };
-      const response = await fetchApi(`${BASE_URL}/api/assembleias/grupo/${grupoId}`);
+            const response = await fetchApi(`${BASE_URL}/api/assembleias/grupo/${grupoId}`);
       if (!response.ok) throw new Error("Erro ao listar assembleias do grupo na API.");
       const data = await response.json();
       return { content: data, isMock: false };
     },
     salvar: async (dto) => {
-      if (isMockMode) return mockDb.assembleias.salvar(dto);
-      const response = await fetchApi(`${BASE_URL}/api/assembleias`, {
+            const response = await fetchApi(`${BASE_URL}/api/assembleias`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
@@ -483,20 +346,17 @@ export const api = {
       return response.json();
     },
     abrirCaptacao: async (id) => {
-      if (isMockMode) return { mensagem: 'Captação aberta (mock)' };
-      const response = await fetchApi(`${BASE_URL}/api/assembleias/${id}/abrir-captacao`, { method: 'POST' });
+            const response = await fetchApi(`${BASE_URL}/api/assembleias/${id}/abrir-captacao`, { method: 'POST' });
       if (!response.ok) throw await handleResponseError(response, "Erro ao abrir captação.");
       return response.json();
     },
     fecharCaptacao: async (id) => {
-      if (isMockMode) return { mensagem: 'Captação fechada (mock)' };
-      const response = await fetchApi(`${BASE_URL}/api/assembleias/${id}/fechar-captacao`, { method: 'POST' });
+            const response = await fetchApi(`${BASE_URL}/api/assembleias/${id}/fechar-captacao`, { method: 'POST' });
       if (!response.ok) throw await handleResponseError(response, "Erro ao fechar captação.");
       return response.json();
     },
     apurar: async (id, params) => {
-      if (isMockMode) return { mensagem: 'Apuração concluída (mock)', sorteioRealizado: params?.realizarSorteio || false };
-      const response = await fetchApi(`${BASE_URL}/api/assembleias/${id}/apurar`, {
+            const response = await fetchApi(`${BASE_URL}/api/assembleias/${id}/apurar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params || {})
@@ -509,15 +369,13 @@ export const api = {
   // --- CONTEMPLAÇÕES ---
   contemplacoes: {
     listarPorAssembleia: async (assembleiaId) => {
-      if (isMockMode) return { content: mockDb.contemplacoes.listarPorAssembleia(assembleiaId), isMock: true };
-      const response = await fetchApi(`${BASE_URL}/api/contemplacoes/assembleia/${assembleiaId}`);
+            const response = await fetchApi(`${BASE_URL}/api/contemplacoes/assembleia/${assembleiaId}`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar contemplações da assembleia.");
       const data = await response.json();
       return { content: data, isMock: false };
     },
     registrar: async (dto) => {
-      if (isMockMode) return mockDb.contemplacoes.registrar(dto);
-      const response = await fetchApi(`${BASE_URL}/api/contemplacoes`, {
+            const response = await fetchApi(`${BASE_URL}/api/contemplacoes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
@@ -526,22 +384,26 @@ export const api = {
       return response.json();
     },
     listarPendentesIntegralizacao: async () => {
-      if (isMockMode) return [];
       const response = await fetchApi(`${BASE_URL}/api/contemplacoes/pendentes-integralizacao`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar lances pendentes de integralização.");
       const data = await response.json();
       return data.content || data;
     },
     confirmarIntegralizacao: async (id) => {
-      if (isMockMode) return { id, status: 'AGUARDANDO_ANALISE' };
       const response = await fetchApi(`${BASE_URL}/api/contemplacoes/lances/${id}/integralizar`, {
         method: 'POST'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao confirmar integralização do lance.");
       return response.json();
     },
+    pagarBem: async (id) => {
+      const response = await fetchApi(`${BASE_URL}/api/contemplacoes/${id}/pagamento-bem`, {
+        method: 'POST'
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao registrar pagamento do bem.");
+      return response.json();
+    },
     cancelar: async (id) => {
-      if (isMockMode) return { id, status: 'CANCELADA' };
       const response = await fetchApi(`${BASE_URL}/api/contemplacoes/lances/${id}/cancelar`, {
         method: 'POST'
       });
@@ -553,8 +415,7 @@ export const api = {
   // --- COMPLIANCE (PLD/FT) ---
   compliance: {
     sincronizar: async () => {
-      if (isMockMode) return mockDb.compliance.sincronizar();
-      const response = await fetchApi(`${BASE_URL}/api/compliance/sincronizar`, {
+            const response = await fetchApi(`${BASE_URL}/api/compliance/sincronizar`, {
         method: 'POST'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao iniciar a sincronização.");
@@ -562,15 +423,7 @@ export const api = {
       try { return await response.json(); } catch { return { ofacStatus: 'INICIADO_EM_BACKGROUND' }; }
     },
     listarAlertas: async (status = '', origemLista = '') => {
-      if (isMockMode) {
-        const content = mockDb.compliance.listarAlertas();
-        // Filtros básicos no mock
-        let filtrado = content;
-        if (status) filtrado = filtrado.filter(a => a.status === status);
-        if (origemLista) filtrado = filtrado.filter(a => a.origemLista === origemLista);
-        return { content: filtrado, isMock: true };
-      }
-      
+            
       const params = new URLSearchParams();
       if (status) params.append('status', status);
       if (origemLista) params.append('origemLista', origemLista);
@@ -582,8 +435,7 @@ export const api = {
       return { content: data, isMock: false };
     },
     deliberarAlerta: async (id, dto) => {
-      if (isMockMode) return mockDb.compliance.deliberarAlerta(id, dto);
-      const response = await fetchApi(`${BASE_URL}/api/compliance/alertas/${id}/deliberar`, {
+            const response = await fetchApi(`${BASE_URL}/api/compliance/alertas/${id}/deliberar`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
@@ -592,8 +444,7 @@ export const api = {
       return true; // 200 OK
     },
     uploadPep: async (file) => {
-      if (isMockMode) return mockDb.compliance.uploadPep(file);
-      const formData = new FormData();
+            const formData = new FormData();
       formData.append('file', file);
       const response = await fetchApi(`${BASE_URL}/api/compliance/upload/pep`, {
         method: 'POST',
@@ -603,8 +454,7 @@ export const api = {
       return response.json();
     },
     uploadOnu: async (file) => {
-      if (isMockMode) return mockDb.compliance.uploadOnu(file);
-      const formData = new FormData();
+            const formData = new FormData();
       formData.append('file', file);
       const response = await fetchApi(`${BASE_URL}/api/compliance/upload/onu`, {
         method: 'POST',
@@ -614,8 +464,7 @@ export const api = {
       return response.json();
     },
     uploadIbge: async (file) => {
-      if (isMockMode) return mockDb.compliance.uploadIbge(file);
-      const formData = new FormData();
+            const formData = new FormData();
       formData.append('file', file);
       const response = await fetchApi(`${BASE_URL}/api/compliance/upload/ibge`, {
         method: 'POST',
@@ -625,14 +474,12 @@ export const api = {
       return response.json();
     },
     getConfig: async () => {
-      if (isMockMode) return mockDb.compliance.getConfig();
-      const response = await fetchApi(`${BASE_URL}/api/compliance/config`);
+            const response = await fetchApi(`${BASE_URL}/api/compliance/config`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao obter configuração de agendamento.");
       return response.json();
     },
     updateConfig: async (dto) => {
-      if (isMockMode) return { ...dto };
-      const response = await fetchApi(`${BASE_URL}/api/compliance/config`, {
+            const response = await fetchApi(`${BASE_URL}/api/compliance/config`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
@@ -641,8 +488,7 @@ export const api = {
       return response.json();
     },
     listarExecucoes: async () => {
-      if (isMockMode) return [];
-      const response = await fetchApi(`${BASE_URL}/api/compliance/execucoes`);
+            const response = await fetchApi(`${BASE_URL}/api/compliance/execucoes`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao obter histórico de execuções.");
       return response.json();
     }
@@ -651,25 +497,16 @@ export const api = {
   // --- VENDAS DE PROPOSTA ---
   vendas: {
     listarTiposAtivos: async () => {
-      if (isMockMode) return [{
-        id: 1,
-        nome: "Venda Direta",
-        descricao: "Venda direta pelo portal",
-        percentualComissao: 0.05,
-        exigeSeguro: false
-      }];
       const response = await fetchApi(`${BASE_URL}/api/vendas/tipos`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao listar tipos de venda.");
       return response.json();
     },
     listarTiposTodos: async () => {
-      if (isMockMode) return [];
       const response = await fetchApi(`${BASE_URL}/api/vendas/tipos/todos`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao listar tipos de venda.");
       return response.json();
     },
     criarTipo: async (dto) => {
-      if (isMockMode) return { id: Date.now(), ...dto, ativo: true, dataCriacao: new Date().toISOString() };
       const response = await fetchApi(`${BASE_URL}/api/vendas/tipos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -679,8 +516,7 @@ export const api = {
       return response.json();
     },
     atualizarTipo: async (id, dto) => {
-      if (isMockMode) return { id, ...dto };
-      const response = await fetchApi(`${BASE_URL}/api/vendas/tipos/${id}`, {
+            const response = await fetchApi(`${BASE_URL}/api/vendas/tipos/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
@@ -689,18 +525,11 @@ export const api = {
       return response.json();
     },
     inativarTipo: async (id) => {
-      if (isMockMode) return true;
-      const response = await fetchApi(`${BASE_URL}/api/vendas/tipos/${id}`, { method: 'DELETE' });
+            const response = await fetchApi(`${BASE_URL}/api/vendas/tipos/${id}`, { method: 'DELETE' });
       if (!response.ok) throw await handleResponseError(response, "Erro ao inativar tipo de venda.");
       return true;
     },
     efetivarVenda: async (dto) => {
-      if (isMockMode) {
-        if (Number(dto.clienteId) === 5) {
-          throw new Error("Proposta bloqueada por PLD/FT: Cliente em lista restritiva");
-        }
-        return { id: Date.now(), numeroCota: 1, status: 'ATIVA' };
-      }
       const response = await fetchApi(`${BASE_URL}/api/vendas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

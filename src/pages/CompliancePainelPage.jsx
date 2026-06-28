@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { ShieldAlert, RefreshCw, CheckCircle, Filter, Loader2, X, Upload, Calendar, PieChart as PieChartIcon } from 'lucide-react';
+import { TableSkeleton } from '../components/ui/Skeleton';
 import { useForm } from 'react-hook-form';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -314,7 +315,9 @@ const ComplianceConfigSection = () => {
           Histórico de Execuções
         </h4>
         {loadingExecucoes ? (
-          <div className="h-20 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl" />
+          <div className="animate-fade-in">
+            <TableSkeleton rows={4} columns={6} />
+          </div>
         ) : (
           <div className="table-container text-xs">
             <table>
@@ -579,10 +582,8 @@ export const CompliancePainelPage = () => {
           )}
 
           {isLoading ? (
-            <div className="space-y-3 mt-0">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-16 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
-              ))}
+            <div className="animate-fade-in mt-0">
+              <TableSkeleton rows={5} columns={8} />
             </div>
           ) : error ? (
             <div className="p-6 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 text-sm">

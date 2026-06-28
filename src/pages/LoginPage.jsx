@@ -15,7 +15,7 @@ const loginSchema = z.object({
 
 export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isMockMode, token } = useAuth();
+  const { login, token } = useAuth();
   const { triggerToast } = useToast();
   const { isDark } = useTheme();
   const navigate = useNavigate();
@@ -69,7 +69,7 @@ export const LoginPage = () => {
               Consórcio Admin
             </h2>
             <p className="text-sm text-slate-400 mt-1">
-              Gerenciamento Financeiro & Contemplações
+              Gerenciamento de Consórcios
             </p>
           </div>
           
@@ -108,20 +108,11 @@ export const LoginPage = () => {
               {errors.password && <span className="text-red-500 text-xs mt-1 block">{errors.password.message}</span>}
             </div>
 
-            <div className="flex items-start gap-2.5 p-3 rounded-lg bg-blue-50 dark:bg-blue-500/5 border border-blue-200 dark:border-blue-500/15 text-xs text-blue-600 dark:text-blue-400">
-              <Info className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>Dica: Use <strong>admin</strong> / <strong>admin</strong> para entrar direto</span>
-            </div>
 
             <button type="submit" disabled={isSubmitting} className="btn btn-primary btn-block py-3 text-sm">
               <Lock className="w-4 h-4" /> {isSubmitting ? 'Autenticando...' : 'Autenticar'}
             </button>
           </form>
-
-          <div className="flex items-center justify-center gap-2 mt-6 text-xs font-medium text-slate-400">
-            <span className={`status-dot ${isMockMode ? 'mock' : 'real'}`} />
-            <span>{isMockMode ? 'Simulação Local Ativa' : 'API Spring Boot Conectada'}</span>
-          </div>
         </div>
       </div>
     </div>

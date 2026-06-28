@@ -40,7 +40,6 @@ export function useCotas() {
 
   return {
     cotas: cotasQuery.data?.content || [],
-    isMock: cotasQuery.data?.isMock || false,
     isLoading: cotasQuery.isLoading,
     isError: cotasQuery.isError,
     error: cotasQuery.error,

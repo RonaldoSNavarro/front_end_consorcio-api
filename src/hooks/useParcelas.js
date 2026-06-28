@@ -55,7 +55,6 @@ export function useParcelas(cotaId) {
 
   return {
     parcelas: parcelasQuery.data?.content || [],
-    isMock: parcelasQuery.data?.isMock || false,
     isLoading: parcelasQuery.isLoading,
     isError: parcelasQuery.isError,
     error: parcelasQuery.error,

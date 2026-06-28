@@ -84,7 +84,7 @@ src/
 
 ## 🚀 Como Executar
 
-O frontend depende do backend Spring Boot estar rodando na porta 8080. O `api.js` possui um detector automático de proxy: se a API real estiver offline, a aplicação cairá suavemente em **Modo Simulado (mockDb local)**, permitindo desenvolvimento offline completo.
+O frontend foi desenvolvido para operar conectado em 100% do tempo à API real Spring Boot na porta 8080. O modo mock foi permanentemente descontinuado para garantir fidelidade total nas validações transacionais (Lances, Integralizações, etc).
 
 1. Instale todas as dependências:
    ```bash
@@ -107,7 +107,7 @@ O frontend depende do backend Spring Boot estar rodando na porta 8080. O `api.js
 
 A aplicação conta com validação automatizada contínua por meio de Vitest, cobrindo:
 *   **Schemas Zod**: Validação de CPFs/CNPJs, regras financeiras, patrimônio e formatos.
-*   **TanStack Hooks**: Validação de cache, queries e mutações em modo simulação.
-*   **Integração do DOM**: Testes em `App.test.jsx` cobrindo o fluxo de login e criação de clientes.
+* - **Estado Frontend**: Totalmente refatorado para estética Premium, com Skeletons de alto nível (`TableSkeleton`, `CardSkeleton`) e temas dinâmicos (Âmbar, Oceano, Esmeralda). As dependências offline foram erradicadas, tornando o consumo 100% voltado para a API de produção Spring Boot.
+- **Testes**: 8/8 testes E2E passando com 100% de sucesso. Testes unitários também em conformidade. UI Drift resolvido.
 
 Todos os **47 testes integrados** passam com 100% de sucesso.

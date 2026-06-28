@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { Undo2, Info, Calculator, Scale, AlertTriangle, Inbox, Check, X, RefreshCw, Loader2 } from 'lucide-react';
+import { TableSkeleton } from '../components/ui/Skeleton';
 
 export const ReembolsosExcluidosPage = () => {
   const { triggerToast } = useToast();
@@ -81,12 +82,9 @@ export const ReembolsosExcluidosPage = () => {
 
       {/* ESTADO: LOADING */}
       {simulatedState.isLoading && (
-        <div className="glass-panel p-6 space-y-4 animate-pulse">
-          <div className="h-6 bg-slate-200 dark:bg-slate-700/50 rounded w-1/4"></div>
-          <div className="space-y-3">
-            {[...Array(3)].map((_, i) => <div key={i} className="h-12 bg-slate-200 dark:bg-slate-700/30 rounded"></div>)}
-          </div>
-          <p className="text-center text-xs text-slate-500">Obtendo devoluções pendentes da API...</p>
+        <div className="animate-fade-in">
+          <TableSkeleton rows={5} columns={7} />
+          <p className="text-center text-xs text-slate-500 mt-4">Obtendo devoluções pendentes da API...</p>
         </div>
       )}
 

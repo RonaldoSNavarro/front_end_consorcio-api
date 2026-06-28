@@ -14,11 +14,14 @@ const navLinks = [
   { to: '/clientes', label: 'Clientes', icon: Users },
   { to: '/grupos', label: 'Grupos Adm', icon: Grid3X3 },
   { to: '/cotas', label: 'Cotas', icon: CircleHelp },
-  { to: '/assembleias', label: 'Assembleias AGO', icon: CalendarDays },
-  { to: '/loteria-federal', label: 'Loteria Federal', icon: Dice5 },
-  { to: '/lances-pendentes', label: 'Integralizar Lances', icon: ArrowUpDown },
   { to: '/reembolsos-excluidos', label: 'Reembolso Excluídos', icon: DollarSign },
   { to: '/financeiro', label: 'Amortização / Parcelas', icon: Clock },
+];
+
+const contemplacaoLinks = [
+  { to: '/assembleias', label: 'Assembleias AGO', icon: CalendarDays },
+  { to: '/loteria-federal', label: 'Loteria Federal', icon: Dice5 },
+  { to: '/lances-pendentes', label: 'Lances e Integralização', icon: ArrowUpDown },
 ];
 
 const vendaLinks = [
@@ -34,8 +37,8 @@ const reportLinks = [
 ];
 
 export const Sidebar = ({ onClose }) => {
-  const { user, isMockMode, toggleMockMode, logout } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
+  const { isDark, toggleTheme, brandTheme, changeBrandTheme } = useTheme();
 
   const linkClass = ({ isActive }) => 
     `nav-item ${isActive ? 'active' : ''}`;
@@ -72,6 +75,24 @@ export const Sidebar = ({ onClose }) => {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 space-y-0.5">
         {navLinks.map(({ to, label, icon: Icon }) => (
+          <NavLink key={to} to={to} className={linkClass} onClick={onClose}>
+            <Icon className="w-[18px] h-[18px] shrink-0" />
+            <span>{label}</span>
+          </NavLink>
+        ))}
+
+        {/* Contemplação Section */}
+        <div className="pt-5 pb-2 px-3">
+          <div className="flex items-center gap-2">
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700/50" />
+            <span className="text-[0.65rem] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">
+              Contemplação
+            </span>
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700/50" />
+          </div>
+        </div>
+
+        {contemplacaoLinks.map(({ to, label, icon: Icon }) => (
           <NavLink key={to} to={to} className={linkClass} onClick={onClose}>
             <Icon className="w-[18px] h-[18px] shrink-0" />
             <span>{label}</span>
@@ -123,6 +144,42 @@ export const Sidebar = ({ onClose }) => {
 
       {/* Footer */}
       <div className="px-3 pb-4 pt-3 space-y-3 border-t border-slate-200 dark:border-slate-700/40">
+        {/* Brand Theme Selector */}
+        <div className="flex flex-col gap-2.5 px-3.5 py-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/50 shadow-inner">
+          <span className="text-[0.6rem] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">
+            Paleta de Cores
+          </span>
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={() => changeBrandTheme('amber')}
+              className={`relative w-6 h-6 rounded-full shadow-md transition-all duration-300 flex items-center justify-center
+                ${brandTheme === 'amber' ? 'ring-2 ring-[#F59E0B] ring-offset-2 ring-offset-slate-50 dark:ring-offset-slate-800 scale-110' : 'opacity-50 hover:opacity-100 hover:scale-110 saturate-50 hover:saturate-100'}`}
+              style={{ background: 'linear-gradient(135deg, #FCD34D, #F59E0B)' }}
+              aria-label="Cor Âmbar"
+            >
+              {brandTheme === 'amber' && <div className="w-2 h-2 bg-white rounded-full shadow-sm" />}
+            </button>
+            <button
+              onClick={() => changeBrandTheme('ocean')}
+              className={`relative w-6 h-6 rounded-full shadow-md transition-all duration-300 flex items-center justify-center
+                ${brandTheme === 'ocean' ? 'ring-2 ring-[#3B82F6] ring-offset-2 ring-offset-slate-50 dark:ring-offset-slate-800 scale-110' : 'opacity-50 hover:opacity-100 hover:scale-110 saturate-50 hover:saturate-100'}`}
+              style={{ background: 'linear-gradient(135deg, #93C5FD, #3B82F6)' }}
+              aria-label="Cor Oceano"
+            >
+              {brandTheme === 'ocean' && <div className="w-2 h-2 bg-white rounded-full shadow-sm" />}
+            </button>
+            <button
+              onClick={() => changeBrandTheme('emerald')}
+              className={`relative w-6 h-6 rounded-full shadow-md transition-all duration-300 flex items-center justify-center
+                ${brandTheme === 'emerald' ? 'ring-2 ring-[#10B981] ring-offset-2 ring-offset-slate-50 dark:ring-offset-slate-800 scale-110' : 'opacity-50 hover:opacity-100 hover:scale-110 saturate-50 hover:saturate-100'}`}
+              style={{ background: 'linear-gradient(135deg, #6EE7B7, #10B981)' }}
+              aria-label="Cor Esmeralda"
+            >
+              {brandTheme === 'emerald' && <div className="w-2 h-2 bg-white rounded-full shadow-sm" />}
+            </button>
+          </div>
+        </div>
+
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
@@ -145,19 +202,6 @@ export const Sidebar = ({ onClose }) => {
             <div className="w-3.5 h-3.5 rounded-full bg-white shadow-sm mx-0.5 transition-all duration-300" />
           </div>
         </button>
-
-        {/* Mock Mode Toggle */}
-        <div className="px-3.5 py-2.5 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-slate-700/50">
-          <div className="flex items-center gap-2 mb-2">
-            <span className={`status-dot ${isMockMode ? 'mock' : 'real'}`} />
-            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-              {isMockMode ? 'Simulado (Browser)' : 'API Spring (Live)'}
-            </span>
-          </div>
-          <button onClick={toggleMockMode} className="btn btn-outline btn-sm btn-block">
-            Alternar Modo
-          </button>
-        </div>
 
         {/* User Profile */}
         <div className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-slate-700/50">

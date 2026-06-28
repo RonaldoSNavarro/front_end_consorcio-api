@@ -5,6 +5,7 @@ import { useToast } from '../context/ToastContext';
 import { CotaForm } from '../components/forms/CotaForm';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { Plus, XCircle, Calculator, X } from 'lucide-react';
+import { TableSkeleton } from '../components/ui/Skeleton';
 
 const cotaStatusBadge = (status) => {
   const map = { 'ATIVA': 'badge-success', 'CONTEMPLADA': 'badge-info', 'CANCELADA': 'badge-danger', 'ENCERRADA': 'badge-neutral' };
@@ -63,7 +64,9 @@ export const CotasPage = () => {
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-16 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />)}</div>
+        <div className="animate-fade-in">
+          <TableSkeleton rows={5} columns={5} />
+        </div>
       ) : (
         <div className="table-container">
           <table>

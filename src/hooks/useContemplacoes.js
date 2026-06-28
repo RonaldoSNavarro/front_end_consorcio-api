@@ -24,7 +24,6 @@ export function useContemplacoes(assembleiaId) {
 
   return {
     contemplacoes: contemplacoesQuery.data?.content || [],
-    isMock: contemplacoesQuery.data?.isMock || false,
     isLoading: contemplacoesQuery.isLoading,
     isError: contemplacoesQuery.isError,
     error: contemplacoesQuery.error,

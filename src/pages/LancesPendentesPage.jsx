@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { Gavel, Info, Check, X, AlertTriangle, CalendarDays, Loader2, Inbox, RefreshCw } from 'lucide-react';
+import { TableSkeleton } from '../components/ui/Skeleton';
 
 export const LancesPendentesPage = () => {
   const { triggerToast } = useToast();
@@ -42,6 +43,15 @@ export const LancesPendentesPage = () => {
     onError: (err) => triggerToast(err.message, 'danger'),
   });
 
+  const pagarBemMutation = useMutation({
+    mutationFn: (id) => api.contemplacoes.pagarBem(id),
+    onSuccess: () => {
+      triggerToast('Pagamento do bem registrado com sucesso! Crédito liberado para fornecedor/consorciado.', 'success');
+      queryClient.invalidateQueries({ queryKey: ['lancesIntegralizacao'] });
+    },
+    onError: (err) => triggerToast(err.message, 'danger'),
+  });
+
   const handleConfirmClick = (lance) => { setSelectedLance(lance); setShowConfirmModal(true); };
   const handleCancelClick = (id) => { setCancelLanceId(id); setShowCancelModal(true); };
 
@@ -56,6 +66,15 @@ export const LancesPendentesPage = () => {
     e.preventDefault();
     if (cancelLanceId) {
       cancelarMutation.mutate(cancelLanceId);
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch(status) {
+      case 'PENDENTE_INTEGRALIZACAO': return <span className="badge bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 border-orange-200 dark:border-orange-500/30">Pendente de Lance</span>;
+      case 'AGUARDANDO_ANALISE': return <span className="badge badge-warning">Em Análise de Crédito</span>;
+      case 'APROVADO': return <span className="badge badge-success">Crédito Aprovado</span>;
+      default: return <span className="badge badge-neutral">{status}</span>;
     }
   };
 
@@ -89,11 +108,8 @@ export const LancesPendentesPage = () => {
 
       {/* ESTADO: CARREGANDO */}
       {isLoading && (
-        <div className="glass-panel p-6 space-y-4 animate-pulse">
-          <div className="h-6 bg-slate-200 dark:bg-slate-700/50 rounded w-1/4"></div>
-          <div className="space-y-3">
-            {[...Array(3)].map((_, i) => <div key={i} className="h-12 bg-slate-200 dark:bg-slate-700/30 rounded"></div>)}
-          </div>
+        <div className="animate-fade-in">
+          <TableSkeleton rows={5} columns={8} />
         </div>
       )}
 
@@ -129,6 +145,7 @@ export const LancesPendentesPage = () => {
                 <th>CLIENTE</th>
                 <th className="text-right">VALOR DO LANCE</th>
                 <th>TIPO</th>
+                <th>STATUS</th>
                 <th>DATA APURAÇÃO</th>
                 <th className="text-center">AÇÕES</th>
               </tr>
@@ -149,6 +166,7 @@ export const LancesPendentesPage = () => {
                     {formatCurrency(lance.valorLance || lance.valorOferta)}
                   </td>
                   <td><span className="badge badge-info">{lance.tipoContemplacao || 'LANCE_LIVRE'}</span></td>
+                  <td>{getStatusBadge(lance.statusCota)}</td>
                   <td className="text-xs text-slate-500">
                     <span className="flex items-center gap-1">
                       <CalendarDays className="w-3 h-3" />
@@ -157,21 +175,42 @@ export const LancesPendentesPage = () => {
                   </td>
                   <td>
                     <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => handleConfirmClick(lance)}
-                        className="btn btn-outline btn-xs !text-emerald-600 dark:!text-emerald-400 !border-emerald-200 dark:!border-emerald-500/30 hover:!bg-emerald-50 dark:hover:!bg-emerald-500/10 flex items-center gap-1"
-                        title="Confirmar integralização do lance"
-                        disabled={integralizarMutation.isPending}
-                      >
-                        <Check className="w-3.5 h-3.5" /> Confirmar
-                      </button>
-                      <button
-                        onClick={() => handleCancelClick(lance.id)}
-                        className="btn btn-outline btn-xs !text-rose-600 dark:!text-rose-400 !border-rose-200 dark:!border-rose-500/30 hover:!bg-rose-50 dark:hover:!bg-rose-500/10 flex items-center gap-1"
-                        title="Cancelar contemplação"
-                      >
-                        <X className="w-3.5 h-3.5" /> Cancelar
-                      </button>
+                      {lance.statusCota === 'PENDENTE_INTEGRALIZACAO' && (
+                        <>
+                          <button
+                            onClick={() => handleConfirmClick(lance)}
+                            className="btn btn-outline btn-xs !text-emerald-600 dark:!text-emerald-400 !border-emerald-200 dark:!border-emerald-500/30 hover:!bg-emerald-50 dark:hover:!bg-emerald-500/10 flex items-center gap-1"
+                            title="Confirmar integralização do lance"
+                            disabled={integralizarMutation.isPending}
+                          >
+                            <Check className="w-3.5 h-3.5" /> Confirmar
+                          </button>
+                          <button
+                            onClick={() => handleCancelClick(lance.id)}
+                            className="btn btn-outline btn-xs !text-rose-600 dark:!text-rose-400 !border-rose-200 dark:!border-rose-500/30 hover:!bg-rose-50 dark:hover:!bg-rose-500/10 flex items-center gap-1"
+                            title="Cancelar contemplação"
+                          >
+                            <X className="w-3.5 h-3.5" /> Cancelar
+                          </button>
+                        </>
+                      )}
+                      {lance.statusCota === 'APROVADO' && lance.valorCreditoLiberado > 0 && (
+                        <button
+                          onClick={() => pagarBemMutation.mutate(lance.id)}
+                          className="btn btn-primary btn-xs flex items-center gap-1"
+                          title="Realizar pagamento do bem e faturamento"
+                          disabled={pagarBemMutation.isPending}
+                        >
+                          {pagarBemMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                          Pagar Bem
+                        </button>
+                      )}
+                      {lance.statusCota === 'AGUARDANDO_ANALISE' && (
+                        <span className="text-[10px] text-slate-400">Aguardando Avaliação</span>
+                      )}
+                      {lance.valorCreditoLiberado === 0 && lance.statusCota === 'APROVADO' && (
+                        <span className="text-[10px] text-emerald-500 font-bold">Bem Quitado</span>
+                      )}
                     </div>
                   </td>
                 </tr>

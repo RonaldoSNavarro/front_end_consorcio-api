@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
-import { useAuth } from './useAuth';
+import { useAuth } from '../context/AuthContext';
 
 export const usePldFtQuery = (dataInicio, dataFim, options = {}) => {
   const { token } = useAuth();

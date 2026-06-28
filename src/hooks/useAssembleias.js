@@ -23,7 +23,6 @@ export function useAssembleias(grupoId) {
 
   return {
     assembleias: assembleiasQuery.data?.content || [],
-    isMock: assembleiasQuery.data?.isMock || false,
     isLoading: assembleiasQuery.isLoading,
     isError: assembleiasQuery.isError,
     error: assembleiasQuery.error,

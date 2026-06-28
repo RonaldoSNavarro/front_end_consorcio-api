@@ -4,6 +4,7 @@ import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { GrupoForm } from '../components/forms/GrupoForm';
 import { Plus, Rocket, TrendingUp, Loader2 } from 'lucide-react';
+import { TableSkeleton } from '../components/ui/Skeleton';
 
 const GrupoSaldoCell = ({ grupoId }) => {
   const { data: saldo, isLoading, error } = useQuery({
@@ -90,10 +91,8 @@ export const GruposPage = () => {
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-16 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
-          ))}
+        <div className="animate-fade-in">
+          <TableSkeleton rows={6} columns={7} />
         </div>
       ) : (
         <div className="table-container">

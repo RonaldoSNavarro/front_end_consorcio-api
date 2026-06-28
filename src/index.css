@@ -6,6 +6,48 @@
    BASE LAYER — Resets, Scrollbar, Typography
    ═══════════════════════════════════════════════════════════ */
 @layer base {
+  :root {
+    /* Theme: Amber (Default) */
+    --color-brand-50: 255 251 235;
+    --color-brand-100: 254 243 199;
+    --color-brand-200: 253 230 138;
+    --color-brand-300: 252 211 77;
+    --color-brand-400: 251 191 36;
+    --color-brand-500: 245 158 11;
+    --color-brand-600: 217 119 6;
+    --color-brand-700: 180 83 9;
+    --color-brand-800: 146 64 14;
+    --color-brand-900: 120 53 15;
+  }
+
+  :root[data-theme="ocean"] {
+    /* Theme: Ocean Blue / Indigo */
+    --color-brand-50: 238 242 255;
+    --color-brand-100: 224 231 255;
+    --color-brand-200: 199 210 254;
+    --color-brand-300: 165 180 252;
+    --color-brand-400: 129 140 248;
+    --color-brand-500: 99 102 241;
+    --color-brand-600: 79 70 229;
+    --color-brand-700: 67 56 202;
+    --color-brand-800: 55 48 163;
+    --color-brand-900: 49 46 129;
+  }
+
+  :root[data-theme="emerald"] {
+    /* Theme: Premium Emerald */
+    --color-brand-50: 236 253 245;
+    --color-brand-100: 209 250 229;
+    --color-brand-200: 167 243 208;
+    --color-brand-300: 110 231 183;
+    --color-brand-400: 52 211 153;
+    --color-brand-500: 16 185 129;
+    --color-brand-600: 5 150 105;
+    --color-brand-700: 4 120 87;
+    --color-brand-800: 6 95 70;
+    --color-brand-900: 6 78 59;
+  }
+
   * {
     scrollbar-width: thin;
     scrollbar-color: rgba(148, 163, 184, 0.15) transparent;
@@ -77,10 +119,10 @@
     @apply border-b-0;
   }
   tbody tr:hover td {
-    @apply bg-slate-50/80;
+    @apply bg-slate-50/80 -translate-y-[1px] shadow-sm relative z-10;
   }
   .dark tbody tr:hover td {
-    @apply bg-white/[0.02];
+    @apply bg-white/[0.03] shadow-black/20;
   }
 }
 
@@ -91,20 +133,21 @@
 
   /* ─── Glass Panel ─── */
   .glass-panel {
-    @apply bg-white border border-slate-200 rounded-2xl
-           shadow-lg shadow-slate-900/5
+    @apply bg-white/95 border border-slate-200/80 rounded-2xl
+           shadow-[0_8px_30px_rgb(0,0,0,0.04)]
+           backdrop-blur-md
            transition-all duration-300;
   }
   .dark .glass-panel {
-    @apply bg-slate-800/60 border-slate-700/40
-           shadow-xl shadow-black/20
-           backdrop-blur-xl;
+    @apply bg-slate-900/60 border-slate-700/50
+           shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_8px_30px_rgba(0,0,0,0.3)]
+           backdrop-blur-2xl;
   }
   .glass-panel:hover {
-    @apply border-slate-300 shadow-xl;
+    @apply border-slate-300/80 shadow-[0_8px_30px_rgb(0,0,0,0.08)] -translate-y-0.5;
   }
   .dark .glass-panel:hover {
-    @apply border-brand-500/20 shadow-brand-500/5;
+    @apply border-brand-500/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_8px_30px_rgba(var(--color-brand-500),0.1)] -translate-y-0.5;
   }
 
   /* ─── Buttons ─── */
@@ -347,4 +390,10 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r;
   }
+  
+  .animate-stagger-1 { animation-delay: 50ms; }
+  .animate-stagger-2 { animation-delay: 100ms; }
+  .animate-stagger-3 { animation-delay: 150ms; }
+  .animate-stagger-4 { animation-delay: 200ms; }
+  .animate-stagger-5 { animation-delay: 250ms; }
 }
