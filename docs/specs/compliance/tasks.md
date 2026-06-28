@@ -54,5 +54,5 @@
 - [x] Incrementar testes no `CompliancePainelPage.test.jsx` cobrindo a troca de abas, upload de arquivos e salvamento da configuração do cron.
 
 ### [TESTE E2E] Estabilidade Global e Bloqueios (Pendência)
-- [ ] **E2E Flakiness na Venda**: Resolver falhas de timeout (`locator.fill`) no teste E2E `Deve impedir venda para cliente bloqueado em lista restritiva (OFAC/ONU)`, assegurando que o modal não re-renderize perdendo a referência no DOM durante o clique de Avançar.
-- [ ] **E2E Timeout Global (Login)**: Mitigar sobrecarga de workers no setup global `test.beforeEach` que ocasionalmente causa timeout no carregamento inicial de `http://localhost:5173/login`.
+- `[x]` **E2E Flakiness na Venda**: Resolver falhas de timeout (`locator.fill`) no teste E2E `Deve impedir venda para cliente bloqueado em lista restritiva (OFAC/ONU)`, assegurando que o modal não re-renderize perdendo a referência no DOM durante o clique de Avançar.
+- `[x]` **E2E Timeout Global (Login)**: Mitigar sobrecarga de workers no setup global `test.beforeEach` que ocasionalmente causa timeout no carregamento inicial de `http://localhost:5173/login`.

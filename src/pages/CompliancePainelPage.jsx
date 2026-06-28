@@ -382,6 +382,12 @@ export const CompliancePainelPage = () => {
     enabled: activeTab === 'alertas'
   });
 
+  const { data: execucoes } = useQuery({
+    queryKey: ['complianceExecucoes'],
+    queryFn: () => api.compliance.listarExecucoes(),
+    enabled: activeTab === 'upload' || activeTab === 'config'
+  });
+
   const alertas = alertasData?.content || alertasData || [];
 
   const syncMutation = useMutation({
@@ -655,31 +661,56 @@ export const CompliancePainelPage = () => {
 
       {/* Conteúdo da Aba 2: Importar Listas */}
       {activeTab === 'upload' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <FileUploaderCard 
-            title="Lista PEP (CSV)"
-            accept=".csv"
-            description="Carga de Pessoas Expostas Politicamente delimitada por ';' contendo CPFs e nomes."
-            onUpload={(file, callback) => uploadPepMutation.mutate(file, { onSuccess: callback })}
-            isPending={uploadPepMutation.isPending}
-            message={pepMessage}
-          />
-          <FileUploaderCard 
-            title="Lista ONU (XML)"
-            accept=".xml"
-            description="XML do Conselho de Segurança da ONU contendo indivíduos e entidades sob sanção."
-            onUpload={(file, callback) => uploadOnuMutation.mutate(file, { onSuccess: callback })}
-            isPending={uploadOnuMutation.isPending}
-            message={onuMessage}
-          />
-          <FileUploaderCard 
-            title="Lista IBGE (XLS/XLSX)"
-            accept=".xls,.xlsx"
-            description="Planilha XLS do IBGE com Municípios de Faixa de Fronteira e Cidades Gêmeas."
-            onUpload={(file, callback) => uploadIbgeMutation.mutate(file, { onSuccess: callback })}
-            isPending={uploadIbgeMutation.isPending}
-            message={ibgeMessage}
-          />
+        <div className="space-y-6">
+          <div className="glass-panel p-5 border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 className="font-title font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-brand-500" /> Integração Automática (API OFAC)
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">O download da lista de sanções (CONS_ADVANCED.XML) ocorre de forma transparente na rotina noturna.</p>
+            </div>
+            <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900/50 px-4 py-2.5 rounded-lg border border-slate-100 dark:border-slate-700">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Último Status:</span>
+              {execucoes && execucoes.length > 0 ? (
+                execucoes[0].ofacStatus === 'ONLINE' ? (
+                  <span className="badge bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 font-bold flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" /> ONLINE
+                  </span>
+                ) : (
+                  <span className="badge bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 font-bold">OFFLINE (Fallback)</span>
+                )
+              ) : (
+                <span className="badge bg-slate-200 text-slate-600">Aguardando Execução...</span>
+              )}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <FileUploaderCard 
+              title="Lista PEP (CSV)"
+              accept=".csv"
+              description="Carga de Pessoas Expostas Politicamente delimitada por ';' contendo CPFs e nomes."
+              onUpload={(file, callback) => uploadPepMutation.mutate(file, { onSuccess: callback })}
+              isPending={uploadPepMutation.isPending}
+              message={pepMessage}
+            />
+            <FileUploaderCard 
+              title="Lista ONU (XML)"
+              accept=".xml"
+              description="XML do Conselho de Segurança da ONU contendo indivíduos e entidades sob sanção."
+              onUpload={(file, callback) => uploadOnuMutation.mutate(file, { onSuccess: callback })}
+              isPending={uploadOnuMutation.isPending}
+              message={onuMessage}
+            />
+            <FileUploaderCard 
+              title="Lista IBGE (XLS/XLSX)"
+              accept=".xls,.xlsx"
+              description="Planilha XLS do IBGE com Municípios de Faixa de Fronteira e Cidades Gêmeas."
+              onUpload={(file, callback) => uploadIbgeMutation.mutate(file, { onSuccess: callback })}
+              isPending={uploadIbgeMutation.isPending}
+              message={ibgeMessage}
+            />
+          </div>
         </div>
       )}
 
