@@ -22,8 +22,8 @@ test.describe('Fluxo de Assembleia e Apuração', () => {
       await page.selectOption('select#select-grupo', { index: 1 });
     }
 
-    // Tenta encontrar o botão Apurar
-    const apurarButton = page.locator('button', { hasText: 'Apurar' }).first();
+    // Tenta encontrar o botão Apurar que não esteja desativado
+    const apurarButton = page.locator('button:not(:disabled)', { hasText: 'Apurar' }).first();
     
     // Se não existir, a gente tenta clicar em um botão "Fechar" para forçar uma como REALIZADA
     if (!(await apurarButton.isVisible())) {

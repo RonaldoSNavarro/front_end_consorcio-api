@@ -30,10 +30,7 @@ export const VendaPropostaPage = () => {
   const [observacoes, setObservacoes] = useState('');
   const [clienteSearch, setClienteSearch] = useState('');
 
-  const { data: clientesData } = useQuery({
-    queryKey: ['clientes', 'venda'],
-    queryFn: () => api.clientes.listar(0, 200)
-  });
+  const { data: clientesData } = useQuery({ queryKey: ['clientes'], queryFn: () => api.clientes.listar(0, 1000) });
   const clientes = (clientesData?.content || clientesData || []).filter(c => c.statusCliente !== 'INATIVO');
 
   const { data: tiposData } = useQuery({
@@ -57,9 +54,11 @@ export const VendaPropostaPage = () => {
     onError: (err) => triggerToast(err.message || "Erro ao efetivar venda. Verifique se há grupos disponíveis com esse valor.", 'danger')
   });
 
-  const filteredClientes = clientes.filter(c =>
-    !clienteSearch || c.nome?.toLowerCase().includes(clienteSearch.toLowerCase()) || c.cpfCnpj?.includes(clienteSearch)
-  );
+  const filteredClientes = clientes.filter(c => {
+    const nomeMatches = c.nome ? c.nome.toLowerCase().includes((clienteSearch || '').toLowerCase()) : false;
+    const cpfMatches = c.cpfCnpj ? c.cpfCnpj.includes(clienteSearch || '') : false;
+    return nomeMatches || cpfMatches;
+  });
 
   const steps = ['Selecionar Cliente', 'Valor do Crédito', 'Tipo de Venda', 'Confirmar'];
 
