@@ -25,6 +25,7 @@ import { RelatorioPldFtPage } from './pages/RelatorioPldFtPage';
 import { CompliancePainelPage } from './pages/CompliancePainelPage';
 import { TiposDeVendaPage } from './pages/TiposDeVendaPage';
 import { VendaPropostaPage } from './pages/VendaPropostaPage';
+import { LoteriaFederalPage } from './pages/LoteriaFederalPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +57,7 @@ export default function App() {
                     <Route path="/grupos" element={<GruposPage />} />
                     <Route path="/cotas" element={<CotasPage />} />
                     <Route path="/assembleias" element={<AssembleiasPage />} />
+                    <Route path="/loteria-federal" element={<LoteriaFederalPage />} />
                     <Route path="/lances-pendentes" element={<LancesPendentesPage />} />
                     <Route path="/reembolsos-excluidos" element={<ReembolsosExcluidosPage />} />
                     <Route path="/financeiro" element={<FinanceiroPage />} />

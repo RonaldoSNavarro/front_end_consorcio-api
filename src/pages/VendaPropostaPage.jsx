@@ -25,12 +25,25 @@ export const VendaPropostaPage = () => {
   const [step, setStep] = useState(0);
   const [selectedCliente, setSelectedCliente] = useState(null);
   const [valorCredito, setValorCredito] = useState(50000);
+  const [categoriaBem, setCategoriaBem] = useState('VEICULO_AUTOMOTOR');
+  const [prazoMeses, setPrazoMeses] = useState(60);
   const [selectedTipo, setSelectedTipo] = useState(null);
   const [contratarSeguro, setContratarSeguro] = useState(false);
   const [observacoes, setObservacoes] = useState('');
   const [clienteSearch, setClienteSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  const { data: clientesData } = useQuery({ queryKey: ['clientes'], queryFn: () => api.clientes.listar(0, 1000) });
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(clienteSearch);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [clienteSearch]);
+
+  const { data: clientesData } = useQuery({ 
+    queryKey: ['clientes', 0, 30, debouncedSearch], 
+    queryFn: () => api.clientes.listar(0, 30, debouncedSearch) 
+  });
   const clientes = (clientesData?.content || clientesData || []).filter(c => c.statusCliente !== 'INATIVO');
 
   const { data: tiposData } = useQuery({
@@ -43,6 +56,8 @@ export const VendaPropostaPage = () => {
     mutationFn: () => api.vendas.efetivarVenda({
       clienteId: selectedCliente.id,
       valorCreditoDesejado: valorCredito,
+      categoriaBem: categoriaBem,
+      prazoMeses: prazoMeses,
       tipoVendaId: selectedTipo.id,
       contratarSeguro,
       observacoes: observacoes || null
@@ -51,16 +66,13 @@ export const VendaPropostaPage = () => {
       triggerToast(`Venda efetivada! Cota #${data.numeroCota || data.id} criada e alocada automaticamente.`, 'success');
       navigate('/cotas');
     },
-    onError: (err) => triggerToast(err.message || "Erro ao efetivar venda. Verifique se há grupos disponíveis com esse valor.", 'danger')
+    onError: (err) => triggerToast(err.message || "Erro ao efetivar venda. Verifique se há grupos disponíveis com esses parâmetros.", 'danger')
   });
 
-  const filteredClientes = clientes.filter(c => {
-    const nomeMatches = c.nome ? c.nome.toLowerCase().includes((clienteSearch || '').toLowerCase()) : false;
-    const cpfMatches = c.cpfCnpj ? c.cpfCnpj.includes(clienteSearch || '') : false;
-    return nomeMatches || cpfMatches;
-  });
+  // Busca agora é feita via backend com debouncedSearch.
+  const filteredClientes = clientes;
 
-  const steps = ['Selecionar Cliente', 'Valor do Crédito', 'Tipo de Venda', 'Confirmar'];
+  const steps = ['Selecionar Cliente', 'Parâmetros do Plano', 'Tipo de Venda', 'Confirmar'];
 
   return (
     <div className="animate-fade-in space-y-6 max-w-3xl mx-auto">
@@ -110,27 +122,45 @@ export const VendaPropostaPage = () => {
         </div>
       )}
 
-      {/* PASSO 1 — Valor do Crédito */}
+      {/* PASSO 1 — Parâmetros do Plano */}
       {step === 1 && (
         <div className="glass-panel p-6 space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <Banknote className="w-5 h-5 text-brand-500" />
-            <h3 className="font-title font-bold text-slate-900 dark:text-white">Valor do Crédito</h3>
+            <h3 className="font-title font-bold text-slate-900 dark:text-white">Parâmetros do Plano</h3>
           </div>
           <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-400 flex gap-2 mb-4">
             <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
             Cliente: <strong>{selectedCliente?.nome}</strong>
           </div>
           
-          <div className="form-group">
-            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1 block">Qual o valor de crédito desejado?</label>
-            <div className="flex gap-2 items-center">
-              <span className="text-slate-500 font-semibold">R$</span>
-              <input type="number" className="form-input text-lg font-mono" min="1000" step="1000"
-                value={valorCredito} onChange={e => setValorCredito(Number(e.target.value))} />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="form-group">
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1 block">Valor do Crédito</label>
+              <div className="flex gap-2 items-center">
+                <span className="text-slate-500 font-semibold">R$</span>
+                <input type="number" className="form-input text-lg font-mono" min="1000" step="1000"
+                  value={valorCredito} onChange={e => setValorCredito(Number(e.target.value))} />
+              </div>
             </div>
-            <p className="text-xs text-slate-500 mt-2">O sistema alocará automaticamente o cliente em um grupo ativo que corresponda a este valor.</p>
+
+            <div className="form-group">
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1 block">Prazo (Meses)</label>
+              <input type="number" className="form-input text-lg font-mono" min="12" step="1"
+                value={prazoMeses} onChange={e => setPrazoMeses(Number(e.target.value))} />
+            </div>
+
+            <div className="form-group">
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1 block">Categoria do Bem</label>
+              <select className="form-input" value={categoriaBem} onChange={e => setCategoriaBem(e.target.value)}>
+                <option value="VEICULO_AUTOMOTOR">Veículo Automotor</option>
+                <option value="IMOVEL">Imóvel</option>
+                <option value="SERVICO">Serviço</option>
+                <option value="OUTROS_BENS_MOVEIS">Outros Bens Móveis</option>
+              </select>
+            </div>
           </div>
+          <p className="text-xs text-slate-500 mt-2">O sistema alocará automaticamente o cliente em um grupo ativo que corresponda a estes parâmetros.</p>
           
           <div className="flex gap-3 pt-4">
             <button className="btn btn-outline" onClick={() => setStep(0)}>&larr; Voltar</button>

@@ -59,6 +59,29 @@ export const detectBackend = async () => {
   }
 };
 
+// --- LOTERIA FEDERAL (MOCK) ---
+let nextLoteriaId = 1;
+mockDb.loteriaFederal = {
+  listar: () => {
+    return [
+      {
+        id: nextLoteriaId++,
+        concurso: "5824",
+        dataSorteio: "2026-06-25",
+        premio1: "12345",
+        premio2: "67890",
+        premio3: "11111",
+        premio4: "22222",
+        premio5: "33333"
+      }
+    ];
+  },
+  registrar: (dto) => {
+    const reg = { id: nextLoteriaId++, ...dto };
+    return reg;
+  }
+};
+
 // Objeto unificado que decide se chama a API real ou a simulação local
 export const api = {
   getIsMockMode: () => isMockMode,
@@ -97,15 +120,23 @@ export const api = {
 
   // --- CLIENTES ---
   clientes: {
-    listar: async (page = 0, size = 100) => {
+    listar: async (page = 0, size = 100, search = '') => {
       if (isMockMode) {
         const content = mockDb.clientes.listar();
-        return { content, isMock: true };
+        return { content, totalPages: 1, last: true, totalElements: content.length, isMock: true };
       }
-      const response = await fetchApi(`${BASE_URL}/api/clientes?page=${page}&size=${size}`);
+      const params = new URLSearchParams({ page, size });
+      if (search) params.append('search', search);
+      const response = await fetchApi(`${BASE_URL}/api/clientes?${params.toString()}`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar clientes da API.");
       const data = await response.json(); // Spring Page object
-      return { content: data.content || data, isMock: false };
+      return { 
+        content: data.content || data, 
+        totalPages: data.totalPages, 
+        last: data.last, 
+        totalElements: data.totalElements,
+        isMock: false 
+      };
     },
     salvar: async (dto) => {
       if (isMockMode) return mockDb.clientes.salvar(dto);
@@ -148,6 +179,26 @@ export const api = {
         : `${BASE_URL}/api/clientes/${id}/historico`;
       const response = await fetchApi(url);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar histórico do cliente.");
+      return response.json();
+    }
+  },
+
+  // --- LOTERIA FEDERAL ---
+  loteriaFederal: {
+    listar: async () => {
+      if (isMockMode) return mockDb.loteriaFederal.listar();
+      const response = await fetchApi(`${BASE_URL}/api/loteria-federal`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao buscar sorteios.");
+      return response.json();
+    },
+    registrar: async (dto) => {
+      if (isMockMode) return mockDb.loteriaFederal.registrar(dto);
+      const response = await fetchApi(`${BASE_URL}/api/loteria-federal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao registrar sorteio.");
       return response.json();
     }
   },

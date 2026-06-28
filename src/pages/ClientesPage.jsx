@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { ClienteForm } from '../components/forms/ClienteForm';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-import { Plus, ScrollText, Trash2, Loader2, X, Clock } from 'lucide-react';
+import { Plus, ScrollText, Trash2, Loader2, X, Clock, Search } from 'lucide-react';
 
 export const ClientesPage = () => {
   const { triggerToast } = useToast();
@@ -26,10 +26,24 @@ export const ClientesPage = () => {
     setShowHistoricoModal(true);
   };
   
-  // React Query gerenciando o Fetch e Cache!
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(20);
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce para evitar chamadas de API a cada letra digitada
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(0); // Volta para a página 1 ao pesquisar
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // React Query gerenciando o Fetch e Cache com Paginação e Busca!
   const { data: clientesData, isLoading, error } = useQuery({
-    queryKey: ['clientes'],
-    queryFn: () => api.clientes.listar(0, 100)
+    queryKey: ['clientes', page, size, debouncedSearch],
+    queryFn: () => api.clientes.listar(page, size, debouncedSearch)
   });
 
   const clientes = clientesData?.content || clientesData || [];
@@ -65,9 +79,21 @@ export const ClientesPage = () => {
           </h2>
           <p className="text-sm text-slate-400 mt-1">Gerenciamento e Validação Legal</p>
         </div>
-        <button className="btn btn-primary" onClick={() => { setEditClienteId(null); setShowModal(true); }}>
-          <Plus className="w-4 h-4" /> Novo Cliente
-        </button>
+        <div className="flex gap-3 items-center">
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input 
+              type="text" 
+              placeholder="Buscar por Nome ou CPF/CNPJ..." 
+              className="form-input pl-9 text-sm w-64"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <button className="btn btn-primary" onClick={() => { setEditClienteId(null); setShowModal(true); }}>
+            <Plus className="w-4 h-4" /> Novo Cliente
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -139,6 +165,49 @@ export const ClientesPage = () => {
               )}
             </tbody>
           </table>
+          <div className="p-4 border-t border-slate-200 dark:border-slate-700/50 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80 rounded-b-xl">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-500 font-medium">Itens por página:</span>
+              <select 
+                className="form-input py-1 px-2 text-sm w-20" 
+                value={size} 
+                onChange={e => { setSize(Number(e.target.value)); setPage(0); }}
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-slate-500 font-medium">
+                Página {page + 1} de {clientesData?.totalPages || 1}
+              </span>
+              <div className="flex gap-1.5">
+                <button 
+                  className="btn btn-outline btn-sm" 
+                  onClick={() => setPage(p => Math.max(0, p - 1))} 
+                  disabled={page === 0}
+                >
+                  Anterior
+                </button>
+                <button 
+                  className="btn btn-outline btn-sm" 
+                  onClick={() => setPage(p => p + 1)} 
+                  disabled={clientesData?.last ?? true}
+                >
+                  Próxima
+                </button>
+                <button 
+                  className="btn btn-outline btn-sm" 
+                  onClick={() => setPage(clientesData?.totalPages ? clientesData.totalPages - 1 : 0)} 
+                  disabled={clientesData?.last ?? true}
+                >
+                  Última
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

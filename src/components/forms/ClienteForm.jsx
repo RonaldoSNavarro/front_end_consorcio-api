@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,17 +12,17 @@ import { X, Search, Loader2 } from 'lucide-react';
 const clienteSchema = z.object({
   nome: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   cpfCnpj: z.string().regex(/^\d{11}$|^\d{14}$/, "CPF deve ter 11 dígitos ou CNPJ 14 dígitos (apenas números)"),
-  email: z.string().email("E-mail inválido").optional().or(z.literal('')),
-  telefone: z.string().min(10, "Telefone inválido").optional().or(z.literal('')),
-  cep: z.string().regex(/^\d{8}$/, "CEP deve ter 8 dígitos numéricos").optional().or(z.literal('')),
+  email: z.string().email("E-mail inválido"),
+  telefone: z.string().regex(/^\d{10,11}$/, "Telefone deve ter 10 ou 11 dígitos"),
+  cep: z.string().regex(/^\d{8}$/, "CEP deve ter 8 dígitos numéricos"),
   logradouro: z.string().optional(),
-  numero: z.string().optional(),
+  numero: z.string().min(1, "Número é obrigatório"),
   complemento: z.string().optional(),
   bairro: z.string().optional(),
   localidade: z.string().optional(),
   uf: z.string().max(2, "UF deve ter no máximo 2 letras").optional().or(z.literal('')),
-  patrimonioEstimado: z.coerce.number().min(0, "O patrimônio não pode ser negativo").default(0),
-  rendaMensalDeclarada: z.coerce.number().min(0, "A renda mensal não pode ser negativa").default(0),
+  patrimonio: z.coerce.number().min(0, "O patrimônio não pode ser negativo").default(0),
+  rendaMensal: z.coerce.number().min(0, "A renda mensal não pode ser negativa").default(0),
   nivelRisco: z.enum(['BAIXO', 'MEDIO', 'ALTO']).default('MEDIO'),
 });
 
@@ -45,8 +46,8 @@ export const ClienteForm = ({ onClose, editClienteId }) => {
     resolver: zodResolver(clienteSchema),
     defaultValues: {
       nivelRisco: 'MEDIO',
-      patrimonioEstimado: 150000,
-      rendaMensalDeclarada: 5000,
+      patrimonio: 150000,
+      rendaMensal: 5000,
     }
   });
 
@@ -86,10 +87,17 @@ export const ClienteForm = ({ onClose, editClienteId }) => {
     mutation.mutate(data);
   };
 
-  return (
-    <div className="modal-backdrop" onClick={onClose}>
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
+  const modalContent = (
+    <div className="modal-backdrop flex items-center justify-center p-4 z-[9999]" onClick={onClose}>
       <div 
-        className="w-full max-w-2xl mx-4 p-6 rounded-2xl animate-scale-up
+        className="w-full max-w-2xl p-6 rounded-2xl animate-scale-up
                    bg-white dark:bg-slate-800 
                    border border-slate-200 dark:border-slate-700/60
                    shadow-2xl max-h-[90vh] overflow-y-auto"
@@ -148,12 +156,12 @@ export const ClienteForm = ({ onClose, editClienteId }) => {
               <input id="cliente-telefone" type="text" {...register('telefone')} placeholder="Ex: 11999999999" />
             </FormField>
 
-            <FormField label="Patrimônio Declarado (R$)" id="cliente-patrimonio" error={errors.patrimonioEstimado}>
-              <input id="cliente-patrimonio" type="number" step="0.01" {...register('patrimonioEstimado')} />
+            <FormField label="Patrimônio Declarado (R$)" id="cliente-patrimonio" error={errors.patrimonio}>
+              <input id="cliente-patrimonio" type="number" step="0.01" {...register('patrimonio')} />
             </FormField>
             
-            <FormField label="Renda Mensal (R$)" id="cliente-renda" error={errors.rendaMensalDeclarada}>
-              <input id="cliente-renda" type="number" step="0.01" {...register('rendaMensalDeclarada')} />
+            <FormField label="Renda Mensal (R$)" id="cliente-renda" error={errors.rendaMensal}>
+              <input id="cliente-renda" type="number" step="0.01" {...register('rendaMensal')} />
             </FormField>
 
             {/* ENDEREÇO */}
@@ -208,4 +216,6 @@ export const ClienteForm = ({ onClose, editClienteId }) => {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };

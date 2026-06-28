@@ -37,7 +37,12 @@ export const RelatorioEstatisticasPage = () => {
 
   const formatCurrency = (val) => val ? val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
   
-  const handleExportCSV = () => triggerToast('Exportação CSV das Estatísticas iniciada.', 'info');
+  const handleExportCSV = () => {
+    if (!grupoId) return;
+    const url = `http://localhost:8080/api/relatorios/estatisticas/${grupoId}/csv?dataInicio=${dataInicio}&dataFim=${dataFim}`;
+    window.open(url, '_blank');
+    triggerToast('Download do CSV das Estatísticas iniciado.', 'info');
+  };
 
   const resumo = estatisticasData?.resumo || {
     totalAdesoes: 0,

@@ -81,7 +81,12 @@ export const RelatorioBalancetePage = () => {
   }, [agrupado]);
 
   const formatCurrency = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  const handleExportCSV = () => triggerToast('Exportação CSV do Balancete iniciada.', 'info');
+  const handleExportCSV = () => {
+    if (!grupoId) return;
+    const url = `http://localhost:8080/api/relatorios/balancete/${grupoId}/csv?dataReferencia=${dataReferencia}`;
+    window.open(url, '_blank');
+    triggerToast('Download do CSV do Balancete iniciado.', 'info');
+  };
 
   const getTipoLabel = (tipo) => {
     const labels = { ATIVO: 'Ativo', PASSIVO: 'Passivo', RESULTADO: 'Resultado' };

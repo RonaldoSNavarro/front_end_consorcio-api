@@ -6,7 +6,7 @@ import {
   Building2, LayoutDashboard, Users, Grid3X3, CircleHelp, 
   CalendarDays, ArrowUpDown, DollarSign, Clock,
   FileText, BarChart3, Shield, ShieldAlert, LogOut, Sun, Moon, X,
-  ShoppingCart, Tag
+  ShoppingCart, Tag, Dice5
 } from 'lucide-react';
 
 const navLinks = [
@@ -15,6 +15,7 @@ const navLinks = [
   { to: '/grupos', label: 'Grupos Adm', icon: Grid3X3 },
   { to: '/cotas', label: 'Cotas', icon: CircleHelp },
   { to: '/assembleias', label: 'Assembleias AGO', icon: CalendarDays },
+  { to: '/loteria-federal', label: 'Loteria Federal', icon: Dice5 },
   { to: '/lances-pendentes', label: 'Integralizar Lances', icon: ArrowUpDown },
   { to: '/reembolsos-excluidos', label: 'Reembolso Excluídos', icon: DollarSign },
   { to: '/financeiro', label: 'Amortização / Parcelas', icon: Clock },
