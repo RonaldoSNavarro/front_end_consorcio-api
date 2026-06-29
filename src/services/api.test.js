@@ -1,50 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { api, detectBackend } from './api';
+import { api } from './api';
 
-describe('Serviço da API (api.js & mockDb.js)', () => {
+describe('Serviço da API (api.js)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    localStorage.clear();
-    // Default to mock mode before each test
-    api.setMockMode(true);
-  });
-
-  describe('detectBackend()', () => {
-    it('deve desativar o modo simulado se a API Spring Boot estiver online', async () => {
-      // Mock fetch leve com status OK
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve([])
-      });
-
-      const isMock = await detectBackend();
-      expect(isMock).toBe(false);
-      expect(api.getIsMockMode()).toBe(false);
-    });
-
-    it('deve manter o modo simulado ativo se a API Spring Boot estiver offline', async () => {
-      // Mock fetch falhando
-      global.fetch.mockRejectedValueOnce(new Error("Network connection refused"));
-
-      const isMock = await detectBackend();
-      expect(isMock).toBe(true);
-      expect(api.getIsMockMode()).toBe(true);
-    });
   });
 
   describe('clientes.buscarCep()', () => {
-    it('deve retornar dados simulados do LocalStorage/mockDb em Modo Simulado', async () => {
-      api.setMockMode(true);
-      const res = await api.clientes.buscarCep("01001000");
-
-      expect(res.cep).toBe("01001000");
-      expect(res.logradouro).toContain("Avenida Paulista");
-      expect(global.fetch).not.toHaveBeenCalled();
-    });
-
-    it('deve consultar o backend Spring Boot em Modo Real', async () => {
-      api.setMockMode(false);
-      
+    it('deve consultar o backend Spring Boot', async () => {
       const mockPayload = {
         cep: "01001000",
         logradouro: "Rua Direita",
@@ -53,7 +16,7 @@ describe('Serviço da API (api.js & mockDb.js)', () => {
         uf: "SP"
       };
 
-      global.fetch.mockResolvedValueOnce({
+      global.fetch = vi.fn().mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve(mockPayload)
       });
@@ -63,7 +26,7 @@ describe('Serviço da API (api.js & mockDb.js)', () => {
       expect(res.cep).toBe("01001000");
       expect(res.logradouro).toBe("Rua Direita");
       expect(global.fetch).toHaveBeenCalledWith(
-        "http://localhost:8080/api/clientes/busca-cep/01001000",
+        expect.stringContaining("/api/clientes/busca-cep/01001000"),
         expect.any(Object)
       );
     });
@@ -83,7 +46,7 @@ describe('Serviço da API (api.js & mockDb.js)', () => {
     };
 
     it('deve persistir e retornar o cliente cadastrado em caso de sucesso', async () => {
-      api.setMockMode(false);
+
       global.fetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ id: 99, ...validDto })
@@ -95,7 +58,7 @@ describe('Serviço da API (api.js & mockDb.js)', () => {
     });
 
     it('deve capturar e detalhar erros de validação (@Valid / ExceptionDTO) do Spring Boot', async () => {
-      api.setMockMode(false);
+
       
       const errorResponse = {
         mensagem: "Erro de validação",
@@ -114,7 +77,7 @@ describe('Serviço da API (api.js & mockDb.js)', () => {
     });
 
     it('deve usar mensagem genérica de fallback se o JSON de erro do back-end não tiver os campos mensagem/detalhes', async () => {
-      api.setMockMode(false);
+
       
       global.fetch.mockResolvedValueOnce({
         ok: false,

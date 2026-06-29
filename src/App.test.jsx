@@ -22,7 +22,30 @@ describe('Integração de Componentes do Front-End (App.jsx)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     localStorage.clear();
-    api.setMockMode(true); // Garante o Modo Simulado local para maior previsibilidade
+    
+    vi.spyOn(api, 'login').mockResolvedValue({ token: "cookie_managed", message: "Login success" });
+    vi.spyOn(api, 'obterUsuarioLogado')
+      .mockRejectedValueOnce(new Error('Sessão inválida ou expirada'))
+      .mockResolvedValue({ login: "admin", permissoes: ["ROLE_ADMIN"] });
+    vi.spyOn(api.clientes, 'listar').mockResolvedValue({
+        content: [{ id: 1, nome: 'Ronaldo da Silva', cpfCnpj: '44455566677' }]
+    });
+    vi.spyOn(api.clientes, 'salvar').mockResolvedValue({
+        id: 2, nome: 'Ronaldo da Silva', cpfCnpj: '44455566677'
+    });
+    vi.spyOn(api.grupos, 'listar').mockResolvedValue({ content: [] });
+    vi.spyOn(api.grupos, 'obterFinanceiro').mockResolvedValue({ data: { fundoComum: 1000 } });
+    vi.spyOn(api.cotas, 'listar').mockResolvedValue({ content: [] });
+
+    global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+            logradouro: "Avenida Paulista",
+            bairro: "Bela Vista",
+            localidade: "São Paulo",
+            uf: "SP"
+        })
+    });
   });
 
   describe('Tela de Autenticação (Login)', () => {
@@ -53,7 +76,7 @@ describe('Integração de Componentes do Front-End (App.jsx)', () => {
       await waitFor(() => {
         expect(screen.getByText(/Consórcio API/)).toBeInTheDocument();
         expect(screen.getByText('Visão Geral')).toBeInTheDocument();
-        expect(screen.getByText('Visão Geral do Consórcio')).toBeInTheDocument();
+        expect(screen.getByText(/Visão Geral do Consórcio/)).toBeInTheDocument();
       });
     });
   });

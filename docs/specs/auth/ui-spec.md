@@ -74,3 +74,10 @@ Fornecer ao operador do backoffice uma experiência de login segura, fluida e re
 - **Given**: O operador está em uma rota protegida, mas o cookie expirou.
 - **When**: O operador recarrega a página (F5).
 - **Then**: O `AuthContext` faz `GET /api/login/me`, recebe 401, e redireciona para `/login`.
+
+---
+
+## 🧪 Ambiente de Testes (JSDOM)
+Para execução da suíte de testes com Vitest/JSDOM, uma vez que requisições reais não devem ser feitas e os fluxos contam fortemente com redirecionamentos a partir do `AuthContext`, deve-se configurar os spies da API da seguinte forma:
+- O método de verificação de sessão, quando simulando entrada pública, deve inicialmente falhar (`mockRejectedValueOnce`) permitindo a montagem da página `/login`.
+- Em sequência, ele deve ser resolvido, permitindo a transição segura para as rotas protegidas mediante o teste de simulação do clique de autenticação.

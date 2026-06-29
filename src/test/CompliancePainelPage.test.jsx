@@ -35,9 +35,22 @@ const createTestWrapper = () => {
 describe('CompliancePainelPage', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    localStorage.clear();
     mockTriggerToast.mockClear();
-    api.setMockMode(true); // Garante modo simulado local
+    
+    // Mockar endpoints chamados na montagem
+    vi.spyOn(api.compliance, 'listarAlertas').mockImplementation((status, origem) => {
+      let data = [
+        { alertaId: 1054, nomeCliente: 'Ronaldo Navarro', cpfCnpj: '111.222.333-44', status: 'PENDENTE_ANALISE', origemLista: 'OFAC', scoreSimilaridade: 0.80 },
+        { alertaId: 1055, nomeCliente: 'Ana Maria Souza', cpfCnpj: '555.666.777-88', status: 'PENDENTE_ANALISE', origemLista: 'PEP', scoreSimilaridade: 0.40 }
+      ];
+      if (status) data = data.filter(d => d.status === status);
+      if (origem) data = data.filter(d => d.origemLista === origem);
+      return Promise.resolve({ content: data });
+    });
+    vi.spyOn(api.compliance, 'getConfig').mockResolvedValue({
+      frequencia: 'DIARIO',
+      horario: '03:00'
+    });
   });
 
   it('deve renderizar a página de compliance com título e botões', async () => {
@@ -129,7 +142,7 @@ describe('CompliancePainelPage', () => {
   });
 
   it('deve deliberar alerta com sucesso se os campos forem válidos', async () => {
-    const spyDeliberar = vi.spyOn(api.compliance, 'deliberarAlerta');
+    const spyDeliberar = vi.spyOn(api.compliance, 'deliberarAlerta').mockResolvedValue({});
     
     render(<CompliancePainelPage />, { wrapper: createTestWrapper() });
 
@@ -171,7 +184,7 @@ describe('CompliancePainelPage', () => {
 
     await waitFor(() => {
       expect(spySincronizar).toHaveBeenCalled();
-      expect(mockTriggerToast).toHaveBeenCalledWith('Sincronização iniciada em background com sucesso.', 'success');
+      expect(mockTriggerToast).toHaveBeenCalledWith('Sincronização manual iniciada em background com sucesso.', 'success');
     });
   });
 
