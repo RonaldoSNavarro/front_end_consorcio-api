@@ -56,9 +56,10 @@ Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 11 capab
 9. Reajustes e Encerramento
 10. Relatórios (PLD/FT, Balancete e Estatísticas)
 11. Compliance e Listas Restritivas (PLD/FT)
+12. Esteira de Vendas (Proposta de Adesão, Produtos e Planos)
 
 **Em Andamento:**
-* (Nenhuma capability no momento. Todas as 11 capabilities essenciais foram implementadas.)
+* (Nenhuma capability no momento. Todas as 12 capabilities essenciais foram implementadas, validadas com sucesso em 114 testes do Spring Boot e zero mocks no frontend.)
 
 ---
 
