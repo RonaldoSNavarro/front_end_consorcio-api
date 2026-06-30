@@ -529,13 +529,28 @@ export const api = {
       if (!response.ok) throw await handleResponseError(response, "Erro ao inativar tipo de venda.");
       return true;
     },
-    efetivarVenda: async (dto) => {
-      const response = await fetchApi(`${BASE_URL}/api/vendas`, {
+    produtos: async () => {
+      const response = await fetchApi(`${BASE_URL}/api/vendas/produtos`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar produtos.");
+      return response.json();
+    },
+    criarProposta: async (dto) => {
+      const response = await fetchApi(`${BASE_URL}/api/vendas/propostas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
       });
-      if (!response.ok) throw await handleResponseError(response, "Erro ao efetivar venda de proposta.");
+      if (!response.ok) throw await handleResponseError(response, "Erro ao criar proposta de adesão.");
+      return response.json();
+    },
+    aprovarProposta: async (id) => {
+      const response = await fetchApi(`${BASE_URL}/api/vendas/propostas/${id}/aprovar`, { method: 'POST' });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao aprovar proposta.");
+      return response.json();
+    },
+    efetivarContrato: async (id) => {
+      const response = await fetchApi(`${BASE_URL}/api/vendas/contratos/${id}/efetivar`, { method: 'POST' });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao efetivar contrato (simulação de pagamento).");
       return response.json();
     }
   }

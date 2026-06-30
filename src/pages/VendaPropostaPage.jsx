@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
-import { ShoppingCart, Users, Banknote, Tag, ChevronRight, CheckCircle, Loader2, AlertCircle, UserPlus } from 'lucide-react';
+import { ShoppingCart, Users, Package, Tag, ChevronRight, CheckCircle, Loader2, AlertCircle, UserPlus, FileText, Banknote } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const StepIndicator = ({ steps, current }) => (
-  <div className="flex items-center justify-center gap-2 mb-8">
+  <div className="flex items-center justify-center gap-2 mb-8 flex-wrap">
     {steps.map((s, i) => (
       <React.Fragment key={i}>
         <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${i === current ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/30' : i < current ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
@@ -24,14 +24,17 @@ export const VendaPropostaPage = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [selectedCliente, setSelectedCliente] = useState(null);
-  const [valorCredito, setValorCredito] = useState(50000);
-  const [categoriaBem, setCategoriaBem] = useState('VEICULO_AUTOMOTOR');
-  const [prazoMeses, setPrazoMeses] = useState(60);
+  const [selectedProduto, setSelectedProduto] = useState(null);
   const [selectedTipo, setSelectedTipo] = useState(null);
   const [contratarSeguro, setContratarSeguro] = useState(false);
   const [observacoes, setObservacoes] = useState('');
+  
   const [clienteSearch, setClienteSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Retornos dos novos endpoints
+  const [novaProposta, setNovaProposta] = useState(null);
+  const [novoContrato, setNovoContrato] = useState(null);
 
   React.useEffect(() => {
     const handler = setTimeout(() => {
@@ -40,47 +43,68 @@ export const VendaPropostaPage = () => {
     return () => clearTimeout(handler);
   }, [clienteSearch]);
 
-  const { data: clientesData } = useQuery({ 
+  const { data: clientesData, isLoading: isLoadingClientes } = useQuery({ 
     queryKey: ['clientes', 0, 30, debouncedSearch], 
     queryFn: () => api.clientes.listar(0, 30, debouncedSearch) 
   });
   const clientes = (clientesData?.content || clientesData || []).filter(c => c.statusCliente !== 'INATIVO');
 
-  const { data: tiposData } = useQuery({
+  const { data: produtos, isLoading: isLoadingProdutos } = useQuery({
+    queryKey: ['produtosConsorcio'],
+    queryFn: () => api.vendas.produtos()
+  });
+
+  const { data: tipos } = useQuery({
     queryKey: ['tiposVenda'],
     queryFn: () => api.vendas.listarTiposAtivos()
   });
-  const tipos = tiposData || [];
 
-  const efetivarMutation = useMutation({
-    mutationFn: () => api.vendas.efetivarVenda({
+  // MUTAÇÕES
+  const criarPropostaMutation = useMutation({
+    mutationFn: () => api.vendas.criarProposta({
       clienteId: selectedCliente.id,
-      valorCreditoDesejado: valorCredito,
-      categoriaBem: categoriaBem,
-      prazoMeses: prazoMeses,
+      produtoId: selectedProduto.id,
       tipoVendaId: selectedTipo.id,
-      contratarSeguro,
+      valorCreditoSolicitado: selectedProduto?.bemReferencia?.valorAtual || 0,
+      contratouSeguro: contratarSeguro,
       observacoes: observacoes || null
     }),
     onSuccess: (data) => {
-      triggerToast(`Venda efetivada! Cota #${data.numeroCota || data.id} criada e alocada automaticamente.`, 'success');
-      navigate('/cotas');
+      setNovaProposta(data);
+      triggerToast(`Proposta #${data.id} gerada! Status: EM_ANALISE.`, 'success');
+      setStep(4);
     },
-    onError: (err) => triggerToast(err.message || "Erro ao efetivar venda. Verifique se há grupos disponíveis com esses parâmetros.", 'danger')
+    onError: (err) => triggerToast(err.message || "Erro ao criar proposta.", 'danger')
   });
 
-  // Busca agora é feita via backend com debouncedSearch.
-  const filteredClientes = clientes;
+  const aprovarPropostaMutation = useMutation({
+    mutationFn: (propostaId) => api.vendas.aprovarProposta(propostaId),
+    onSuccess: (data) => {
+      setNovoContrato(data); // O retorno deve ser o ContratoDTO gerado
+      triggerToast(`Proposta Aprovada! Contrato gerado aguardando adesão.`, 'success');
+      setStep(5);
+    },
+    onError: (err) => triggerToast(err.message || "Erro ao aprovar proposta.", 'danger')
+  });
 
-  const steps = ['Selecionar Cliente', 'Parâmetros do Plano', 'Tipo de Venda', 'Confirmar'];
+  const efetivarContratoMutation = useMutation({
+    mutationFn: (contratoId) => api.vendas.efetivarContrato(contratoId),
+    onSuccess: (data) => {
+      triggerToast(`Pagamento da adesão confirmado! Cota criada no grupo.`, 'success');
+      navigate('/cotas');
+    },
+    onError: (err) => triggerToast(err.message || "Erro ao efetivar contrato.", 'danger')
+  });
+
+  const steps = ['Cliente', 'Produto', 'Tipo Venda', 'Criar', 'Analisar', 'Adesão'];
 
   return (
-    <div className="animate-fade-in space-y-6 max-w-3xl mx-auto">
+    <div className="animate-fade-in space-y-6 max-w-4xl mx-auto">
       <div className="text-center">
         <h2 className="font-title text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center justify-center gap-2">
           <ShoppingCart className="w-6 h-6 text-brand-500" /> Nova Proposta de Adesão
         </h2>
-        <p className="text-sm text-slate-400 mt-1">O sistema alocará a cota automaticamente no melhor grupo disponível</p>
+        <p className="text-sm text-slate-400 mt-1">Esteira completa: Proposta &rarr; Análise &rarr; Contrato &rarr; Adesão &rarr; Cota</p>
       </div>
 
       <StepIndicator steps={steps} current={step} />
@@ -95,19 +119,23 @@ export const VendaPropostaPage = () => {
           <input type="search" placeholder="Buscar por nome ou CPF/CNPJ..." className="form-input"
             value={clienteSearch} onChange={e => setClienteSearch(e.target.value)} />
           <div className="max-h-72 overflow-y-auto space-y-1.5 pr-1">
-            {filteredClientes.slice(0, 30).map(c => (
-              <button key={c.id} onClick={() => { setSelectedCliente(c); setStep(1); }}
-                className={`w-full text-left p-3 rounded-xl border transition-all ${selectedCliente?.id === c.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10' : 'border-slate-200 dark:border-slate-700/50 hover:border-brand-300 dark:hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-semibold text-slate-900 dark:text-white text-sm">{c.nome}</div>
-                    <div className="font-mono text-xs text-slate-500">{c.cpfCnpj}</div>
+            {isLoadingClientes ? (
+               <div className="text-center py-8 text-slate-400"><Loader2 className="w-6 h-6 animate-spin mx-auto" /> Buscando...</div>
+            ) : (
+              clientes.slice(0, 30).map(c => (
+                <button key={c.id} onClick={() => { setSelectedCliente(c); setStep(1); }}
+                  className={`w-full text-left p-3 rounded-xl border transition-all ${selectedCliente?.id === c.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10' : 'border-slate-200 dark:border-slate-700/50 hover:border-brand-300 dark:hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold text-slate-900 dark:text-white text-sm">{c.nome}</div>
+                      <div className="font-mono text-xs text-slate-500">{c.cpfCnpj}</div>
+                    </div>
+                    {selectedCliente?.id === c.id && <CheckCircle className="w-4 h-4 text-brand-500 shrink-0" />}
                   </div>
-                  {selectedCliente?.id === c.id && <CheckCircle className="w-4 h-4 text-brand-500 shrink-0" />}
-                </div>
-              </button>
-            ))}
-            {filteredClientes.length === 0 && (
+                </button>
+              ))
+            )}
+            {clientes.length === 0 && !isLoadingClientes && (
               <div className="text-center py-8 text-slate-400 text-sm">
                 <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 Nenhum cliente ativo encontrado.
@@ -122,49 +150,41 @@ export const VendaPropostaPage = () => {
         </div>
       )}
 
-      {/* PASSO 1 — Parâmetros do Plano */}
+      {/* PASSO 1 — Produto do Consórcio */}
       {step === 1 && (
         <div className="glass-panel p-6 space-y-4">
           <div className="flex items-center gap-2 mb-4">
-            <Banknote className="w-5 h-5 text-brand-500" />
-            <h3 className="font-title font-bold text-slate-900 dark:text-white">Parâmetros do Plano</h3>
+            <Package className="w-5 h-5 text-brand-500" />
+            <h3 className="font-title font-bold text-slate-900 dark:text-white">Selecione o Produto (Plano)</h3>
           </div>
           <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-400 flex gap-2 mb-4">
             <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
             Cliente: <strong>{selectedCliente?.nome}</strong>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="form-group">
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1 block">Valor do Crédito</label>
-              <div className="flex gap-2 items-center">
-                <span className="text-slate-500 font-semibold">R$</span>
-                <input type="number" className="form-input text-lg font-mono" min="1000" step="1000"
-                  value={valorCredito} onChange={e => setValorCredito(Number(e.target.value))} />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1 block">Prazo (Meses)</label>
-              <input type="number" className="form-input text-lg font-mono" min="12" step="1"
-                value={prazoMeses} onChange={e => setPrazoMeses(Number(e.target.value))} />
-            </div>
-
-            <div className="form-group">
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1 block">Categoria do Bem</label>
-              <select className="form-input" value={categoriaBem} onChange={e => setCategoriaBem(e.target.value)}>
-                <option value="VEICULO_AUTOMOTOR">Veículo Automotor</option>
-                <option value="IMOVEL">Imóvel</option>
-                <option value="SERVICO">Serviço</option>
-                <option value="OUTROS_BENS_MOVEIS">Outros Bens Móveis</option>
-              </select>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {isLoadingProdutos ? (
+               <div className="col-span-2 text-center py-8 text-slate-400"><Loader2 className="w-6 h-6 animate-spin mx-auto" /> Carregando produtos...</div>
+            ) : (
+              (produtos || []).map(p => (
+                <button key={p.id} onClick={() => { setSelectedProduto(p); setStep(2); }}
+                  className={`w-full text-left p-4 rounded-xl border transition-all ${selectedProduto?.id === p.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10' : 'border-slate-200 dark:border-slate-700/50 hover:border-brand-300 dark:hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="font-semibold text-slate-900 dark:text-white">{p.nome}</div>
+                      <div className="text-xs text-slate-500 mt-1">Crédito Base: <span className="font-semibold text-slate-700 dark:text-slate-300">R$ {p.bemReferencia?.valorAtual?.toLocaleString('pt-BR')}</span></div>
+                      <div className="text-xs text-slate-500 mt-1">Bem: {p.bemReferencia?.descricao}</div>
+                      <div className="text-xs text-slate-500 mt-1">Prazo: {p.prazoMeses} meses | TX. Adm: {(p.taxaAdministracaoPerc * 100).toFixed(2)}%</div>
+                    </div>
+                    {selectedProduto?.id === p.id && <CheckCircle className="w-5 h-5 text-brand-500 shrink-0" />}
+                  </div>
+                </button>
+              ))
+            )}
           </div>
-          <p className="text-xs text-slate-500 mt-2">O sistema alocará automaticamente o cliente em um grupo ativo que corresponda a estes parâmetros.</p>
           
           <div className="flex gap-3 pt-4">
             <button className="btn btn-outline" onClick={() => setStep(0)}>&larr; Voltar</button>
-            <button className="btn btn-primary flex-1" onClick={() => setStep(2)}>Avançar &rarr;</button>
           </div>
         </div>
       )}
@@ -177,7 +197,7 @@ export const VendaPropostaPage = () => {
             <h3 className="font-title font-bold text-slate-900 dark:text-white">Tipo de Venda</h3>
           </div>
           <div className="grid grid-cols-1 gap-2">
-            {tipos.map(t => (
+            {(tipos || []).map(t => (
               <button key={t.id} onClick={() => { setSelectedTipo(t); setStep(3); }}
                 className={`w-full text-left p-4 rounded-xl border transition-all ${selectedTipo?.id === t.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10' : 'border-slate-200 dark:border-slate-700/50 hover:border-brand-300 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
                 <div className="flex items-start justify-between gap-3">
@@ -198,27 +218,26 @@ export const VendaPropostaPage = () => {
         </div>
       )}
 
-      {/* PASSO 3 — Confirmação */}
+      {/* PASSO 3 — Confirmação e Criação da Proposta */}
       {step === 3 && (
         <div className="glass-panel p-6 space-y-6">
-          <h3 className="font-title font-bold text-slate-900 dark:text-white">Confirmar Proposta</h3>
+          <h3 className="font-title font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <FileText className="w-5 h-5 text-brand-500" />
+            Revisar e Criar Proposta
+          </h3>
           <div className="space-y-3">
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 text-sm space-y-2">
               <div className="flex justify-between">
-                <span className="text-slate-500">Cliente</span>
+                <span className="text-slate-500">Consorciado</span>
                 <span className="font-semibold text-slate-900 dark:text-white">{selectedCliente?.nome}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Crédito Desejado</span>
-                <span className="font-semibold text-slate-900 dark:text-white">R$ {valorCredito?.toLocaleString('pt-BR')}</span>
+                <span className="text-slate-500">Produto de Consórcio</span>
+                <span className="font-semibold text-slate-900 dark:text-white">{selectedProduto?.nome} (R$ {selectedProduto?.bemReferencia?.valorAtual?.toLocaleString('pt-BR')})</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Canal de Venda</span>
                 <span className="font-semibold text-slate-900 dark:text-white">{selectedTipo?.nome}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Comissão</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{(selectedTipo?.percentualComissao * 100).toFixed(1)}%</span>
               </div>
             </div>
 
@@ -237,21 +256,93 @@ export const VendaPropostaPage = () => {
             </label>
 
             <div className="form-group">
-              <label htmlFor="obs-venda">Observações</label>
+              <label htmlFor="obs-venda">Observações (Opcional)</label>
               <textarea id="obs-venda" rows={2} className="form-input" placeholder="Informações adicionais sobre a proposta..."
                 value={observacoes} onChange={e => setObservacoes(e.target.value)} />
             </div>
           </div>
 
           <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-700/50">
-            <button className="btn btn-outline" onClick={() => setStep(2)} disabled={efetivarMutation.isPending}>&larr; Voltar</button>
-            <button className="btn btn-primary flex-1" onClick={() => efetivarMutation.mutate()} disabled={efetivarMutation.isPending}>
-              {efetivarMutation.isPending ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Processando...</>
+            <button className="btn btn-outline" onClick={() => setStep(2)} disabled={criarPropostaMutation.isPending}>&larr; Voltar</button>
+            <button className="btn btn-primary flex-1" onClick={() => criarPropostaMutation.mutate()} disabled={criarPropostaMutation.isPending}>
+              {criarPropostaMutation.isPending ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Gerando Proposta...</>
               ) : (
-                <><CheckCircle className="w-4 h-4" /> Efetivar Proposta</>
+                <><CheckCircle className="w-4 h-4" /> Gerar Proposta de Adesão</>
               )}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* PASSO 4 — Aprovação Backoffice */}
+      {step === 4 && (
+        <div className="glass-panel p-6 space-y-6 text-center">
+          <div className="w-16 h-16 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-8 h-8" />
+          </div>
+          <h3 className="font-title text-xl font-bold text-slate-900 dark:text-white">
+            Proposta Criada com Sucesso!
+          </h3>
+          <p className="text-slate-500 text-sm max-w-md mx-auto">
+            A proposta <span className="font-mono font-bold text-slate-700 dark:text-slate-300">#{novaProposta?.id}</span> encontra-se em <span className="badge badge-warning">ANÁLISE</span>.
+            Nesta etapa, o setor de Backoffice deve validar os documentos e aprovar a proposta.
+          </p>
+          
+          <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+            <button 
+              className="btn btn-primary w-full max-w-sm mx-auto" 
+              onClick={() => aprovarPropostaMutation.mutate(novaProposta?.id)}
+              disabled={aprovarPropostaMutation.isPending}
+            >
+              {aprovarPropostaMutation.isPending ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Analisando...</>
+              ) : (
+                <>Simular Aprovação (Backoffice) &rarr;</>
+              )}
+            </button>
+            <p className="text-xs text-slate-400 mt-3">Para fins de demonstração, simulamos o clique do analista aqui.</p>
+          </div>
+        </div>
+      )}
+
+      {/* PASSO 5 — Pagamento da Adesão */}
+      {step === 5 && (
+        <div className="glass-panel p-6 space-y-6 text-center">
+          <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Banknote className="w-8 h-8" />
+          </div>
+          <h3 className="font-title text-xl font-bold text-slate-900 dark:text-white">
+            Contrato Gerado
+          </h3>
+          <p className="text-slate-500 text-sm max-w-md mx-auto mb-4">
+            O contrato de adesão foi emitido sob status <span className="badge badge-info">PENDENTE PAGAMENTO</span>.
+            A cota só será vinculada a um grupo após a confirmação do pagamento da primeira parcela (Taxa de Adesão).
+          </p>
+          
+          <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 max-w-sm mx-auto flex justify-between items-center">
+             <div className="text-left">
+               <div className="text-xs text-slate-500">Valor da Adesão</div>
+               <div className="font-semibold text-lg text-slate-900 dark:text-white">
+                 R$ {((selectedProduto?.bemReferencia?.valorAtual || 0) * 0.01).toLocaleString('pt-BR')}
+               </div>
+             </div>
+             <Banknote className="w-6 h-6 text-emerald-500 opacity-50" />
+          </div>
+
+          <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+            <button 
+              className="btn bg-emerald-600 hover:bg-emerald-700 text-white w-full max-w-sm mx-auto border-none" 
+              onClick={() => efetivarContratoMutation.mutate(novoContrato?.id || novaProposta?.id)}
+              disabled={efetivarContratoMutation.isPending}
+            >
+              {efetivarContratoMutation.isPending ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Efetivando...</>
+              ) : (
+                <><CheckCircle className="w-4 h-4" /> Simular Pagamento do Cliente</>
+              )}
+            </button>
+            <p className="text-xs text-slate-400 mt-3">Após pagar, o sistema alocará o grupo e criará a Cota.</p>
           </div>
         </div>
       )}
