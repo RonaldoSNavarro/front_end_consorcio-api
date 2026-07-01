@@ -114,3 +114,5 @@ A aplicaÃ§Ã£o conta com validaÃ§Ã£o automatizada contÃ­nua por meio de Vitest, c
 - **Testes**: 8/8 testes E2E passando com 100% de sucesso. Testes unitÃ¡rios tambÃ©m em conformidade. UI Drift resolvido.
 
 Todos os **47 testes integrados** passam com 100% de sucesso.
+
+* **CRM e Vendas:** Motor de originação de consórcios com cadastro de Corretores, orçamentação e Propostas de Adesão. Tipos de Venda determinam o comissionamento de cada produto, enquanto a Alocação Inteligente encontra o melhor grupo (em andamento ou formação) para alocar o consorciado através de cruzamento da Categoria do Bem e limite de cotas. As regras de cálculo e estornos de Comissões serão estendidas em módulo futuro, tendo a primeira parcela do consórcio composta integralmente por Taxa de Administração e Fundo de Reserva.
