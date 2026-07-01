@@ -15,7 +15,8 @@ const cotaStatusBadge = (status) => {
     'EXCLUIDA': 'badge-danger',
     'EM_EXECUCAO': 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
     'ENCERRADA': 'badge-neutral',
-    'SUSPENSA': 'badge-warning'
+    'SUSPENSA': 'badge-warning',
+    'AGUARDANDO_INAUGURACAO': 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
   };
   return map[status] || 'badge-neutral';
 };
