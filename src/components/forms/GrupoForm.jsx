@@ -13,7 +13,7 @@ const grupoSchema = z.object({
   valorCredito: z.coerce.number().min(1000, "O crédito mínimo para formar um grupo é R$ 1.000,00"),
   prazoMeses: z.coerce.number().min(12, "O prazo mínimo permitido é de 12 meses").max(240, "Prazo máximo estourado (240 meses)"),
   taxaAdministracao: z.coerce.number().min(1, "A taxa de administração mínima permitida é 1%"),
-  categoriaBem: z.enum(['VEICULOS_LEVES', 'VEICULOS_PESADOS', 'IMOVEIS', 'ELETROELETRONICOS', 'SERVICOS'], {
+  categoriaBem: z.enum(['IMOVEL', 'VEICULO_AUTOMOTOR', 'SERVICO', 'OUTROS_BENS_MOVEIS'], {
     errorMap: () => ({ message: "Categoria do Bem é obrigatória" })
   })
 });
@@ -28,7 +28,7 @@ export const GrupoForm = ({ onClose }) => {
       valorCredito: 80000,
       prazoMeses: 60,
       taxaAdministracao: 15,
-      categoriaBem: 'VEICULOS_LEVES'
+      categoriaBem: 'VEICULO_AUTOMOTOR'
     }
   });
 
@@ -85,11 +85,10 @@ export const GrupoForm = ({ onClose }) => {
           <div className="form-group">
             <label htmlFor="grupo-categoria">Categoria do Bem (BCB) *</label>
             <select id="grupo-categoria" {...register('categoriaBem')} aria-required="true" aria-invalid={!!errors.categoriaBem}>
-              <option value="VEICULOS_LEVES">Veículos Automotores (Leves)</option>
-              <option value="VEICULOS_PESADOS">Veículos Automotores (Pesados)</option>
-              <option value="IMOVEIS">Bens Imóveis</option>
-              <option value="ELETROELETRONICOS">Eletroeletrônicos e Outros Bens Móveis</option>
-              <option value="SERVICOS">Serviços</option>
+              <option value="VEICULO_AUTOMOTOR">Veículos Automotores</option>
+              <option value="IMOVEL">Bens Imóveis</option>
+              <option value="OUTROS_BENS_MOVEIS">Eletroeletrônicos e Outros Bens Móveis</option>
+              <option value="SERVICO">Serviços</option>
             </select>
             {errors.categoriaBem && <span className="error-text" role="alert">{errors.categoriaBem.message}</span>}
           </div>

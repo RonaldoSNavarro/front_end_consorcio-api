@@ -128,11 +128,11 @@ export const FinanceiroPage = () => {
             </div>
             
             {activeCota && (
-              <div className="bg-slate-50 dark:bg-white/[0.02] p-3 rounded-lg border border-slate-200 dark:border-slate-700/40 text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
-                <div><strong>Status Cota:</strong> <span className={`badge ${activeCota.status === 'ATIVA' ? 'badge-success' : activeCota.status === 'CANCELADA' ? 'badge-danger' : 'badge-neutral'}`}>{activeCota.status}</span></div>
-                <div><strong>Grupo ID:</strong> #{activeCota.grupoId}</div>
-              </div>
-            )}
+                <div className="bg-slate-50 dark:bg-white/[0.02] p-3 rounded-lg border border-slate-200 dark:border-slate-700/40 text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
+                  <div><strong>Status Cota:</strong> <span className={`badge ${activeCota.status === 'ATIVA' ? 'badge-success' : activeCota.status === 'CANCELADA' || activeCota.status === 'EXCLUIDA' ? 'badge-danger' : activeCota.status === 'EM_EXECUCAO' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' : 'badge-neutral'}`}>{activeCota.status}</span></div>
+                  <div><strong>Grupo ID:</strong> #{activeCota.grupoId}</div>
+                </div>
+              )}
           </div>
 
           {/* Card de Inadimplência */}
@@ -221,7 +221,7 @@ export const FinanceiroPage = () => {
                 <table>
                   <thead>
                     <tr>
-                      <th>Nº</th><th>Valor FC</th><th>Valor Taxa</th><th>Valor FR</th><th>Vencimento</th><th>Pagamento</th><th>Valor Pago</th><th>Status</th><th>Ações</th>
+                      <th>Nº</th><th>Valor FC</th><th>Valor Taxa</th><th>Valor FR</th><th>Encargos (M/J)</th><th>Vencimento</th><th>Pagamento</th><th>Valor Pago</th><th>Status</th><th>Ações</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -229,10 +229,13 @@ export const FinanceiroPage = () => {
                       <tr key={p.id} className={p.status === 'ATRASADA' ? 'bg-rose-50 dark:bg-rose-500/5' : ''}>
                         <td className="font-semibold text-slate-900 dark:text-white">#{p.numeroParcela}</td>
                         <td className="font-mono text-xs">R$ {p.valorFundoComum?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                        <td className="font-mono text-xs">R$ {p.valorTaxaAdm?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                        <td className="font-mono text-xs">R$ {p.valorTaxaAdm?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || p.valorTaxaAdministracao?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                         <td className="font-mono text-xs">R$ {p.valorFundoReserva?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                        <td>{new Date(p.vencimento + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
-                        <td>{p.pagamento ? new Date(p.pagamento + 'T12:00:00').toLocaleDateString('pt-BR') : '--'}</td>
+                        <td className="font-mono text-xs text-rose-600 dark:text-rose-400">
+                          {(p.valorMulta > 0 || p.valorJuros > 0) ? `R$ ${(p.valorMulta + p.valorJuros).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '--'}
+                        </td>
+                        <td>{new Date((p.vencimento || p.dataVencimento) + 'T12:00:00').toLocaleDateString('pt-BR')}</td>
+                        <td>{(p.pagamento || p.dataPagamento) ? new Date((p.pagamento || p.dataPagamento) + 'T12:00:00').toLocaleDateString('pt-BR') : '--'}</td>
                         <td className="font-mono text-xs">R$ {p.valorPago ? p.valorPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}</td>
                         <td><span className={`badge ${p.status === 'PAGA' ? 'badge-success' : p.status === 'ATRASADA' ? 'badge-danger' : 'badge-neutral'}`}>{p.status}</span></td>
                         <td>

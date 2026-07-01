@@ -49,15 +49,7 @@ function generateCNPJ() {
   return num.join('');
 }
 
-function maskCpfCnpj(value) {
-  const clean = value.replace(/\D/g, "");
-  if (clean.length === 11) {
-    return `***.${clean.substring(3, 6)}.${clean.substring(6, 9)}-**`;
-  } else if (clean.length === 14) {
-    return `${clean.substring(0, 3)}.***.***/***-${clean.substring(12)}`;
-  }
-  return value;
-}
+function maskCpfCnpj(value) { return value; }
 
 (async () => {
   log("🚀 Iniciando Agente de Automação de Testes E2E...");
@@ -126,15 +118,15 @@ function maskCpfCnpj(value) {
     log("📸 Print da tela de login gerado.");
 
     log("✍️ Preenchendo credenciais...");
-    await page.fill('#username', 'admin');
-    await page.fill('#password', 'admin');
+    await page.fill('#login-username', 'admin');
+    await page.fill('#login-password', 'admin');
     
     log("🔑 Clicando em Autenticar...");
     await page.click('button[type="submit"]');
 
     log("⏳ Aguardando redirecionamento para o Dashboard...");
     await page.waitForURL('**/dashboard', { timeout: 15000 });
-    await page.waitForSelector('text=📊 Dashboard Operacional', { timeout: 15000 });
+    await page.waitForSelector('text=Dashboard Operacional', { timeout: 15000 });
     
     await page.screenshot({ path: path.join(screenshotDir, '02_dashboard_loaded.png') });
     log("📸 Login efetuado com sucesso! Print do Dashboard gerado.");
@@ -149,31 +141,31 @@ function maskCpfCnpj(value) {
     await page.waitForSelector('text=Cadastro de Consorciados', { timeout: 8000 });
 
     log("➕ Abrindo formulário de Novo Cliente PF...");
-    await page.click('text=+ Novo Cliente');
+    await page.click('text=Novo Cliente');
     await page.waitForSelector('text=Novo Cliente Consorciado', { timeout: 5000 });
 
     log("✍️ Preenchendo formulário PF...");
     const pfCpf = generateCPF(); // CPF válido dinâmico
-    await page.fill('#nome', 'AAA Cliente E2E Sorteio PF');
-    await page.fill('#cpfCnpj', pfCpf);
+    await page.fill('#cliente-nome', 'AAA Cliente E2E Sorteio PF');
+    await page.fill('#cliente-cpf', pfCpf);
     const pfEmail = `sorteio.pf.${Date.now()}@consorcio.com.br`;
-    await page.fill('#email', pfEmail);
-    await page.fill('#telefone', '11988887777');
-    await page.fill('#patrimonio', '250000');
-    await page.fill('#rendaMensal', '8500');
+    await page.fill('#cliente-email', pfEmail);
+    await page.fill('#cliente-telefone', '11988887777');
+    await page.fill('#cliente-patrimonio', '250000');
+    await page.fill('#cliente-renda', '8500');
     
     log("🔍 Testando busca de CEP (ViaCEP proxy)...");
-    await page.fill('#cep', '01001000');
-    await page.click('text=Buscar ViaCEP');
+    await page.fill('#cliente-cep', '01001000');
+    await page.click('button:has-text("Buscar")');
     await page.waitForTimeout(1500);
-    const localidadeVal = await page.locator('#localidade').inputValue();
+    const localidadeVal = await page.locator('#cliente-localidade').inputValue();
     if (!localidadeVal) {
       log("⚠️ CEP offline/erro. Preenchendo campos de endereço manualmente...");
-      await page.fill('#localidade', 'São Paulo');
-      await page.fill('#uf', 'SP');
-      await page.fill('#logradouro', 'Praça da Sé');
+      await page.fill('#cliente-localidade', 'São Paulo');
+      await page.fill('#cliente-uf', 'SP');
+      await page.fill('#cliente-logradouro', 'Praça da Sé');
     }
-    await page.fill('#numero', '789');
+    await page.fill('#cliente-numero', '789');
     
     await page.screenshot({ path: path.join(screenshotDir, '03_cliente_form_filled.png') });
     log("📸 Formulário PF preenchido. Clicando em Salvar...");
@@ -185,28 +177,28 @@ function maskCpfCnpj(value) {
 
     // Cadastra Cliente PJ para teste de lance
     log("➕ Abrindo formulário para Novo Cliente PJ...");
-    await page.click('text=+ Novo Cliente');
+    await page.click('text=Novo Cliente');
     await page.waitForSelector('text=Novo Cliente Consorciado', { timeout: 5000 });
     
     const pjCnpj = generateCNPJ(); // CNPJ válido dinâmico
-    await page.fill('#nome', 'AAA Cliente E2E Lance PJ');
-    await page.fill('#cpfCnpj', pjCnpj);
+    await page.fill('#cliente-nome', 'AAA Cliente E2E Lance PJ');
+    await page.fill('#cliente-cpf', pjCnpj);
     const pjEmail = `lance.pj.${Date.now()}@consorcio.com.br`;
-    await page.fill('#email', pjEmail);
-    await page.fill('#telefone', '11977776666');
-    await page.fill('#patrimonio', '1000000');
-    await page.fill('#rendaMensal', '35000');
-    await page.fill('#cep', '01001000');
-    await page.click('text=Buscar ViaCEP');
+    await page.fill('#cliente-email', pjEmail);
+    await page.fill('#cliente-telefone', '11977776666');
+    await page.fill('#cliente-patrimonio', '1000000');
+    await page.fill('#cliente-renda', '35000');
+    await page.fill('#cliente-cep', '01001000');
+    await page.click('button:has-text("Buscar")');
     await page.waitForTimeout(1500);
-    const localidadeValPJ = await page.locator('#localidade').inputValue();
+    const localidadeValPJ = await page.locator('#cliente-localidade').inputValue();
     if (!localidadeValPJ) {
       log("⚠️ CEP offline/erro. Preenchendo campos de endereço manualmente...");
-      await page.fill('#localidade', 'São Paulo');
-      await page.fill('#uf', 'SP');
-      await page.fill('#logradouro', 'Praça da Sé');
+      await page.fill('#cliente-localidade', 'São Paulo');
+      await page.fill('#cliente-uf', 'SP');
+      await page.fill('#cliente-logradouro', 'Praça da Sé');
     }
-    await page.fill('#numero', '100');
+    await page.fill('#cliente-numero', '100');
     
     log("📸 Formulário PJ preenchido. Clicando em Salvar...");
     await page.click('button:has-text("Salvar Consorciado")');
@@ -223,15 +215,15 @@ function maskCpfCnpj(value) {
     await page.waitForSelector('text=Administração de Grupos Financeiros', { timeout: 8000 });
 
     log("➕ Criando novo Grupo...");
-    await page.click('text=+ Novo Grupo');
+    await page.click('text=Novo Grupo');
     await page.waitForSelector('text=Novo Grupo Financeiro', { timeout: 5000 });
 
     const codigoGrupo = `GRUPO-E2E-${Date.now().toString().slice(-4)}`;
     log(`✍️ Cadastrando grupo com código: ${codigoGrupo}`);
-    await page.fill('#codigo', codigoGrupo);
-    await page.fill('#valorCredito', '120000'); // Carta de crédito de R$ 120.000,00
-    await page.fill('#prazoMeses', '36');       // Prazo curto para testes
-    await page.fill('#taxaAdministracao', '10'); // Taxa de 10%
+    await page.fill('#grupo-codigo', codigoGrupo);
+    await page.fill('#grupo-credito', '120000'); // Carta de crédito de R$ 120.000,00
+    await page.fill('#grupo-prazo', '36');       // Prazo curto para testes
+    await page.fill('#grupo-taxa', '10'); // Taxa de 10%
     
     await page.screenshot({ path: path.join(screenshotDir, '04_grupo_form_filled.png') });
     await page.click('button:has-text("Constituir Grupo")');
@@ -258,13 +250,13 @@ function maskCpfCnpj(value) {
     await page.fill('#dataAGO', formattedDataAgo);
 
     await page.screenshot({ path: path.join(screenshotDir, '06_inauguracao_modal.png') });
-    await page.click('div.modal-card button.btn-primary'); // Clica em Inaugurar
+    await page.click('.modal-backdrop button.btn-primary'); // Clica em Inaugurar
     
     // Aguarda o modal de inauguração sumir e verifica o novo status EM_ANDAMENTO
     await page.waitForSelector('text=Inaugurar Grupo', { state: 'detached', timeout: 8000 });
     log(`✅ Grupo ${codigoGrupo} inaugurado com sucesso!`);
     
-    const statusText = await grupoRow.locator('.badge').textContent();
+    const statusText = await grupoRow.locator('.badge').first().textContent();
     log(`📊 Novo status do grupo na tabela: "${statusText.trim()}"`);
     if (statusText.includes('EM_ANDAMENTO')) {
       testResults.inauguracaoGrupo = 'SUCCESS';
@@ -321,25 +313,25 @@ function maskCpfCnpj(value) {
     log("🎫 Navegando para Emissão de Cotas...");
     await page.click('text=Cotas');
     await page.waitForURL('**/cotas', { timeout: 8000 });
-    await page.waitForSelector('text=🎫 Emissão & Venda de Cotas', { timeout: 8000 });
+    await page.waitForSelector('text=Emissão & Venda de Cotas', { timeout: 8000 });
 
     let cota10Id = null;
     let cota20Id = null;
 
     log("➕ Emitindo cota de Sorteio (Cota #10) para o Cliente PF...");
-    await page.click('text=+ Emitir Nova Cota');
+    await page.click('text=Emitir Nova Cota');
     await page.waitForSelector('text=Emitir Nova Cota Consorcial', { timeout: 5000 });
 
-    await page.fill('#numeroCota', '10');
+    await page.fill('#cota-numero', '10');
     // Seleciona o cliente PF e o grupo de forma robusta usando máscaras
     const maskedPf = maskCpfCnpj(pfCpf);
     log(`🔍 Procurando opção do cliente PF com máscara: ${maskedPf}`);
-    const pfOptionVal = await page.locator('#clienteId option', { hasText: maskedPf }).first().getAttribute('value');
-    await page.selectOption('#clienteId', pfOptionVal);
+    const pfOptionVal = await page.locator('#cota-cliente option', { hasText: maskedPf }).first().getAttribute('value');
+    await page.selectOption('#cota-cliente', pfOptionVal);
     
     log(`🔍 Procurando opção do grupo: ${codigoGrupo}`);
-    const grupoOptionVal = await page.locator('#grupoId option', { hasText: codigoGrupo }).first().getAttribute('value');
-    await page.selectOption('#grupoId', grupoOptionVal);
+    const grupoOptionVal = await page.locator('#cota-grupo option', { hasText: codigoGrupo }).first().getAttribute('value');
+    await page.selectOption('#cota-grupo', grupoOptionVal);
 
     await page.screenshot({ path: path.join(screenshotDir, '07_cota_sorteio_filled.png') });
     
@@ -375,15 +367,15 @@ function maskCpfCnpj(value) {
     log("✅ Cota #10 emitida e inicializada com sucesso!");
 
     log("➕ Emitindo cota de Lance (Cota #20) para o Cliente PJ...");
-    await page.click('text=+ Emitir Nova Cota');
+    await page.click('text=Emitir Nova Cota');
     await page.waitForSelector('text=Emitir Nova Cota Consorcial', { timeout: 5000 });
 
-    await page.fill('#numeroCota', '20');
+    await page.fill('#cota-numero', '20');
     const maskedPj = maskCpfCnpj(pjCnpj);
     log(`🔍 Procurando opção do cliente PJ com máscara: ${maskedPj}`);
-    const pjOptionVal = await page.locator('#clienteId option', { hasText: maskedPj }).first().getAttribute('value');
-    await page.selectOption('#clienteId', pjOptionVal);
-    await page.selectOption('#grupoId', grupoOptionVal);
+    const pjOptionVal = await page.locator('#cota-cliente option', { hasText: maskedPj }).first().getAttribute('value');
+    await page.selectOption('#cota-cliente', pjOptionVal);
+    await page.selectOption('#cota-grupo', grupoOptionVal);
 
     await page.screenshot({ path: path.join(screenshotDir, '08_cota_lance_filled.png') });
     
@@ -425,7 +417,7 @@ function maskCpfCnpj(value) {
     log("💰 Navegando para Financeiro...");
     await page.click('text=Amortização / Parcelas');
     await page.waitForURL('**/financeiro', { timeout: 8000 });
-    await page.waitForSelector('text=💰 Financeiro e Caixa', { timeout: 8000 });
+    await page.waitForSelector('text=Financeiro e Caixa', { timeout: 8000 });
 
     log(`🔍 Selecionando a Cota #${cota10Id} para baixa de parcela...`);
     await page.selectOption('#select-cota', String(cota10Id));
@@ -475,7 +467,7 @@ function maskCpfCnpj(value) {
     log("📅 Navegando para Central AGO & Sorteios...");
     await page.click('text=Assembleias AGO');
     await page.waitForURL('**/assembleias', { timeout: 8000 });
-    await page.waitForSelector('text=📅 Central AGO & Sorteios', { timeout: 8000 });
+    await page.waitForSelector('text=Central AGO & Sorteios', { timeout: 8000 });
 
     log(`🔍 Selecionando o Grupo: ${codigoGrupo}...`);
     log(`🔍 Selecionando o Grupo: ${codigoGrupo} no seletor de assembleia...`);
@@ -507,7 +499,7 @@ function maskCpfCnpj(value) {
     await page.click('button:has-text("Contemplar Cota")');
     
     // Aguarda aparecer a cota nos contemplados da assembleia
-    await page.waitForSelector('.space-y-3 >> text=Cota #' + cota10Id, { timeout: 8000 });
+    await page.waitForSelector('.space-y-4 >> text=Cota #' + cota10Id, { timeout: 8000 });
     log(`✅ Cota #${cota10Id} contemplada por Sorteio com sucesso!`);
 
     log(`🔍 Selecionando Cota #${cota20Id} na Assembleia...`);
@@ -517,7 +509,7 @@ function maskCpfCnpj(value) {
     await page.screenshot({ path: path.join(screenshotDir, '15_lance_filling.png') });
     await page.click('button:has-text("Contemplar Cota")');
 
-    await page.waitForSelector('.space-y-3 >> text=Cota #' + cota20Id, { timeout: 8000 });
+    await page.waitForSelector('.space-y-4 >> text=Cota #' + cota20Id, { timeout: 8000 });
     log(`✅ Cota #${cota20Id} contemplada por Lance com sucesso!`);
     testResults.simulacaoContemplacao = 'SUCCESS';
 
@@ -527,7 +519,7 @@ function maskCpfCnpj(value) {
     log("📄 Visitando Relatório de Balancete (4110)...");
     await page.click('text=Balancete (4110)');
     await page.waitForURL('**/relatorios/balancete', { timeout: 8000 });
-    await page.waitForSelector('text=📄 Balancete — Documento 4110', { timeout: 8000 });
+    await page.waitForSelector('text=Balancete — Documento 4110', { timeout: 8000 });
     
     // Seleciona o grupo
     let bcbGrupoVal = null;
@@ -547,7 +539,7 @@ function maskCpfCnpj(value) {
     log("📊 Visitando Relatório de Estatísticas (2080)...");
     await page.click('text=Estatísticas (2080)');
     await page.waitForURL('**/relatorios/estatisticas', { timeout: 8000 });
-    await page.waitForSelector('text=📊 Estatísticas — Documento 2080', { timeout: 8000 });
+    await page.waitForSelector('text=Estatísticas — Documento 2080', { timeout: 8000 });
     await page.waitForTimeout(2000);
     await page.screenshot({ path: path.join(screenshotDir, '17_estatisticas_visual.png') });
     log("📸 Estatísticas exibidas!");
@@ -555,7 +547,7 @@ function maskCpfCnpj(value) {
     log("🔍 Visitando Monitoramento PLD/FT...");
     await page.click('text=Monitoramento PLD/FT');
     await page.waitForURL('**/relatorios/pld-ft', { timeout: 8000 });
-    await page.waitForSelector('text=🔍 Relatório PLD/FT', { timeout: 8000 });
+    await page.waitForSelector('text=Relatório PLD/FT', { timeout: 8000 });
     await page.waitForTimeout(2000);
     await page.screenshot({ path: path.join(screenshotDir, '18_pldft_visual.png') });
     log("📸 Monitoramento PLD/FT exibido!");
@@ -568,7 +560,7 @@ function maskCpfCnpj(value) {
     await page.reload();
     
     // Deve continuar no painel logado (neste caso, na página de PLD/FT)
-    await page.waitForSelector('text=🔍 Relatório PLD/FT', { timeout: 10000 });
+    await page.waitForSelector('text=Relatório PLD/FT', { timeout: 10000 });
     const currentUrl = page.url();
     log(`🔗 URL após F5: ${currentUrl}`);
     
@@ -584,7 +576,7 @@ function maskCpfCnpj(value) {
     // FINALIZAÇÃO
     // ----------------------------------------------------
     log("🚪 Realizando logout...");
-    await page.click('.btn-logout');
+    await page.click('[aria-label="Sair do painel"]');
     await page.waitForURL('**/login', { timeout: 8000 });
     log("🏁 Agente deslogado e fluxo de testes concluído com sucesso!");
 

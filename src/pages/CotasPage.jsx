@@ -8,7 +8,15 @@ import { Plus, XCircle, Calculator, X } from 'lucide-react';
 import { TableSkeleton } from '../components/ui/Skeleton';
 
 const cotaStatusBadge = (status) => {
-  const map = { 'ATIVA': 'badge-success', 'CONTEMPLADA': 'badge-info', 'CANCELADA': 'badge-danger', 'ENCERRADA': 'badge-neutral' };
+  const map = { 
+    'ATIVA': 'badge-success', 
+    'CONTEMPLADA': 'badge-info', 
+    'CANCELADA': 'badge-danger', 
+    'EXCLUIDA': 'badge-danger',
+    'EM_EXECUCAO': 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+    'ENCERRADA': 'badge-neutral',
+    'SUSPENSA': 'badge-warning'
+  };
   return map[status] || 'badge-neutral';
 };
 
