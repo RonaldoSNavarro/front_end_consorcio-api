@@ -37,6 +37,8 @@ A aplicação foi reformulada para seguir uma estética corporativa sóbria e pr
 Nossa malha de formulários e exibições garante total aderência contábil e de compliance:
 *   **Integralização de Lances (ADR 004)**: Controle de lances pendentes com prazos úteis rígidos e justificativa obrigatória de cancelamento por decurso de prazo.
 *   **Restituição de Excluídos (ADR 005 - Art. 30 da Lei 11.795/08)**: Memória de cálculo detalhada aplicando a amortização do fundo comum sobre o valor atualizado do bem na data da AGO de sorteio, com dedução de 10% da cláusula penal contábil.
+*   **Gestão de Inadimplência**: Visualização explícita de cotas `EXCLUIDA` e `EM_EXECUCAO`, com quebra de encargos (Multa/Juros) diretamente na fatura das parcelas atrasadas.
+*   **Fluxo de Inauguração**: Cotas de Grupos `EM_FORMACAO` entram em período de carência (`AGUARDANDO_INAUGURACAO`) e são ativadas em cascata apenas na oficialização da 1ª AGO.
 *   **Mapeamento COSIF**: Indicações explícitas de partidas dobradas e contas contábeis de auditoria (BACEN) em cada operação.
 
 ---
@@ -44,7 +46,7 @@ Nossa malha de formulários e exibições garante total aderência contábil e d
 ## 📑 SDD (Spec-Driven Development) & Capabilities
 
 O projeto é guiado estritamente por especificações de UI (`docs/specs/`) vinculadas aos contratos de API do backend. 
-Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 11 capabilities (`IMPLEMENTED v1.0`):
+Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 12 capabilities (`IMPLEMENTED v1.0`):
 1. Autenticação e Sessão (com F5-Safety)
 2. Gestão de Assembleias
 3. Composição de Fundos e Parcelas
