@@ -1,5 +1,6 @@
+/* eslint-disable no-unused-vars, react/prop-types, react/display-name */
 import React from 'react';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { api } from '../services/api';
@@ -10,6 +11,17 @@ import { useAssembleias } from '../hooks/useAssembleias';
 import { useParcelas, useInadimplencia } from '../hooks/useParcelas';
 import { useLances } from '../hooks/useLances';
 import { useContemplacoes } from '../hooks/useContemplacoes';
+import { useVendaProposta } from '../hooks/useVendaProposta';
+
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => vi.fn(),
+}));
+
+vi.mock('../context/ToastContext', () => ({
+  useToast: () => ({
+    triggerToast: vi.fn(),
+  }),
+}));
 
 vi.mock('../services/api', () => ({
   api: {
@@ -22,7 +34,15 @@ vi.mock('../services/api', () => ({
       reajustar: vi.fn().mockResolvedValue({ id: 1, valorCredito: 70000.00 })
     },
     cotas: {
-      listarPorCliente: vi.fn().mockResolvedValue({ content: [{ id: 1 }] })
+      listarPorCliente: vi.fn().mockResolvedValue({ content: [{ id: 1 }] }),
+      listarPorGrupo: vi.fn().mockResolvedValue([{ id: 1, numeroCota: 1 }, { id: 2, numeroCota: 2 }])
+    },
+    vendas: {
+      produtos: vi.fn().mockResolvedValue([{ id: 1, prazoMeses: 100 }]),
+      listarTiposAtivos: vi.fn().mockResolvedValue([{ id: 1, nome: 'Canal Online', percentualComissao: 0.1 }]),
+      criarProposta: vi.fn().mockResolvedValue({ id: 10 }),
+      aprovarProposta: vi.fn().mockResolvedValue({ id: 20 }),
+      efetivarContrato: vi.fn().mockResolvedValue({ id: 30 })
     },
     assembleias: {
       salvar: vi.fn().mockResolvedValue({ id: 1, dataAssembleia: '2026-10-10' })
@@ -146,6 +166,28 @@ describe('Testes unitários de Hooks TanStack Query', () => {
         contemplacao = await result.current.registrar({ tipoContemplacao: 'SORTEIO' });
       });
       expect(contemplacao.tipoContemplacao).toBe('SORTEIO');
+    });
+  });
+
+  describe('useVendaProposta', () => {
+    it('deve inicializar com valores corretos', async () => {
+      const { result } = renderHook(() => useVendaProposta(), { wrapper: createWrapper() });
+      expect(result.current.step).toBe(0);
+      expect(result.current.valorCredito).toBe(50000);
+      expect(result.current.contratarSeguro).toBe(false);
+    });
+
+    it('deve permitir navegar entre passos', async () => {
+      const { result } = renderHook(() => useVendaProposta(), { wrapper: createWrapper() });
+      act(() => {
+        result.current.setStep(1);
+      });
+      expect(result.current.step).toBe(1);
+      
+      act(() => {
+        result.current.handlePrevStep();
+      });
+      expect(result.current.step).toBe(0);
     });
   });
 });
