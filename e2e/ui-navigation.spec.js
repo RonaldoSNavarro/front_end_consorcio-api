@@ -39,7 +39,7 @@ test.describe('Navegação e Links Globais', () => {
     await expect(page).toHaveURL(/.*\/assembleias/);
 
     // 7. Lances
-    await page.click('text=Integralizar Lances');
+    await page.click('text=Lances e Integralização');
     await expect(page).toHaveURL(/.*\/lances-pendentes/);
 
     // 8. Venda Proposta

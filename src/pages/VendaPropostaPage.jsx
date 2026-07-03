@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { api } from '../services/api';
-import { useToast } from '../context/ToastContext';
-import { ShoppingCart, Users, Package, Tag, ChevronRight, CheckCircle, Loader2, AlertCircle, UserPlus, FileText, Banknote } from 'lucide-react';
+/* eslint-disable react/prop-types */
+import React from 'react';
+import { ShoppingCart, Users, Package, Tag, ChevronRight, CheckCircle, Loader2, AlertCircle, UserPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useVendaProposta } from '../hooks/useVendaProposta';
 
 const StepIndicator = ({ steps, current }) => (
   <div className="flex items-center justify-center gap-2 mb-8 flex-wrap">
@@ -20,83 +19,46 @@ const StepIndicator = ({ steps, current }) => (
 );
 
 export const VendaPropostaPage = () => {
-  const { triggerToast } = useToast();
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
-  const [selectedCliente, setSelectedCliente] = useState(null);
-  const [selectedProduto, setSelectedProduto] = useState(null);
-  const [selectedTipo, setSelectedTipo] = useState(null);
-  const [contratarSeguro, setContratarSeguro] = useState(false);
-  const [observacoes, setObservacoes] = useState('');
-  
-  const [clienteSearch, setClienteSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const {
+    step,
+    setStep,
+    selectedCliente,
+    setSelectedCliente,
+    valorCredito,
+    selectedGrupo,
+    setSelectedGrupo,
+    selectedCotaNumero,
+    setSelectedCotaNumero,
+    selectedTipo,
+    setSelectedTipo,
+    contratarSeguro,
+    setContratarSeguro,
+    clienteSearch,
+    setClienteSearch,
+    isSubmitting,
+    clientes,
+    isLoadingClientes,
+    gruposList,
+    isLoadingGrupos,
+    vacantQuotas,
+    isLoadingCotas,
+    tipos,
+    term,
+    taxa,
+    fundoComum,
+    taxaAdm,
+    fundoReserva,
+    seguroPrestamista,
+    totalInstallment,
+    handleEfetivarProposta,
+    handleNextStep,
+    handlePrevStep,
+    register,
+    errors
+  } = useVendaProposta();
 
-  // Retornos dos novos endpoints
-  const [novaProposta, setNovaProposta] = useState(null);
-  const [novoContrato, setNovoContrato] = useState(null);
-
-  React.useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(clienteSearch);
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [clienteSearch]);
-
-  const { data: clientesData, isLoading: isLoadingClientes } = useQuery({ 
-    queryKey: ['clientes', 0, 30, debouncedSearch], 
-    queryFn: () => api.clientes.listar(0, 30, debouncedSearch) 
-  });
-  const clientes = (clientesData?.content || clientesData || []).filter(c => c.statusCliente !== 'INATIVO');
-
-  const { data: produtos, isLoading: isLoadingProdutos } = useQuery({
-    queryKey: ['produtosConsorcio'],
-    queryFn: () => api.vendas.produtos()
-  });
-
-  const { data: tipos } = useQuery({
-    queryKey: ['tiposVenda'],
-    queryFn: () => api.vendas.listarTiposAtivos()
-  });
-
-  // MUTAÇÕES
-  const criarPropostaMutation = useMutation({
-    mutationFn: () => api.vendas.criarProposta({
-      clienteId: selectedCliente.id,
-      produtoId: selectedProduto.id,
-      tipoVendaId: selectedTipo.id,
-      valorCreditoSolicitado: selectedProduto?.bemReferencia?.valorAtual || 0,
-      contratouSeguro: contratarSeguro,
-      observacoes: observacoes || null
-    }),
-    onSuccess: (data) => {
-      setNovaProposta(data);
-      triggerToast(`Proposta #${data.id} gerada! Status: EM_ANALISE.`, 'success');
-      setStep(4);
-    },
-    onError: (err) => triggerToast(err.message || "Erro ao criar proposta.", 'danger')
-  });
-
-  const aprovarPropostaMutation = useMutation({
-    mutationFn: (propostaId) => api.vendas.aprovarProposta(propostaId),
-    onSuccess: (data) => {
-      setNovoContrato(data); // O retorno deve ser o ContratoDTO gerado
-      triggerToast(`Proposta Aprovada! Contrato gerado aguardando adesão.`, 'success');
-      setStep(5);
-    },
-    onError: (err) => triggerToast(err.message || "Erro ao aprovar proposta.", 'danger')
-  });
-
-  const efetivarContratoMutation = useMutation({
-    mutationFn: (contratoId) => api.vendas.efetivarContrato(contratoId),
-    onSuccess: (data) => {
-      triggerToast(`Pagamento da adesão confirmado! Cota criada no grupo.`, 'success');
-      navigate('/cotas');
-    },
-    onError: (err) => triggerToast(err.message || "Erro ao efetivar contrato.", 'danger')
-  });
-
-  const steps = ['Cliente', 'Produto', 'Tipo Venda', 'Criar', 'Analisar', 'Adesão'];
+  const steps = ['Cliente', 'Simulação e Grupo', 'Canal de Venda', 'Confirmação'];
 
   return (
     <div className="animate-fade-in space-y-6 max-w-4xl mx-auto">
@@ -116,15 +78,28 @@ export const VendaPropostaPage = () => {
             <Users className="w-5 h-5 text-brand-500" />
             <h3 className="font-title font-bold text-slate-900 dark:text-white">Selecionar Consorciado</h3>
           </div>
-          <input type="search" placeholder="Buscar por nome ou CPF/CNPJ..." className="form-input"
-            value={clienteSearch} onChange={e => setClienteSearch(e.target.value)} />
+          <input 
+            type="search" 
+            placeholder="Buscar por nome ou CPF/CNPJ..." 
+            className="form-input"
+            value={clienteSearch} 
+            onChange={e => setClienteSearch(e.target.value)} 
+          />
           <div className="max-h-72 overflow-y-auto space-y-1.5 pr-1">
             {isLoadingClientes ? (
                <div className="text-center py-8 text-slate-400"><Loader2 className="w-6 h-6 animate-spin mx-auto" /> Buscando...</div>
             ) : (
               clientes.slice(0, 30).map(c => (
-                <button key={c.id} onClick={() => { setSelectedCliente(c); setStep(1); }}
-                  className={`w-full text-left p-3 rounded-xl border transition-all ${selectedCliente?.id === c.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10' : 'border-slate-200 dark:border-slate-700/50 hover:border-brand-300 dark:hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
+                <button 
+                  key={c.id} 
+                  type="button"
+                  onClick={(e) => { 
+                    e.preventDefault();
+                    setSelectedCliente(c); 
+                    setStep(1); 
+                  }}
+                  className={`w-full text-left p-3 rounded-xl border transition-all ${selectedCliente?.id === c.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10' : 'border-slate-200 dark:border-slate-700/50 hover:border-brand-300 dark:hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
+                >
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-semibold text-slate-900 dark:text-white text-sm">{c.nome}</div>
@@ -150,199 +125,289 @@ export const VendaPropostaPage = () => {
         </div>
       )}
 
-      {/* PASSO 1 — Produto do Consórcio */}
+      {/* PASSO 1 — Valor do Crédito & Simulação & Grupo/Cota */}
       {step === 1 && (
-        <div className="glass-panel p-6 space-y-4">
+        <div className="glass-panel p-6 space-y-6">
           <div className="flex items-center gap-2 mb-4">
             <Package className="w-5 h-5 text-brand-500" />
-            <h3 className="font-title font-bold text-slate-900 dark:text-white">Selecione o Produto (Plano)</h3>
-          </div>
-          <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-400 flex gap-2 mb-4">
-            <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            Cliente: <strong>{selectedCliente?.nome}</strong>
+            <h3 className="font-title font-bold text-slate-900 dark:text-white">Valor do Crédito</h3>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {isLoadingProdutos ? (
-               <div className="col-span-2 text-center py-8 text-slate-400"><Loader2 className="w-6 h-6 animate-spin mx-auto" /> Carregando produtos...</div>
-            ) : (
-              (produtos || []).map(p => (
-                <button key={p.id} onClick={() => { setSelectedProduto(p); setStep(2); }}
-                  className={`w-full text-left p-4 rounded-xl border transition-all ${selectedProduto?.id === p.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10' : 'border-slate-200 dark:border-slate-700/50 hover:border-brand-300 dark:hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="font-semibold text-slate-900 dark:text-white">{p.nome}</div>
-                      <div className="text-xs text-slate-500 mt-1">Crédito Base: <span className="font-semibold text-slate-700 dark:text-slate-300">R$ {p.bemReferencia?.valorAtual?.toLocaleString('pt-BR')}</span></div>
-                      <div className="text-xs text-slate-500 mt-1">Bem: {p.bemReferencia?.descricao}</div>
-                      <div className="text-xs text-slate-500 mt-1">Prazo: {p.prazoMeses} meses | TX. Adm: {(p.taxaAdministracaoPerc * 100).toFixed(2)}%</div>
-                    </div>
-                    {selectedProduto?.id === p.id && <CheckCircle className="w-5 h-5 text-brand-500 shrink-0" />}
-                  </div>
-                </button>
-              ))
+          <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-400 flex gap-2">
+            <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            Cliente Selecionado: <strong>{selectedCliente?.nome}</strong>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="credit-value" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Valor do Crédito (R$)</label>
+            <input 
+              id="credit-value"
+              type="number" 
+              className="form-input" 
+              {...register('valorCredito', { valueAsNumber: true })}
+              placeholder="Ex: 50000"
+            />
+            {errors.valorCredito && (
+              <span className="text-red-500 text-xs mt-1 block">
+                {errors.valorCredito.message}
+              </span>
             )}
           </div>
-          
-          <div className="flex gap-3 pt-4">
-            <button className="btn btn-outline" onClick={() => setStep(0)}>&larr; Voltar</button>
+
+          {/* Simulação de Parcelas */}
+          <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2 animate-fade-in">
+            <h4 className="font-title font-bold text-sm text-slate-800 dark:text-slate-200 mb-2">Simulação de Parcelas</h4>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+              <div>
+                <span className="text-slate-400 block">Fundo Comum:</span>
+                <div className="font-semibold text-slate-800 dark:text-slate-200">R$ {fundoComum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              </div>
+              <div>
+                <span className="text-slate-400 block">Taxa de Administração ({taxa}%):</span>
+                <div className="font-semibold text-slate-800 dark:text-slate-200">R$ {taxaAdm.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              </div>
+              <div>
+                <span className="text-slate-400 block">Fundo de Reserva (2%):</span>
+                <div className="font-semibold text-slate-800 dark:text-slate-200">R$ {fundoReserva.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              </div>
+              <div>
+                <span className="text-slate-400 block">Seguro Prestamista ({contratarSeguro ? '1%' : '0%'}):</span>
+                <div className="font-semibold text-slate-800 dark:text-slate-200">R$ {seguroPrestamista.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              </div>
+              <div className="col-span-2 sm:col-span-1 border-t sm:border-t-0 sm:border-l border-slate-200 dark:border-slate-700 pt-2 sm:pt-0 sm:pl-4">
+                <span className="text-slate-400 font-bold block">Total Mensal Estimado:</span>
+                <div className="font-bold text-sm text-brand-500">R$ {totalInstallment.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Seleção do Grupo */}
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Selecionar Grupo</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {isLoadingGrupos ? (
+                <div className="col-span-2 text-center py-4 text-slate-400"><Loader2 className="w-5 h-5 animate-spin mx-auto" /> Carregando grupos...</div>
+              ) : gruposList.map(g => {
+                const arrecadado = g.status === 'EM_FORMACAO' ? '15%' : '65%';
+                const prazoRestante = g.status === 'EM_FORMACAO' ? g.prazoMeses : Math.max(1, g.prazoMeses - 6);
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => setSelectedGrupo(g)}
+                    className={`w-full text-left p-4 rounded-xl border transition-all ${selectedGrupo?.id === g.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10' : 'border-slate-200 dark:border-slate-700/50 hover:border-brand-300 dark:hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-semibold text-slate-900 dark:text-white">{g.codigo}</div>
+                        <div className="text-xs text-slate-500 mt-1">Status: <span className="font-semibold">{g.status?.replace('_', ' ')}</span></div>
+                        <div className="text-xs text-slate-500 mt-1">Prazo Total: {g.prazoMeses} meses | TX Adm: {g.taxaAdministracao}%</div>
+                        <div className="mt-2 flex gap-4 text-xs">
+                          <span className="text-emerald-600 dark:text-emerald-400">Arrecadado: <strong>{arrecadado}</strong></span>
+                          <span className="text-amber-500">Prazo Restante: <strong>{prazoRestante} meses</strong></span>
+                        </div>
+                      </div>
+                      {selectedGrupo?.id === g.id && <CheckCircle className="w-5 h-5 text-brand-500 shrink-0" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Seleção de Cota Vaga */}
+          {selectedGrupo && (
+            <div className="space-y-2">
+              <label htmlFor="quota-select" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Reservar Cota Vaga</label>
+              {isLoadingCotas ? (
+                <div className="text-slate-400 text-xs flex items-center gap-1"><Loader2 className="w-4 h-4 animate-spin" /> Buscando cotas ocupadas...</div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <select
+                    id="quota-select"
+                    className="form-input max-w-[200px]"
+                    value={selectedCotaNumero || ''}
+                    onChange={e => setSelectedCotaNumero(Number(e.target.value))}
+                  >
+                    {vacantQuotas.map(q => (
+                      <option key={q} value={q}>Cota {String(q).padStart(3, '0')}</option>
+                    ))}
+                  </select>
+                  <span className="text-xs text-slate-400">({vacantQuotas.length} cotas disponíveis de 100)</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Botão de Avanço */}
+          <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-700/50">
+            <button type="button" className="btn btn-outline" onClick={handlePrevStep}>&larr; Voltar</button>
+            <button 
+              type="button" 
+              className="btn btn-primary flex-1" 
+              onClick={handleNextStep}
+              disabled={!selectedGrupo || !selectedCotaNumero}
+            >
+              Avançar
+            </button>
           </div>
         </div>
       )}
 
-      {/* PASSO 2 — Tipo de Venda */}
+      {/* PASSO 2 — Tipo de Venda & Detalhes */}
       {step === 2 && (
-        <div className="glass-panel p-6 space-y-4">
+        <div className="glass-panel p-6 space-y-6">
           <div className="flex items-center gap-2 mb-4">
             <Tag className="w-5 h-5 text-brand-500" />
             <h3 className="font-title font-bold text-slate-900 dark:text-white">Tipo de Venda</h3>
           </div>
-          <div className="grid grid-cols-1 gap-2">
-            {(tipos || []).map(t => (
-              <button key={t.id} onClick={() => { setSelectedTipo(t); setStep(3); }}
-                className={`w-full text-left p-4 rounded-xl border transition-all ${selectedTipo?.id === t.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10' : 'border-slate-200 dark:border-slate-700/50 hover:border-brand-300 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="font-semibold text-sm text-slate-900 dark:text-white">{t.nome}</div>
-                    {t.descricao && <div className="text-xs text-slate-400 mt-0.5">{t.descricao}</div>}
-                    <div className="text-xs text-slate-500 mt-1">
-                      Comissão: <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{(t.percentualComissao * 100).toFixed(1)}%</span>
-                      {t.exigeSeguro && <span className="ml-2 badge badge-warning text-[10px] py-0">Exige Seguro</span>}
-                    </div>
-                  </div>
-                  {selectedTipo?.id === t.id && <CheckCircle className="w-4 h-4 text-brand-500 shrink-0 mt-0.5" />}
-                </div>
-              </button>
-            ))}
-          </div>
-          <button className="btn btn-outline mt-2" onClick={() => setStep(1)}>&larr; Voltar</button>
-        </div>
-      )}
 
-      {/* PASSO 3 — Confirmação e Criação da Proposta */}
-      {step === 3 && (
-        <div className="glass-panel p-6 space-y-6">
-          <h3 className="font-title font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <FileText className="w-5 h-5 text-brand-500" />
-            Revisar e Criar Proposta
-          </h3>
-          <div className="space-y-3">
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 text-sm space-y-2">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Consorciado</span>
-                <span className="font-semibold text-slate-900 dark:text-white">{selectedCliente?.nome}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Produto de Consórcio</span>
-                <span className="font-semibold text-slate-900 dark:text-white">{selectedProduto?.nome} (R$ {selectedProduto?.bemReferencia?.valorAtual?.toLocaleString('pt-BR')})</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Canal de Venda</span>
-                <span className="font-semibold text-slate-900 dark:text-white">{selectedTipo?.nome}</span>
-              </div>
+          <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-400 flex gap-2">
+            <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div>
+              Grupo: <strong>{selectedGrupo?.codigo}</strong> | Cota: <strong>{selectedCotaNumero}</strong> | Crédito: <strong>R$ {Number(valorCredito || 0).toLocaleString('pt-BR')}</strong>
             </div>
+          </div>
 
-            {selectedTipo?.exigeSeguro && (
-              <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-xs text-amber-700 dark:text-amber-400">
-                Este tipo de venda exige contratação de seguro de vida.
-              </div>
-            )}
-
-            <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-slate-200 dark:border-slate-700/50 hover:border-brand-300 dark:hover:border-brand-500/50 transition-all">
-              <input type="checkbox" checked={contratarSeguro} onChange={e => setContratarSeguro(e.target.checked)} className="w-4 h-4 rounded text-brand-500" />
+          {/* Checkbox Seguro Prestamista */}
+          <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/50">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={contratarSeguro} 
+                onChange={e => setContratarSeguro(e.target.checked)} 
+                className="w-4 h-4 rounded text-brand-500" 
+              />
               <div>
-                <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">Contratar Seguro de Vida</div>
-                <div className="text-xs text-slate-400">Proteção em caso de invalidez ou falecimento do consorciado</div>
+                <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">Contratar Seguro Prestamista</div>
+                <div className="text-xs text-slate-400">Seguro que quita o consórcio em caso de sinistro (Morte ou Invalidez)</div>
               </div>
             </label>
+          </div>
 
-            <div className="form-group">
-              <label htmlFor="obs-venda">Observações (Opcional)</label>
-              <textarea id="obs-venda" rows={2} className="form-input" placeholder="Informações adicionais sobre a proposta..."
-                value={observacoes} onChange={e => setObservacoes(e.target.value)} />
+          {/* List channels */}
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Escolha o Canal de Venda</label>
+            <div className="grid grid-cols-1 gap-2">
+              {tipos && tipos.map(t => (
+                <button 
+                  key={t.id} 
+                  type="button"
+                  onClick={(e) => { 
+                    e.preventDefault();
+                    setSelectedTipo(t); 
+                    setStep(3); 
+                  }}
+                  className={`w-full text-left p-4 rounded-xl border transition-all ${selectedTipo?.id === t.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10' : 'border-slate-200 dark:border-slate-700/50 hover:border-brand-300 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-sm text-slate-900 dark:text-white">{t.nome}</div>
+                      {t.descricao && <div className="text-xs text-slate-400 mt-0.5">{t.descricao}</div>}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                        Comissão: {(t.percentualComissao * 100).toFixed(0)}%
+                      </span>
+                      {selectedTipo?.id === t.id && <CheckCircle className="w-4 h-4 text-brand-500 shrink-0" />}
+                    </div>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
 
           <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-700/50">
-            <button className="btn btn-outline" onClick={() => setStep(2)} disabled={criarPropostaMutation.isPending}>&larr; Voltar</button>
-            <button className="btn btn-primary flex-1" onClick={() => criarPropostaMutation.mutate()} disabled={criarPropostaMutation.isPending}>
-              {criarPropostaMutation.isPending ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Gerando Proposta...</>
-              ) : (
-                <><CheckCircle className="w-4 h-4" /> Gerar Proposta de Adesão</>
-              )}
-            </button>
+            <button type="button" className="btn btn-outline" onClick={handlePrevStep}>&larr; Voltar</button>
           </div>
         </div>
       )}
 
-      {/* PASSO 4 — Aprovação Backoffice */}
-      {step === 4 && (
-        <div className="glass-panel p-6 space-y-6 text-center">
-          <div className="w-16 h-16 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FileText className="w-8 h-8" />
-          </div>
-          <h3 className="font-title text-xl font-bold text-slate-900 dark:text-white">
-            Proposta Criada com Sucesso!
-          </h3>
-          <p className="text-slate-500 text-sm max-w-md mx-auto">
-            A proposta <span className="font-mono font-bold text-slate-700 dark:text-slate-300">#{novaProposta?.id}</span> encontra-se em <span className="badge badge-warning">ANÁLISE</span>.
-            Nesta etapa, o setor de Backoffice deve validar os documentos e aprovar a proposta.
-          </p>
-          
-          <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
-            <button 
-              className="btn btn-primary w-full max-w-sm mx-auto" 
-              onClick={() => aprovarPropostaMutation.mutate(novaProposta?.id)}
-              disabled={aprovarPropostaMutation.isPending}
-            >
-              {aprovarPropostaMutation.isPending ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Analisando...</>
-              ) : (
-                <>Simular Aprovação (Backoffice) &rarr;</>
-              )}
-            </button>
-            <p className="text-xs text-slate-400 mt-3">Para fins de demonstração, simulamos o clique do analista aqui.</p>
-          </div>
-        </div>
-      )}
-
-      {/* PASSO 5 — Pagamento da Adesão */}
-      {step === 5 && (
-        <div className="glass-panel p-6 space-y-6 text-center">
-          <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Banknote className="w-8 h-8" />
-          </div>
-          <h3 className="font-title text-xl font-bold text-slate-900 dark:text-white">
-            Contrato Gerado
-          </h3>
-          <p className="text-slate-500 text-sm max-w-md mx-auto mb-4">
-            O contrato de adesão foi emitido sob status <span className="badge badge-info">PENDENTE PAGAMENTO</span>.
-            A cota só será vinculada a um grupo após a confirmação do pagamento da primeira parcela (Taxa de Adesão).
-          </p>
-          
-          <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 max-w-sm mx-auto flex justify-between items-center">
-             <div className="text-left">
-               <div className="text-xs text-slate-500">Valor da Adesão</div>
-               <div className="font-semibold text-lg text-slate-900 dark:text-white">
-                 R$ {((selectedProduto?.bemReferencia?.valorAtual || 0) * 0.01).toLocaleString('pt-BR')}
-               </div>
-             </div>
-             <Banknote className="w-6 h-6 text-emerald-500 opacity-50" />
+      {/* PASSO 3 — Confirmar Proposta & Geração Visual do Contrato & Aceite */}
+      {step === 3 && (
+        <div className="glass-panel p-6 space-y-6">
+          <div className="flex items-center gap-2 mb-4">
+            <CheckCircle className="w-5 h-5 text-brand-500" />
+            <h3 className="font-title font-bold text-slate-900 dark:text-white">Confirmar Proposta</h3>
           </div>
 
-          <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+          {/* Visual Contract Card */}
+          <div className="border border-slate-200 dark:border-slate-700/60 rounded-2xl bg-slate-50 dark:bg-slate-900/40 p-6 space-y-4 shadow-lg animate-fade-in">
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-3">
+              <h4 className="font-title font-bold text-slate-900 dark:text-white">RESUMO DO CONTRATO DE ADESÃO</h4>
+              <span className="text-xs font-mono px-2 py-1 rounded bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold">MINUTA</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-slate-400 text-xs uppercase block">Consorciado</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedCliente?.nome}</span>
+                <span className="text-slate-500 block text-xs font-mono">{selectedCliente?.cpfCnpj}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-xs uppercase block">Grupo e Cota Reservada</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">Grupo {selectedGrupo?.codigo}</span>
+                <span className="text-slate-500 block text-xs">Cota Reservada: <strong>{String(selectedCotaNumero).padStart(3, '0')}</strong></span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-xs uppercase block">Crédito Contratado</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">R$ {Number(valorCredito || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-xs uppercase block">Prazo de Pagamento</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{term} meses</span>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-2">
+              <h5 className="font-title font-bold text-xs text-slate-800 dark:text-slate-300 uppercase">Composição da Parcela Mensal</h5>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                <div>
+                  <span className="text-slate-400">Fundo Comum:</span>
+                  <div className="font-semibold text-slate-800 dark:text-slate-200">R$ {fundoComum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                </div>
+                <div>
+                  <span className="text-slate-400">Taxa Adm ({taxa}%):</span>
+                  <div className="font-semibold text-slate-800 dark:text-slate-200">R$ {taxaAdm.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                </div>
+                <div>
+                  <span className="text-slate-400">Fundo Reserva (2%):</span>
+                  <div className="font-semibold text-slate-800 dark:text-slate-200">R$ {fundoReserva.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                </div>
+                <div>
+                  <span className="text-slate-400">Seguro Prestamista:</span>
+                  <div className="font-semibold text-slate-800 dark:text-slate-200">R$ {seguroPrestamista.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                </div>
+              </div>
+              <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800 p-3 rounded-xl mt-2">
+                <span className="text-sm font-bold text-slate-900 dark:text-white">Total da Parcela:</span>
+                <span className="text-base font-bold text-brand-500">R$ {totalInstallment.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-700/50">
             <button 
-              className="btn bg-emerald-600 hover:bg-emerald-700 text-white w-full max-w-sm mx-auto border-none" 
-              onClick={() => efetivarContratoMutation.mutate(novoContrato?.id || novaProposta?.id)}
-              disabled={efetivarContratoMutation.isPending}
+              type="button" 
+              className="btn btn-outline" 
+              onClick={handlePrevStep} 
+              disabled={isSubmitting}
             >
-              {efetivarContratoMutation.isPending ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Efetivando...</>
+              &larr; Voltar
+            </button>
+            <button 
+              type="button" 
+              className="btn btn-primary flex-1" 
+              onClick={handleEfetivarProposta}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Processando Adesão...</>
               ) : (
-                <><CheckCircle className="w-4 h-4" /> Simular Pagamento do Cliente</>
+                "Efetivar Proposta"
               )}
             </button>
-            <p className="text-xs text-slate-400 mt-3">Após pagar, o sistema alocará o grupo e criará a Cota.</p>
           </div>
         </div>
       )}

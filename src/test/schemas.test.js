@@ -5,6 +5,7 @@ import { lanceSchema } from '../schemas/lanceSchema';
 import { parcelaSchema } from '../schemas/parcelaSchema';
 import { reajusteSchema } from '../schemas/reajusteSchema';
 import { pagamentoSchema } from '../schemas/pagamentoSchema';
+import { vendaPropostaSchema } from '../hooks/useVendaProposta';
 
 describe('Validação de Schemas Zod', () => {
   describe('loginSchema (REQ-AUTH-001)', () => {
@@ -130,6 +131,33 @@ describe('Validação de Schemas Zod', () => {
     it('deve rejeitar data vazia', () => {
       const result = pagamentoSchema.safeParse({ dataPagamento: '' });
       expect(result.success).toBe(false);
+    });
+  });
+
+  describe('vendaPropostaSchema', () => {
+    it('deve validar valor de crédito válido (>= 1000)', () => {
+      const result = vendaPropostaSchema.safeParse({ valorCredito: 50000 });
+      expect(result.success).toBe(true);
+    });
+
+    it('deve validar valor de crédito como string numérica válida', () => {
+      const result = vendaPropostaSchema.safeParse({ valorCredito: '50000' });
+      expect(result.success).toBe(true);
+    });
+
+    it('deve rejeitar valor de crédito abaixo de 1000', () => {
+      const result = vendaPropostaSchema.safeParse({ valorCredito: 999 });
+      expect(result.success).toBe(false);
+    });
+
+    it('deve rejeitar valor de crédito negativo', () => {
+      const result = vendaPropostaSchema.safeParse({ valorCredito: -500 });
+      expect(result.success).toBe(false);
+    });
+
+    it('deve rejeitar valor de crédito vazio ou inválido', () => {
+      expect(vendaPropostaSchema.safeParse({ valorCredito: '' }).success).toBe(false);
+      expect(vendaPropostaSchema.safeParse({ valorCredito: 'abc' }).success).toBe(false);
     });
   });
 });
