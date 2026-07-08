@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../services/api';
+import { useState } from 'react';
+import { useCotas } from '../hooks/useCotas';
 import { useToast } from '../context/ToastContext';
 import { CotaForm } from '../components/forms/CotaForm';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -23,40 +22,31 @@ const cotaStatusBadge = (status) => {
 
 export const CotasPage = () => {
   const { triggerToast } = useToast();
-  const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [cotaCancelarId, setCotaCancelarId] = useState(null);
   const [simulationResult, setSimulationResult] = useState(null);
 
-  const { data: cotasData, isLoading, error } = useQuery({
-    queryKey: ['cotas'],
-    queryFn: () => api.cotas.listar()
-  });
+  const { cotas, isLoading, error, cancelar, reembolsar } = useCotas();
 
-  const cotas = cotasData?.content || cotasData || [];
-
-  const cancelarMutation = useMutation({
-    mutationFn: (id) => api.cotas.cancelar(id),
-    onSuccess: () => {
+  const handleCancelar = async (id) => {
+    try {
+      await cancelar(id);
       triggerToast("Cota Cancelada logicamente e parcelas excluídas.", "warning");
-      queryClient.invalidateQueries({ queryKey: ['cotas'] });
-      setCotaCancelarId(null);
-    },
-    onError: (err) => {
-      triggerToast(err.message, "danger");
-      setCotaCancelarId(null);
+    } catch (err) {
+      triggerToast(err.message || "Erro ao cancelar cota", "danger");
     }
-  });
+    setCotaCancelarId(null);
+  };
 
-  const reembolsarMutation = useMutation({
-    mutationFn: (id) => api.cotas.reembolsar(id),
-    onSuccess: (res) => {
+  const handleReembolsar = async (id) => {
+    try {
+      const res = await reembolsar(id);
       setSimulationResult(res);
       triggerToast("Cálculo de reembolso gerado com sucesso!", "success");
-      queryClient.invalidateQueries({ queryKey: ['cotas'] });
-    },
-    onError: (err) => triggerToast(err.message, "danger")
-  });
+    } catch (err) {
+      triggerToast(err.message || "Erro ao simular reembolso", "danger");
+    }
+  };
 
   if (error) return <div className="p-6 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 text-sm">Erro: {error.message}</div>;
 
@@ -95,7 +85,7 @@ export const CotasPage = () => {
                         </button>
                       )}
                       {c.status === 'CANCELADA' && (
-                        <button className="btn btn-outline btn-xs" onClick={() => reembolsarMutation.mutate(c.id)}>
+                        <button className="btn btn-outline btn-xs" onClick={() => handleReembolsar(c.id)}>
                           <Calculator className="w-3.5 h-3.5" /> Simular Devolução
                         </button>
                       )}
@@ -117,7 +107,7 @@ export const CotasPage = () => {
         type="danger"
         confirmText="Confirmar"
         cancelText="Voltar"
-        onConfirm={() => cancelarMutation.mutate(cotaCancelarId)}
+        onConfirm={() => handleCancelar(cotaCancelarId)}
         onCancel={() => setCotaCancelarId(null)}
       />
 

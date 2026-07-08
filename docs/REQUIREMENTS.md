@@ -20,6 +20,8 @@ Cada capability do backend possui sua especificação de UI isolada no frontend,
 | 8 | Restituição de Excluídos (excluidos) | [ui-spec.md](specs/excluidos/ui-spec.md) | [spec.md](../../consorcio-api/docs/specs/excluidos/spec.md) | [api-contract.md](../../consorcio-api/docs/specs/excluidos/api-contract.md) | `ReembolsosExcluidosPage`, `CotasPage` |
 | 9 | Reajustes e Encerramento (encerramento) | [ui-spec.md](specs/encerramento/ui-spec.md) | [spec.md](../../consorcio-api/docs/specs/encerramento/spec.md) | [api-contract.md](../../consorcio-api/docs/specs/encerramento/api-contract.md) | `EncerrarGrupoPage`, `GruposPage` |
 | 10 | Compliance e Listas Restritivas (compliance) | [ui-spec.md](specs/compliance/ui-spec.md) | [spec.md](../../consorcio-api/docs/specs/compliance/spec.md) | [api-contract.md](../../consorcio-api/docs/specs/compliance/api-contract.md) | `CompliancePainelPage` |
+| 11 | Relatórios e PLD/FT (relatorios) | [ui-spec.md](specs/relatorios/ui-spec.md) | [spec.md](../../consorcio-api/docs/specs/relatorios/spec.md) | [api-contract.md](../../consorcio-api/docs/specs/relatorios/api-contract.md) | `RelatorioBalancetePage`, `RelatorioEstatisticasPage`, `RelatorioPldFtPage` |
+| 12 | Módulo de Vendas (vendas) | [ui-spec.md](specs/vendas/ui-spec.md) | [spec.md](../../consorcio-api/docs/specs/vendas/spec.md) | [api-contract.md](../../consorcio-api/docs/specs/vendas/api-contract.md) | `VendaPropostaPage`, `TiposDeVendaPage` |
 
 ---
 
@@ -39,7 +41,10 @@ O frontend não mantém entidades persistidas, mas consome os DTOs de resposta d
 | `Lance` | `LanceResponseDTO` | `AssembleiasPage`, `LancesPendentesPage` |
 | `Contemplacao` | `ContemplacaoResponseDTO` | `AssembleiasPage`, `LancesPendentesPage` |
 | `LancamentoContabil` | `LancamentoContabilResponseDTO` | `FinanceiroPage`, `RelatorioBalancetePage` |
-| `AlertaCompliance` | `AlertaComplianceResponseDTO` | `CompliancePainelPage` |
+| `AlertaCompliance` | `AlertaComplianceResponseDTO` | `CompliancePainelPage`, `RelatorioPldFtPage` |
+| `PropostaAdesao` | `PropostaAdesaoResponseDTO` | `VendaPropostaPage` |
+| `ContratoAdesao` | `ContratoAdesaoResponseDTO` | `VendaPropostaPage` |
+| `Balancete` | `BalanceteResponseDTO` | `RelatorioBalancetePage` |
 
 ---
 
@@ -79,5 +84,18 @@ O projeto utiliza as paletas nativas do Tailwind com suporte a `dark mode: class
 | `/assembleias`, `/lances-pendentes`, `/financeiro` | 🔒 Autenticado | `ProtectedRoute` |
 | `/reembolsos-excluidos` | 🔒 Autenticado | `ProtectedRoute` |
 | `/relatorios/estatisticas` | 🔒 Autenticado | `ProtectedRoute` |
+| `/vendas/proposta` | 🔒 Autenticado | `ProtectedRoute` |
+| `/vendas/tipos` | 🔒 ADMIN, GERENTE | `ProtectedRoute(allowedRoles)` |
 | `/relatorios/balancete`, `/relatorios/pld-ft` | 🔒 ADMIN, AUDITOR | `ProtectedRoute(allowedRoles)` |
 | `/grupos/:id/encerrar` | 🔒 ADMIN | `ProtectedRoute(allowedRoles)` |
+
+---
+
+## 📝 5. Backlog e Dívida Técnica (Tech Debt)
+
+As seguintes frentes de trabalho estão registradas para evoluções futuras:
+
+1. **[CONCLUÍDO] Refatoração Arquitetural (ADRs 2 e 3)**: Lógicas de negócios extraídas para Hooks customizados do TanStack Query, e formulários isolados usando Schemas Zod rígidos (cobertura total dos módulos base).
+2. **Limpeza e Organização Administrativa**: Revisar e mapear todos os arquivos `tasks.md` marcando como concluídas as tarefas cujas telas e funcionalidades já estão implementadas na base de código (ex: Wizard de Vendas).
+3. **[CONCLUÍDO] Aumentar Cobertura E2E**: Criados testes com Playwright para as capabilities de inadimplência, encerramento e finanças, elevando a cobertura E2E com testes altamente resilientes.
+

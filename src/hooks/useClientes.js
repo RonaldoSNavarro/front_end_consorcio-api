@@ -4,12 +4,12 @@ import { api } from '../services/api';
 /**
  * Hook Customizado — Gestão de Clientes (REQ-CLI-001, REQ-CLI-002, REQ-CLI-003)
  */
-export function useClientes(page = 0, size = 100) {
+export function useClientes(page = 0, size = 100, search = '') {
   const queryClient = useQueryClient();
 
   const clientesQuery = useQuery({
-    queryKey: ['clientes', page, size],
-    queryFn: () => api.clientes.listar(page, size),
+    queryKey: ['clientes', page, size, search],
+    queryFn: () => api.clientes.listar(page, size, search),
     placeholderData: (previousData) => previousData,
   });
 
@@ -41,6 +41,7 @@ export function useClientes(page = 0, size = 100) {
 
   return {
     clientes: clientesQuery.data?.content || [],
+    clientesData: clientesQuery.data,
     isLoading: clientesQuery.isLoading,
     isError: clientesQuery.isError,
     error: clientesQuery.error,

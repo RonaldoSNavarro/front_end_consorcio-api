@@ -3,11 +3,18 @@ import { test, expect } from '@playwright/test';
 test.describe('Fluxo de Assembleia e Apuração', () => {
   test.beforeEach(async ({ page }) => {
     page.on('console', msg => console.log('BROWSER CONSOLE:', msg.text()));
-    await page.goto('/login');
-    await page.fill('#login-username', 'admin');
-    await page.fill('#login-password', 'admin');
-    await page.click('button[type="submit"]');
-    await expect(page).toHaveURL(/.*\/dashboard/);
+    
+    // Aguarda o vite responder para não dar abort na navegação
+    await page.waitForTimeout(1000);
+
+    // Repetir a navegação de login caso o backend / proxy dê reset inicial
+    await expect(async () => {
+      await page.goto('/login');
+      await page.fill('#login-username', 'admin');
+      await page.fill('#login-password', 'admin');
+      await page.click('button[type="submit"]');
+      await expect(page).toHaveURL(/.*\/dashboard/, { timeout: 10000 });
+    }).toPass({ timeout: 20000 });
   });
 
   test('Deve abrir o modal do motor de apuração e disparar a requisição', async ({ page }) => {
@@ -22,34 +29,49 @@ test.describe('Fluxo de Assembleia e Apuração', () => {
       await page.selectOption('select#select-grupo', { index: 1 });
     }
 
-    // Espera a tabela carregar e mostrar pelo menos uma linha com ações
-    await page.waitForSelector('table tbody tr', { timeout: 10000 }).catch(() => {});
-
-    // Tenta encontrar o botão Apurar que não esteja desativado
-    const apurarButton = page.locator('button:not(:disabled)', { hasText: 'Apurar' }).first();
+    // Espera a UI reagir após a seleção
+    await page.waitForTimeout(1000);
     
-    // Se não existir, a gente tenta clicar em um botão "Fechar" para forçar uma como REALIZADA
-    if (!(await apurarButton.isVisible())) {
-       const fecharButton = page.locator('button', { hasText: 'Fechar' }).first();
-       if (await fecharButton.isVisible()) {
-           await fecharButton.click();
-           await expect(page.locator('text=Captação encerrada')).toBeVisible({ timeout: 5000 });
-       } else {
-           // tenta abrir uma primeiro
-           const abrirButton = page.locator('button', { hasText: 'Abrir' }).first();
-           if (await abrirButton.isVisible()) {
-               await abrirButton.click();
-               await expect(page.locator('text=Captação de lances aberta')).toBeVisible({ timeout: 5000 });
-               const fb = page.locator('button', { hasText: 'Fechar' }).first();
-               if (await fb.isVisible()) {
-                   await fb.click();
-               }
-           }
-       }
+    // Se não tiver nenhuma assembleia listada, agenda uma rapidamente para prosseguir
+    const emptyMsg = page.locator('text=Nenhuma assembleia para este grupo.');
+    if (await emptyMsg.isVisible()) {
+        await page.fill('#dataAssembleia', '2030-10-24');
+        await page.click('button:has-text("Agendar Assembleia")');
+        await expect(page.locator('text=Assembleia agendada com sucesso')).toBeVisible({ timeout: 5000 });
+        await page.waitForSelector('table tbody tr', { timeout: 10000 });
+    } else {
+        await page.waitForSelector('table tbody tr', { timeout: 10000 }).catch(() => {});
     }
 
-    if (await apurarButton.isVisible()) {
-      await apurarButton.click();
+    // Usando toPass para garantir retentativas seguras e progressão de estado
+    await expect(async () => {
+      // Se Apurar já está habilitado, sucesso!
+      const apurarButton = page.locator('button:not(:disabled)', { hasText: 'Apurar' }).first();
+      if (await apurarButton.isVisible()) {
+        return;
+      }
+      
+      // Senão, tentar avançar máquina de estado:
+      const fecharButton = page.locator('button', { hasText: 'Fechar' }).first();
+      if (await fecharButton.isVisible()) {
+          await fecharButton.click();
+          await expect(page.locator('text=Captação encerrada')).toBeVisible({ timeout: 5000 });
+          throw new Error('Aguardando re-render após Fechar');
+      } 
+      
+      const abrirButton = page.locator('button', { hasText: 'Abrir' }).first();
+      if (await abrirButton.isVisible()) {
+          await abrirButton.click();
+          await expect(page.locator('text=Captação de lances aberta')).toBeVisible({ timeout: 5000 });
+          throw new Error('Aguardando re-render após Abrir');
+      }
+      
+      throw new Error('Nenhum botão de ação visível ainda');
+    }).toPass({ timeout: 15000 });
+    
+    const apurarButtonFinal = page.locator('button:not(:disabled)', { hasText: 'Apurar' }).first();
+    await expect(apurarButtonFinal).toBeVisible();
+    await apurarButtonFinal.click();
 
       // Verifica o Modal do Motor de Apuração
       const modal = page.locator('.modal-backdrop', { hasText: 'Motor de Apuração' }).first();
@@ -66,6 +88,5 @@ test.describe('Fluxo de Assembleia e Apuração', () => {
 
       // Verifica Toast de Sucesso
       await expect(page.locator('text=Apuração concluída')).toBeVisible({ timeout: 15000 });
-    }
   });
 });

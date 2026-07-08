@@ -36,4 +36,4 @@
 - [x] Validar acessibilidade WCAG AA
 
 ### [TESTE E2E] Estabilidade e Dados (Pendência)
-- [ ] Estabilizar teste Playwright `Deve impedir o processo de Apurar Assembleia se a Captação não estiver fechada`: Garantir a criação ou mock de uma Assembleia `AGENDADA` no banco de teste para que a UI consiga selecionar corretamente e o timeout de locator não dispare.
+- [x] Estabilizar teste Playwright `Deve impedir o processo de Apurar Assembleia se a Captação não estiver fechada`: Garantir a criação ou mock de uma Assembleia `AGENDADA` no banco de teste para que a UI consiga selecionar corretamente e o timeout de locator não dispare.
