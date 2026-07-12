@@ -83,7 +83,7 @@ export const RelatorioBalancetePage = () => {
   const formatCurrency = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const handleExportCSV = () => {
     if (!grupoId) return;
-    const url = `http://localhost:8080/api/relatorios/balancete/${grupoId}/csv?dataReferencia=${dataReferencia}`;
+    const url = `http://localhost:8081/api/relatorios/balancete/${grupoId}/csv?dataReferencia=${dataReferencia}`;
     window.open(url, '_blank');
     triggerToast('Download do CSV do Balancete iniciado.', 'info');
   };

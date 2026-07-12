@@ -1,5 +1,5 @@
 
-const BASE_URL = import.meta.env?.VITE_API_URL || (typeof process !== 'undefined' && process.env.NODE_ENV === 'test' ? 'http://localhost:8080' : '');
+const BASE_URL = import.meta.env?.VITE_API_URL || '';
 
 
 
@@ -189,13 +189,13 @@ export const api = {
       return response.json();
     },
     estatisticas: async (grupoId, dataInicio, dataFim) => {
-            const url = `${BASE_URL}/api/relatorios/estatisticas/${grupoId}?dataInicio=${dataInicio}&dataFim=${dataFim}`;
+            const url = `${BASE_URL}/api/relatorios/estatisticas/${grupoId}?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
       const response = await fetchApi(url);
       if (!response.ok) throw await handleResponseError(response, "Erro ao gerar estatísticas.");
       return response.json();
     },
     pldFt: async (dataInicio, dataFim) => {
-            const url = `${BASE_URL}/api/relatorios/pld-ft?dataInicio=${dataInicio}&dataFim=${dataFim}`;
+            const url = `${BASE_URL}/api/relatorios/pld-ft?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
       const response = await fetchApi(url);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar alertas PLD/FT.");
       return response.json();
