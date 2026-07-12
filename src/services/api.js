@@ -3,8 +3,18 @@ const BASE_URL = import.meta.env?.VITE_API_URL || '';
 
 
 
-const fetchApi = (url, options = {}) => {
-  return fetch(url, { ...options, credentials: 'include' });
+let globalToken = null;
+
+export const setGlobalToken = (token) => {
+  globalToken = token;
+};
+
+const fetchApi = async (url, options = {}) => {
+  const headers = new Headers(options.headers || {});
+  if (globalToken) {
+    headers.set('Authorization', `Bearer ${globalToken}`);
+  }
+  return fetch(url, { ...options, headers });
 };
 
 const handleResponseError = async (response, defaultMessage) => {
@@ -29,25 +39,17 @@ export const api = {
   
 
   // --- AUTH ---
-  login: async (username, password) => {
-        const response = await fetchApi(`${BASE_URL}/api/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ login: username, senha: password })
-    });
-    if (!response.ok) throw await handleResponseError(response, "Falha na autenticação com o servidor Spring.");
-    // Com HttpOnly Cookie, o token vem no cabeçalho e não no body. O Spring boot foi alterado para retornar vazio no body.
-    return { token: "cookie_managed", message: "Login success" };
+  login: async () => {
+    // Agora gerenciado pelo OidcAuthProvider
   },
 
   logout: async () => {
-        await fetchApi(`${BASE_URL}/api/login/logout`, { method: 'POST' });
+    // Agora gerenciado pelo OidcAuthProvider
   },
 
   obterUsuarioLogado: async () => {
-        const response = await fetchApi(`${BASE_URL}/api/login/me`);
-    if (!response.ok) throw new Error("Sessão inválida ou expirada.");
-    return response.json();
+    // Agora gerenciado pelo OidcAuthProvider (OIDC id_token profile)
+    return null;
   },
 
   // --- CLIENTES ---

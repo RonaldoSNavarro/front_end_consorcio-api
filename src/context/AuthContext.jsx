@@ -1,68 +1,57 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../services/api';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useAuth as useOidcAuth } from 'react-oidc-context';
+import { setGlobalToken } from '../services/api';
 
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const queryClient = useQueryClient();
-  const [token, setToken] = useState(null);
-  const [isDetecting, setIsDetecting] = useState(true);
+  const auth = useOidcAuth();
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        await api.obterUsuarioLogado();
-        setToken('cookie_managed');
-      } catch {
-        setToken(null);
+    if (auth.isAuthenticated && auth.user) {
+      // Extrair roles do JWT (Keycloak default)
+      let role = 'CONSORCIADO'; // default fallback
+      if (auth.user.profile.realm_access && auth.user.profile.realm_access.roles) {
+        const roles = auth.user.profile.realm_access.roles;
+        // Priorizar role mais alta para a propriedade legado
+        if (roles.includes('ADMIN')) role = 'ADMIN';
+        else if (roles.includes('COMPLIANCE')) role = 'COMPLIANCE';
+        else if (roles.includes('GESTOR')) role = 'GESTOR';
+        else if (roles.includes('AUDITOR')) role = 'AUDITOR';
       }
-      setIsDetecting(false);
-    };
-    init();
-  }, []);
 
-  const sessionQuery = useQuery({
-    queryKey: ['session', token],
-    queryFn: async () => {
-      return api.obterUsuarioLogado();
-    },
-    enabled: !isDetecting && !!token,
-    retry: false,
-    staleTime: Infinity,
-  });
-
-  const loginMutation = useMutation({
-    mutationFn: async ({ username, password }) => {
-      return api.login(username, password);
-    },
-    onSuccess: async (res) => {
-      setToken(res.token);
-      await queryClient.invalidateQueries({ queryKey: ['session'] });
+      setUser({
+        username: auth.user.profile.preferred_username,
+        role: role,
+        roles: auth.user.profile.realm_access?.roles || [],
+        nome: auth.user.profile.given_name || auth.user.profile.preferred_username,
+        email: auth.user.profile.email,
+        sub: auth.user.profile.sub
+      });
+      setGlobalToken(auth.user.access_token);
+    } else {
+      setUser(null);
+      setGlobalToken(null);
     }
-  });
+  }, [auth.isAuthenticated, auth.user]);
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      return api.logout();
+  const authContextValue = {
+    user,
+    token: auth.user?.access_token || null,
+    isLoading: auth.isLoading || auth.activeNavigator === 'signinSilent',
+    login: async () => {
+      // Ignora parâmetros (username/password) pois o Keycloak que fará a captura
+      await auth.signinRedirect();
     },
-    onSuccess: () => {
-      setToken(null);
-      queryClient.setQueryData(['session', null], null);
-      queryClient.clear();
-    }
-  });
-
-  const auth = {
-    user: sessionQuery.data || null,
-    token,
-    isLoading: isDetecting || sessionQuery.isLoading || loginMutation.isPending || logoutMutation.isPending,
-    login: async (username, password) => loginMutation.mutateAsync({ username, password }),
-    logout: async () => logoutMutation.mutateAsync()
+    logout: async () => {
+      await auth.signoutRedirect();
+    },
+    error: auth.error
   };
 
   return (
-    <AuthContext.Provider value={auth}>
+    <AuthContext.Provider value={authContextValue}>
       {children}
     </AuthContext.Provider>
   );

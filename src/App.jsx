@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { ThemeProvider } from './context/ThemeContext';
+import { OidcAuthProvider } from './context/OidcAuthProvider';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { AppLayout } from './components/layout/AppLayout';
@@ -40,7 +41,8 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
+        <OidcAuthProvider>
+          <AuthProvider>
           <ToastProvider>
             <Router>
               <Confetti />
@@ -94,7 +96,8 @@ export default function App() {
               </Routes>
             </Router>
           </ToastProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </OidcAuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
