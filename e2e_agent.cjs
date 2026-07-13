@@ -109,24 +109,111 @@ function maskCpfCnpj(value) { return value; }
 
   try {
     // ----------------------------------------------------
-    // 1. LOGIN
+    // 1. LOGIN (Keycloak OIDC PKCE)
     // ----------------------------------------------------
     log("📍 Acessando http://localhost:5173...");
     await page.goto('http://localhost:5173', { waitUntil: 'networkidle' });
     
+    // Aguarda o redirecionamento para o Keycloak
+    log("⏳ Aguardando redirecionamento para o Keycloak...");
+    await page.waitForURL('**/protocol/openid-connect/auth**', { timeout: 15000 });
+    
     await page.screenshot({ path: path.join(screenshotDir, '01_login_screen.png') });
-    log("📸 Print da tela de login gerado.");
+    log("📸 Print da tela de login do Keycloak gerado.");
 
     log("✍️ Preenchendo credenciais...");
-    await page.fill('#login-username', 'admin');
-    await page.fill('#login-password', 'admin');
+    await page.fill('#username', 'admin');
+    await page.fill('#password', 'admin123');
     
-    log("🔑 Clicando em Autenticar...");
-    await page.click('button[type="submit"]');
+    log("🔑 Clicando em Log In...");
+    await page.click('#kc-login');
+    try {
+      let currentUrl = page.url();
+      let attempts = 0;
+      while (attempts < 15) {
+          await page.waitForTimeout(1000);
+          currentUrl = page.url();
+          if (currentUrl.includes('login-actions/required-action') || currentUrl.includes('login-actions/authenticate') || !currentUrl.includes('8180')) {
+              break;
+          }
+          attempts++;
+      }
+      
+      const otpauth = require('otpauth');
+      const secretFile = path.join(__dirname, '.e2e-totp-secret.json');
+      let secret = '';
+      
+      // Use fixed offset calculated manually (container is ~227s ahead)
+      let timeOffset = 227000;
+      log(`🕒 Compensação de fuso do Keycloak (hardcoded): ${timeOffset}ms`);
+      
+      if (currentUrl.includes('required-action')) {
+         log("🔒 Detectada tela de configuração MFA (TOTP).");
+         try {
+             const manualModeLink = page.locator('a#mode-manual');
+             if (await manualModeLink.isVisible()) {
+                 await manualModeLink.click();
+             }
+             await page.waitForSelector('#kc-totp-secret-key', { timeout: 5000 });
+             secret = await page.locator('#kc-totp-secret-key').textContent();
+             secret = secret.replace(/\s+/g, '');
+             if (secret) {
+                 fs.writeFileSync(secretFile, JSON.stringify({ secret }));
+                 log("✅ Secret do TOTP capturado e salvo.");
+             }
+             let totp = new otpauth.TOTP({
+                 issuer: "Keycloak",
+                 label: "admin",
+                 algorithm: "SHA1",
+                 digits: 6,
+                 period: 30,
+                 secret: secret
+             });
+             const token = totp.generate({ timestamp: Date.now() + timeOffset });
+             await page.fill('#totp', token);
+             await page.fill('#userLabel', 'E2E-Device');
+             await page.click('input[type="submit"], button[type="submit"]'); 
+         } catch(mfaErr) {
+             const html = await page.content();
+             fs.writeFileSync(path.join(screenshotDir, 'mfa_page.html'), html);
+             await page.screenshot({ path: path.join(screenshotDir, 'mfa_page.png') });
+             log("❌ Erro ao configurar MFA. HTML e print salvos.");
+             throw mfaErr;
+         }
+      } else if (currentUrl.includes('authenticate')) {
+         log("🔒 Detectado Desafio MFA. Gerando token...");
+         if (fs.existsSync(secretFile)) {
+             secret = JSON.parse(fs.readFileSync(secretFile)).secret;
+         } else {
+             throw new Error("MFA exigido, mas secret não foi salvo em execuções anteriores.");
+         }
+         
+         let totp = new otpauth.TOTP({
+             issuer: "Keycloak",
+             label: "admin",
+             algorithm: "SHA1",
+             digits: 6,
+             period: 30,
+             secret: secret
+         });
+         const token = totp.generate({ timestamp: Date.now() + timeOffset });
+         await page.fill('#totp', token);
+         await page.click('#kc-login, input[type="submit"], button[type="submit"]');
+      }
+    } catch (e) {
+      log("ℹ️ Nenhum MFA solicitado (ou processado). Continuando... Erro real: " + e.message);
+    }
 
     log("⏳ Aguardando redirecionamento para o Dashboard...");
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
-    await page.waitForSelector('text=Dashboard Operacional', { timeout: 15000 });
+    try {
+      await page.waitForURL('**/dashboard', { timeout: 15000 });
+      await page.waitForSelector('text=Dashboard Operacional', { timeout: 15000 });
+    } catch (e) {
+      await page.screenshot({ path: path.join(screenshotDir, '01_login_failed.png') });
+      log("📸 Erro ao aguardar o Dashboard. Print salvo como 01_login_failed.png");
+      log("URL atual: " + page.url());
+      throw e;
+    }
     
     await page.screenshot({ path: path.join(screenshotDir, '02_dashboard_loaded.png') });
     log("📸 Login efetuado com sucesso! Print do Dashboard gerado.");

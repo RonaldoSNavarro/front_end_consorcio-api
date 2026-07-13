@@ -16,8 +16,8 @@ export const OidcAuthProvider = ({ children }) => {
         const configData = await response.json();
         
         const config = {
-          authority: `${configData.authServerUrl}/realms/${configData.realm}`,
-          client_id: configData.frontendClientId,
+          authority: `${configData.url}/realms/${configData.realm}`,
+          client_id: configData.clientId,
           redirect_uri: window.location.origin + '/',
           post_logout_redirect_uri: window.location.origin + '/login',
           response_type: 'code',
