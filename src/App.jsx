@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { ThemeProvider } from './context/ThemeContext';
-import { OidcAuthProvider } from './context/OidcAuthProvider';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { AppLayout } from './components/layout/AppLayout';
@@ -27,6 +26,7 @@ import { CompliancePainelPage } from './pages/CompliancePainelPage';
 import { TiposDeVendaPage } from './pages/TiposDeVendaPage';
 import { VendaPropostaPage } from './pages/VendaPropostaPage';
 import { LoteriaFederalPage } from './pages/LoteriaFederalPage';
+import { MfaSettingsPage } from './pages/MfaSettingsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,8 +41,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <OidcAuthProvider>
-          <AuthProvider>
+        <AuthProvider>
           <ToastProvider>
             <Router>
               <Confetti />
@@ -55,6 +54,7 @@ export default function App() {
                   <Route element={<AppLayout />}>
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/configuracoes/mfa" element={<MfaSettingsPage />} />
                     <Route path="/clientes" element={<ClientesPage />} />
                     <Route path="/grupos" element={<GruposPage />} />
                     <Route path="/cotas" element={<CotasPage />} />
@@ -96,8 +96,7 @@ export default function App() {
               </Routes>
             </Router>
           </ToastProvider>
-          </AuthProvider>
-        </OidcAuthProvider>
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

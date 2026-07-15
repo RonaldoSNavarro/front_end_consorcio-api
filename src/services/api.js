@@ -3,18 +3,8 @@ const BASE_URL = import.meta.env?.VITE_API_URL || '';
 
 
 
-let globalToken = null;
-
-export const setGlobalToken = (token) => {
-  globalToken = token;
-};
-
-const fetchApi = async (url, options = {}) => {
-  const headers = new Headers(options.headers || {});
-  if (globalToken) {
-    headers.set('Authorization', `Bearer ${globalToken}`);
-  }
-  return fetch(url, { ...options, headers });
+const fetchApi = (url, options = {}) => {
+  return fetch(url, { ...options, credentials: 'include' });
 };
 
 const handleResponseError = async (response, defaultMessage) => {
@@ -39,17 +29,63 @@ export const api = {
   
 
   // --- AUTH ---
-  login: async () => {
-    // Agora gerenciado pelo OidcAuthProvider
+  login: async (username, password) => {
+    const response = await fetchApi(`${BASE_URL}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ login: username, senha: password })
+    });
+    
+    if (response.status === 202) {
+      return response.json(); // { mfaRequired: true, tempToken: "..." }
+    }
+    
+    if (!response.ok) throw await handleResponseError(response, "Falha na autenticação com o servidor Spring.");
+    return { token: "cookie_managed", message: "Login success" };
+  },
+
+  loginMfa: async (tempToken, code) => {
+    const response = await fetchApi(`${BASE_URL}/api/login/mfa-verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tempToken, code })
+    });
+    if (!response.ok) throw await handleResponseError(response, "Falha na verificação de MFA.");
+    return { token: "cookie_managed", message: "Login success" };
+  },
+
+  setupMfa: async () => {
+    const response = await fetchApi(`${BASE_URL}/api/mfa/setup`, { method: 'POST' });
+    if (!response.ok) throw await handleResponseError(response, "Falha ao enviar e-mail de verificação.");
+    return true;
+  },
+
+  confirmMfa: async (code) => {
+    const response = await fetchApi(`${BASE_URL}/api/mfa/confirm`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+    if (!response.ok) throw await handleResponseError(response, "Falha ao confirmar MFA.");
+    return true;
+  },
+
+  resetMfa: async () => {
+    const response = await fetchApi(`${BASE_URL}/api/mfa/reset`, {
+      method: 'POST'
+    });
+    if (!response.ok) throw await handleResponseError(response, "Falha ao resetar MFA.");
+    return true;
   },
 
   logout: async () => {
-    // Agora gerenciado pelo OidcAuthProvider
+    await fetchApi(`${BASE_URL}/api/login/logout`, { method: 'POST' });
   },
 
   obterUsuarioLogado: async () => {
-    // Agora gerenciado pelo OidcAuthProvider (OIDC id_token profile)
-    return null;
+    const response = await fetchApi(`${BASE_URL}/api/login/me`);
+    if (!response.ok) throw new Error("Sessão inválida ou expirada.");
+    return response.json();
   },
 
   // --- CLIENTES ---

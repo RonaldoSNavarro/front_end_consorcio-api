@@ -1,57 +1,95 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useAuth as useOidcAuth } from 'react-oidc-context';
-import { setGlobalToken } from '../services/api';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../services/api';
 
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const auth = useOidcAuth();
-  const [user, setUser] = useState(null);
+  const queryClient = useQueryClient();
+  const [token, setToken] = useState(null);
+  const [isDetecting, setIsDetecting] = useState(true);
+  
+  // MFA state
+  const [mfaPrompt, setMfaPrompt] = useState(false);
+  const [tempToken, setTempToken] = useState(null);
 
   useEffect(() => {
-    if (auth.isAuthenticated && auth.user) {
-      // Extrair roles do JWT (Keycloak default)
-      let role = 'CONSORCIADO'; // default fallback
-      if (auth.user.profile.realm_access && auth.user.profile.realm_access.roles) {
-        const roles = auth.user.profile.realm_access.roles;
-        // Priorizar role mais alta para a propriedade legado
-        if (roles.includes('ADMIN')) role = 'ADMIN';
-        else if (roles.includes('COMPLIANCE')) role = 'COMPLIANCE';
-        else if (roles.includes('GESTOR')) role = 'GESTOR';
-        else if (roles.includes('AUDITOR')) role = 'AUDITOR';
+    const init = async () => {
+      try {
+        await api.obterUsuarioLogado();
+        setToken('cookie_managed');
+      } catch {
+        setToken(null);
       }
+      setIsDetecting(false);
+    };
+    init();
+  }, []);
 
-      setUser({
-        username: auth.user.profile.preferred_username,
-        role: role,
-        roles: auth.user.profile.realm_access?.roles || [],
-        nome: auth.user.profile.given_name || auth.user.profile.preferred_username,
-        email: auth.user.profile.email,
-        sub: auth.user.profile.sub
-      });
-      setGlobalToken(auth.user.access_token);
-    } else {
-      setUser(null);
-      setGlobalToken(null);
+  const sessionQuery = useQuery({
+    queryKey: ['session', token],
+    queryFn: async () => {
+      return api.obterUsuarioLogado();
+    },
+    enabled: !isDetecting && !!token,
+    retry: false,
+    staleTime: Infinity,
+  });
+
+  const loginMutation = useMutation({
+    mutationFn: async ({ username, password }) => {
+      return api.login(username, password);
+    },
+    onSuccess: async (res) => {
+      if (res.mfaRequired) {
+        setTempToken(res.tempToken);
+        setMfaPrompt(true);
+      } else {
+        setToken(res.token);
+        await queryClient.invalidateQueries({ queryKey: ['session'] });
+      }
     }
-  }, [auth.isAuthenticated, auth.user]);
+  });
 
-  const authContextValue = {
-    user,
-    token: auth.user?.access_token || null,
-    isLoading: auth.isLoading || auth.activeNavigator === 'signinSilent',
-    login: async () => {
-      // Ignora parâmetros (username/password) pois o Keycloak que fará a captura
-      await auth.signinRedirect();
+  const verifyMfaMutation = useMutation({
+    mutationFn: async ({ code }) => {
+      return api.loginMfa(tempToken, code);
     },
-    logout: async () => {
-      await auth.signoutRedirect();
+    onSuccess: async (res) => {
+      setMfaPrompt(false);
+      setTempToken(null);
+      setToken(res.token);
+      await queryClient.invalidateQueries({ queryKey: ['session'] });
+    }
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      return api.logout();
     },
-    error: auth.error
+    onSuccess: () => {
+      setToken(null);
+      queryClient.setQueryData(['session', null], null);
+      queryClient.clear();
+    }
+  });
+
+  const auth = {
+    user: sessionQuery.data || null,
+    token,
+    mfaPrompt,
+    isLoading: isDetecting || sessionQuery.isLoading || loginMutation.isPending || logoutMutation.isPending || verifyMfaMutation.isPending,
+    login: async (username, password) => loginMutation.mutateAsync({ username, password }),
+    verifyMfa: async (code) => verifyMfaMutation.mutateAsync({ code }),
+    cancelMfa: () => {
+      setMfaPrompt(false);
+      setTempToken(null);
+    },
+    logout: async () => logoutMutation.mutateAsync()
   };
 
   return (
-    <AuthContext.Provider value={authContextValue}>
+    <AuthContext.Provider value={auth}>
       {children}
     </AuthContext.Provider>
   );
