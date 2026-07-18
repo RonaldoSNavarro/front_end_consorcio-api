@@ -109,101 +109,24 @@ function maskCpfCnpj(value) { return value; }
 
   try {
     // ----------------------------------------------------
-    // 1. LOGIN (Keycloak OIDC PKCE)
+    // 1. LOGIN (JWT Customizado)
     // ----------------------------------------------------
-    log("📍 Acessando http://localhost:5173...");
-    await page.goto('http://localhost:5173', { waitUntil: 'networkidle' });
-    
-    // Aguarda o redirecionamento para o Keycloak
-    log("⏳ Aguardando redirecionamento para o Keycloak...");
-    await page.waitForURL('**/protocol/openid-connect/auth**', { timeout: 15000 });
+    log("📍 Acessando http://localhost:5173/login...");
+    await page.goto('http://localhost:5173/login', { waitUntil: 'networkidle' });
     
     await page.screenshot({ path: path.join(screenshotDir, '01_login_screen.png') });
-    log("📸 Print da tela de login do Keycloak gerado.");
+    log("📸 Print da tela de login gerado.");
 
     log("✍️ Preenchendo credenciais...");
-    await page.fill('#username', 'admin');
-    await page.fill('#password', 'admin123');
+    // Ajuste os seletores abaixo conforme a sua tela de login real
+    await page.fill('input[name="username"], input[type="text"]', 'admin');
+    await page.fill('input[name="password"], input[type="password"]', 'admin123');
     
     log("🔑 Clicando em Log In...");
-    await page.click('#kc-login');
-    try {
-      let currentUrl = page.url();
-      let attempts = 0;
-      while (attempts < 15) {
-          await page.waitForTimeout(1000);
-          currentUrl = page.url();
-          if (currentUrl.includes('login-actions/required-action') || currentUrl.includes('login-actions/authenticate') || !currentUrl.includes('8180')) {
-              break;
-          }
-          attempts++;
-      }
-      
-      const otpauth = require('otpauth');
-      const secretFile = path.join(__dirname, '.e2e-totp-secret.json');
-      let secret = '';
-      
-      // Use fixed offset calculated manually (container is ~227s ahead)
-      let timeOffset = 227000;
-      log(`🕒 Compensação de fuso do Keycloak (hardcoded): ${timeOffset}ms`);
-      
-      if (currentUrl.includes('required-action')) {
-         log("🔒 Detectada tela de configuração MFA (TOTP).");
-         try {
-             const manualModeLink = page.locator('a#mode-manual');
-             if (await manualModeLink.isVisible()) {
-                 await manualModeLink.click();
-             }
-             await page.waitForSelector('#kc-totp-secret-key', { timeout: 5000 });
-             secret = await page.locator('#kc-totp-secret-key').textContent();
-             secret = secret.replace(/\s+/g, '');
-             if (secret) {
-                 fs.writeFileSync(secretFile, JSON.stringify({ secret }));
-                 log("✅ Secret do TOTP capturado e salvo.");
-             }
-             let totp = new otpauth.TOTP({
-                 issuer: "Keycloak",
-                 label: "admin",
-                 algorithm: "SHA1",
-                 digits: 6,
-                 period: 30,
-                 secret: secret
-             });
-             const token = totp.generate({ timestamp: Date.now() + timeOffset });
-             await page.fill('#totp', token);
-             await page.fill('#userLabel', 'E2E-Device');
-             await page.click('input[type="submit"], button[type="submit"]'); 
-         } catch(mfaErr) {
-             const html = await page.content();
-             fs.writeFileSync(path.join(screenshotDir, 'mfa_page.html'), html);
-             await page.screenshot({ path: path.join(screenshotDir, 'mfa_page.png') });
-             log("❌ Erro ao configurar MFA. HTML e print salvos.");
-             throw mfaErr;
-         }
-      } else if (currentUrl.includes('authenticate')) {
-         log("🔒 Detectado Desafio MFA. Gerando token...");
-         if (fs.existsSync(secretFile)) {
-             secret = JSON.parse(fs.readFileSync(secretFile)).secret;
-         } else {
-             throw new Error("MFA exigido, mas secret não foi salvo em execuções anteriores.");
-         }
-         
-         let totp = new otpauth.TOTP({
-             issuer: "Keycloak",
-             label: "admin",
-             algorithm: "SHA1",
-             digits: 6,
-             period: 30,
-             secret: secret
-         });
-         const token = totp.generate({ timestamp: Date.now() + timeOffset });
-         await page.fill('#totp', token);
-         await page.click('#kc-login, input[type="submit"], button[type="submit"]');
-      }
-    } catch (e) {
-      log("ℹ️ Nenhum MFA solicitado (ou processado). Continuando... Erro real: " + e.message);
-    }
+    await page.click('button[type="submit"]');
 
+    // Nota: Caso o MFA esteja ativo para o 'admin', o script E2E precisará ser ajustado 
+    // futuramente para capturar o código do banco de dados ou usar um bypass de E2E.
     log("⏳ Aguardando redirecionamento para o Dashboard...");
     try {
       await page.waitForURL('**/dashboard', { timeout: 15000 });
