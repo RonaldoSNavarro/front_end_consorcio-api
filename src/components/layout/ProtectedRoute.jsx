@@ -3,7 +3,7 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
-export const ProtectedRoute = ({ allowedRoles }) => {
+export const ProtectedRoute = ({ allowedAuthorities }) => {
   const { token, user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -21,9 +21,12 @@ export const ProtectedRoute = ({ allowedRoles }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    // Redireciona para o dashboard caso não possua autorização
-    return <Navigate to="/dashboard" replace />;
+  if (allowedAuthorities && user) {
+    const hasAuthority = allowedAuthorities.some(auth => user.authorities?.includes(auth));
+    if (!hasAuthority) {
+      // Redireciona para o dashboard caso não possua autorização
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return <Outlet />;

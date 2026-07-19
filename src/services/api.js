@@ -88,6 +88,70 @@ export const api = {
     return response.json();
   },
 
+  // --- USUARIOS ---
+  usuarios: {
+    listar: async () => {
+      const response = await fetchApi(`${BASE_URL}/api/usuarios`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar usuários.");
+      return response.json();
+    },
+    salvar: async (dto) => {
+      const response = await fetchApi(`${BASE_URL}/api/usuarios`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao cadastrar usuário.");
+      return response.json();
+    },
+    atualizar: async (id, dto) => {
+      const response = await fetchApi(`${BASE_URL}/api/usuarios/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao atualizar usuário.");
+      return response.json();
+    },
+    excluir: async (id) => {
+      const response = await fetchApi(`${BASE_URL}/api/usuarios/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao excluir usuário.");
+      return true;
+    }
+  },
+
+  // --- PERFIS ---
+  perfis: {
+    listar: async () => {
+      const response = await fetchApi(`${BASE_URL}/api/perfis`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar perfis.");
+      return response.json();
+    },
+    salvar: async (dto) => {
+      const response = await fetchApi(`${BASE_URL}/api/perfis`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao cadastrar perfil.");
+      return response.json();
+    },
+    atualizar: async (id, dto) => {
+      const response = await fetchApi(`${BASE_URL}/api/perfis/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao atualizar perfil.");
+      return response.json();
+    },
+    excluir: async (id) => {
+      const response = await fetchApi(`${BASE_URL}/api/perfis/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao excluir perfil.");
+      return true;
+    }
+  },
+
   // --- CLIENTES ---
   clientes: {
     listar: async (page = 0, size = 100, search = '') => {
@@ -168,7 +232,7 @@ export const api = {
             const response = await fetchApi(`${BASE_URL}/api/grupos?size=2000`);
       if (!response.ok) throw new Error("Erro ao listar grupos da API.");
       const data = await response.json();
-      return { content: data.content || data, isMock: false };
+      return { content: data.content || data };
     },
     salvar: async (dto) => {
             const response = await fetchApi(`${BASE_URL}/api/grupos`, {
@@ -197,7 +261,7 @@ export const api = {
             const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/financeiro`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao obter relatório financeiro do grupo na API.");
       const data = await response.json();
-      return { data, isMock: false };
+      return { data };
     },
     encerrar: async (id) => {
             const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/encerrar`, {
@@ -246,7 +310,7 @@ export const api = {
             const response = await fetchApi(`${BASE_URL}/api/cotas?size=2000`);
       if (!response.ok) throw new Error("Erro ao buscar cotas da API.");
       const data = await response.json();
-      return { content: data.content, isMock: false };
+      return { content: data.content };
     },
     listarPendentesReembolso: async () => {
             const response = await fetchApi(`${BASE_URL}/api/cotas/canceladas/pendentes-reembolso`);
@@ -319,7 +383,7 @@ export const api = {
             const response = await fetchApi(`${BASE_URL}/api/parcelas/cota/${cotaId}`);
       if (!response.ok) throw new Error("Erro ao buscar histórico de parcelas.");
       const data = await response.json();
-      return { content: data, isMock: false };
+      return { content: data };
     },
     salvar: async (dto) => {
             const response = await fetchApi(`${BASE_URL}/api/parcelas`, {
@@ -341,7 +405,7 @@ export const api = {
             const response = await fetchApi(`${BASE_URL}/api/cotas/${cotaId}/inadimplencia`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao obter inadimplência da cota.");
       const data = await response.json();
-      return { data, isMock: false };
+      return { data };
     },
     amortizarPorReducaoDePrazo: async (cotaId, valorLance) => {
             const response = await fetchApi(`${BASE_URL}/api/parcelas/cota/${cotaId}/lance/reducao-prazo?valorLance=${valorLance}`, {
@@ -372,7 +436,7 @@ export const api = {
             const response = await fetchApi(`${BASE_URL}/api/assembleias/grupo/${grupoId}`);
       if (!response.ok) throw new Error("Erro ao listar assembleias do grupo na API.");
       const data = await response.json();
-      return { content: data, isMock: false };
+      return { content: data };
     },
     salvar: async (dto) => {
             const response = await fetchApi(`${BASE_URL}/api/assembleias`, {
@@ -410,7 +474,7 @@ export const api = {
             const response = await fetchApi(`${BASE_URL}/api/contemplacoes/assembleia/${assembleiaId}`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar contemplações da assembleia.");
       const data = await response.json();
-      return { content: data, isMock: false };
+      return { content: data };
     },
     registrar: async (dto) => {
             const response = await fetchApi(`${BASE_URL}/api/contemplacoes`, {
@@ -470,7 +534,7 @@ export const api = {
       const response = await fetchApi(`${BASE_URL}/api/compliance/alertas${query}`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao listar alertas.");
       const data = await response.json();
-      return { content: data, isMock: false };
+      return { content: data };
     },
     deliberarAlerta: async (id, dto) => {
             const response = await fetchApi(`${BASE_URL}/api/compliance/alertas/${id}/deliberar`, {

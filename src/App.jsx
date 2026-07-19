@@ -27,6 +27,8 @@ import { TiposDeVendaPage } from './pages/TiposDeVendaPage';
 import { VendaPropostaPage } from './pages/VendaPropostaPage';
 import { LoteriaFederalPage } from './pages/LoteriaFederalPage';
 import { MfaSettingsPage } from './pages/MfaSettingsPage';
+import { PerfisPage } from './pages/PerfisPage';
+import { UsuariosPage } from './pages/UsuariosPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,25 +69,31 @@ export default function App() {
                     {/* Relatório de Estatísticas (Doc 2080) - Aberto para todos os perfis */}
                     <Route path="/relatorios/estatisticas" element={<RelatorioEstatisticasPage />} />
                     
-                    {/* Relatórios do BCB exclusivos para ADMIN e AUDITOR */}
-                    <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'AUDITOR']} />}>
+                    {/* Relatórios do BCB */}
+                    <Route element={<ProtectedRoute allowedAuthorities={['VIEW_REPORTS']} />}>
                       <Route path="/relatorios/balancete" element={<RelatorioBalancetePage />} />
                       <Route path="/relatorios/pld-ft" element={<RelatorioPldFtPage />} />
                     </Route>
 
-                    {/* Compliance (Listas Restritivas) exclusivo para ADMIN e COMPLIANCE */}
-                    <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'COMPLIANCE']} />}>
+                    {/* Compliance (Listas Restritivas) */}
+                    <Route element={<ProtectedRoute allowedAuthorities={['MANAGE_COMPLIANCE']} />}>
                       <Route path="/compliance/alertas" element={<CompliancePainelPage />} />
+                    </Route>
+
+                    {/* Gestão de Acesso */}
+                    <Route element={<ProtectedRoute allowedAuthorities={['MANAGE_USERS']} />}>
+                      <Route path="/perfis" element={<PerfisPage />} />
+                      <Route path="/usuarios" element={<UsuariosPage />} />
                     </Route>
 
                     {/* Módulo de Vendas */}
                     <Route path="/vendas/proposta" element={<VendaPropostaPage />} />
-                    <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'GERENTE']} />}>
+                    <Route element={<ProtectedRoute allowedAuthorities={['MANAGE_GRUPOS']} />}>
                       <Route path="/vendas/tipos" element={<TiposDeVendaPage />} />
                     </Route>
 
-                    {/* Encerramento de Grupo exclusivo para ADMIN */}
-                    <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+                    {/* Encerramento de Grupo */}
+                    <Route element={<ProtectedRoute allowedAuthorities={['MANAGE_GRUPOS']} />}>
                       <Route path="/grupos/:id/encerrar" element={<EncerrarGrupoPage />} />
                     </Route>
                   </Route>
