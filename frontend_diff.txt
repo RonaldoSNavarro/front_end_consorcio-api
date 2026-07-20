@@ -1,0 +1,1108 @@
+﻿diff --git a/.agents/skills/qa-frontend/SKILL.md b/.agents/skills/qa-frontend/SKILL.md
+index 2cac58b..5907b22 100644
+--- a/.agents/skills/qa-frontend/SKILL.md
++++ b/.agents/skills/qa-frontend/SKILL.md
+@@ -24,39 +24,22 @@ estrutura real da sua aplica├º├úo antes de iniciar os testes. Se uma tela ou flu
+ o agente deve reportar isso como gap de cobertura, n├úo inventar um caminho.
+ 
+ ```yaml
+-frontend_base_url: "<preencher>"
++frontend_base_url: "http://localhost:5173"
+ 
+ perfis_de_acesso:
+-  consorciado:
+-    url_login: "<preencher>"
+-    credenciais_teste: "<preencher>"
+   administradora_backoffice:
+-    url_login: "<preencher>"
+-    credenciais_teste: "<preencher>"
+-  representante_grupo: "<preencher, se aplic├ível>"
++    url_login: "/login"
++    credenciais_teste: "admin / admin"
+ 
+ mapa_de_telas:
+-  criar_grupo: "<ex: /admin/grupos/novo>"
+-  criar_cota: "<ex: /admin/grupos/{id}/cotas/nova>"
+-  listar_cotas: "<ex: /admin/grupos/{id}/cotas>"
+-  alterar_status_cota: "<ex: /admin/cotas/{id}>"
+-  criar_assembleia: "<ex: /admin/grupos/{id}/assembleias/nova>"
+-  tela_lance_consorciado: "<ex: /minha-conta/lances>"
+-  fechar_janela_lances: "<ex: /admin/assembleias/{id}>"
+-  executar_sorteio: "<ex: /admin/assembleias/{id}/sorteio>"
+-  executar_apuracao_lances: "<ex: /admin/assembleias/{id}/apuracao>"
+-  visualizar_ata: "<ex: /assembleias/{id}/ata>"
+-  visualizar_contemplacoes: "<ex: /admin/assembleias/{id}/contemplacoes>"
+-  saldo_fundo_comum: "<ex: /admin/grupos/{id}/financeiro>"
+-  extracao_loteria_federal: "<ex: tela de cadastro/consulta da extra├º├úo usada>"
++  criar_grupo: "/grupos"
++  listar_cotas: "/cotas"
++  detalhar_cota: "/cotas/{id}"
++  credenciamento_lances: "/credenciamento-lances"
++  financeiro_baixas: "/financeiro"
+ ```
+ 
+-> **Observa├º├úo de arquitetura:** sistemas de cons├│rcio tipicamente t├¬m pelo menos duas superf├¡cies
+-> de UI ÔÇö o **portal do consorciado** (onde ele credencia lances, acompanha contempla├º├Áes, v├¬ a
+-> ata) e o **backoffice da administradora** (onde se cria grupo, dispara sorteio, executa apura├º├úo,
+-> altera status de cota manualmente para montar cen├írios de teste). Ajuste o mapa acima conforme a
+-> divis├úo real do seu sistema. Se tudo estiver numa ├║nica interface, deixe os dois blocos apontando
+-> para a mesma base.
++> **Observa├º├úo de arquitetura:** Atualmente, as funcionalidades de **Credenciamento de Lances** e **Gest├úo Financeira** (Baixa e Estorno) est├úo centralizadas no **Backoffice da Administradora**. O operador ├® quem realiza as a├º├Áes na plataforma em nome do consorciado. A venda de cotas gera a primeira parcela como Ades├úo (data de hoje) e demais conforme assembleias.
+ 
+ ---
+ 
+@@ -65,11 +48,11 @@ mapa_de_telas:
+ Voc├¬ ├® um **agente de QA regulat├│rio especializado em cons├│rcios brasileiros**, testando atrav├®s da
+ interface real da aplica├º├úo ÔÇö nunca via chamadas diretas de API. Voc├¬ atua como se fosse o setor de
+ compliance e opera├º├Áes de uma administradora de cons├│rcio real (n├¡vel Embracon/Porto/Rodobens),
+-usando o sistema exatamente como um consorciado ou um atendente de backoffice usaria.
++usando o sistema exatamente como um atendente de backoffice usaria.
+ 
+ Voc├¬ n├úo ├® complacente. Seu trabalho ├® **tentar quebrar a experi├¬ncia do usu├írio** dentro das regras
+ do dom├¡nio: preencher formul├írios com dados inv├ílidos, tentar a├º├Áes fora de ordem, navegar
+-diretamente para URLs que deveriam estar bloqueadas para o perfil logado, e verificar se a interface
++diretamente para URLs que deveriam estar bloqueadas, e verificar se a interface
+ impede, avisa ou permite corretamente cada a├º├úo.
+ 
+ Para cada teste, voc├¬ deve:
+@@ -85,8 +68,7 @@ Para cada teste, voc├¬ deve:
+ Nunca marque um teste como PASS sem ter de fato navegado e interagido com a tela correspondente. Se
+ uma tela ou fluxo n├úo existir na aplica├º├úo, marque como `N├âO IMPLEMENTADO`, n├úo como falha nem como
+ sucesso. Se o comportamento correto depender de dados de estado (ex: uma cota precisa estar
+-`SUSPENSA` antes do teste), monte esse estado primeiro pela pr├│pria interface (ou pelo backoffice,
+-se a interface do consorciado n├úo permitir) ÔÇö n├úo presuma que o dado j├í existe.
++`SUSPENSA` antes do teste), monte esse estado primeiro pela pr├│pria interface ÔÇö n├úo presuma que o dado j├í existe.
+ 
+ ---
+ 
+@@ -109,112 +91,55 @@ Circular 3432 ÔÇö tela permitiu credenciar lance antes da execu├º├úo do sorteio"
+ Cada linha das tabelas abaixo deve ser lida como um roteiro de UI: **perfil logado ÔåÆ tela ÔåÆ a├º├úo ÔåÆ
+ o que deveria aparecer na tela como resultado**.
+ 
+-### 3.1 Credenciamento de Lances (Portal do Consorciado)
+-
++### 3.1 Cria├º├úo de Grupos (Backoffice)
+ | # | Cen├írio (a├º├úo na tela) | Esperado na interface | Base Legal |
+ |---|---|---|---|
+-| CL-01 | Logar como consorciado com cota `ATIVA`; abrir tela de lance; preencher valor e enviar | Confirma├º├úo de lance registrado, status `PENDENTE` exibido | Art. 5┬║, X, Circular 3432 |
+-| CL-02 | Logar como consorciado com cota `SUSPENSA` (1-2 parcelas em atraso); abrir tela de lance | Bot├úo de envio desabilitado, ou mensagem clara de inelegibilidade ÔÇö nunca deve conseguir enviar | Regra de elegibilidade |
+-| CL-03 | Logar como consorciado com cota `EXCLUIDA`; tentar acessar tela de lance | Tela bloqueada/redirecionada, ou aviso de que cota exclu├¡da n├úo concorre a lance | Exclu├¡do s├│ concorre a sorteio de restitui├º├úo |
+-| CL-04 | Logar como consorciado com cota `CONTEMPLADA`; tentar acessar tela de lance | Tela bloqueada ou mensagem de que j├í foi contemplado | ÔÇö |
+-| CL-05 | Navegar diretamente (via URL) para a tela de lance de uma cota `N├âO_COMERCIALIZADA` (sem estar logado como titular) | Acesso negado | Controle de acesso |
+-| CL-06 | Tentar enviar lance ap├│s o hor├írio/data de fechamento da janela da AGO exibido na tela | Formul├írio bloqueado, com mensagem de janela encerrada | Art. 8┬║, Circular 3432 |
+-| CL-07 | Tentar enviar lance no exato momento em que o backoffice est├í executando o sorteio (testar em duas abas/sess├Áes simult├óneas) | Sistema rejeita ou enfileira para a pr├│xima AGO, sem deixar lance "solto" | Integridade do processo |
+-| CL-08 | Enviar um lance, depois voltar ├á mesma tela e tentar enviar um segundo lance para a mesma AGO | Interface deixa claro se o segundo substitui o primeiro ou ├® bloqueado ÔÇö nunca deve permitir dois lances ativos vis├¡veis simultaneamente | Isonomia |
+-| CL-09 | Preencher valor de lance com zero, negativo, ou texto n├úo num├®rico | Valida├º├úo de formul├írio bloqueia o envio com mensagem clara | ÔÇö |
+-| CL-10 | Preencher lance embutido com valor maior que o valor total da carta de cr├®dito exibido na tela | Valida├º├úo de formul├írio bloqueia o envio | Art. 13, Res. BCB 285 |
+-| CL-11 | Tentar acessar tela de lance de um grupo j├í encerrado (todas as cotas contempladas) | Tela indica grupo encerrado, sem op├º├úo de lance | Art. 35, Circular 3432 |
+-
+-### 3.2 Tipos de Lance (Portal do Consorciado)
+-
+-| # | Tipo | O que testar na tela |
+-|---|---|---|
+-| TL-01 | **Livre** | Ao digitar um valor absoluto, a interface deve exibir o percentual calculado sobre o cr├®dito do GRUPO (n├úo sobre a carta individual), especialmente em grupos com cartas de valores diferentes |
+-| TL-02 | **Fixo** | Campo de valor deve vir travado no percentual definido pela administradora, ou rejeitar qualquer outro valor digitado |
+-| TL-03 | **Embutido** | Ao selecionar lance embutido, a tela deve mostrar em tempo real o c├ílculo: cr├®dito total ÔêÆ valor do lance = cr├®dito dispon├¡vel ao contemplado |
+-| TL-04 | **FGTS** | Op├º├úo de lance FGTS s├│ deve aparecer em grupos de im├│veis; testar que n├úo aparece (ou aparece desabilitada) em grupo de ve├¡culo/eletr├┤nico |
+-| TL-05 | **Lance por seguro (├│bito)** | No backoffice, verificar que o lance gerado automaticamente por sinistro aparece listado na tela de apura├º├úo da AGO seguinte, com origem identificada como "seguro" e n├úo como lance manual |
++| CG-01 | Acessar `/grupos`, abrir modal de cria├º├úo de grupo | O modal deve renderizar sobreposto ├á tela (usando portal) com comportamento responsivo | UX |
++| CG-02 | Tentar criar grupo sem selecionar Bens Permitidos | Bloquear envio, exibir erro no form | Res BCB 285 |
++
++### 3.2 Credenciamento de Lances (Backoffice)
+ 
+-### 3.3 Assembleias ÔÇö AGO/AGE (Backoffice)
++O m├│dulo de credenciamento de lances ├® operado na rota `/credenciamento-lances`.
+ 
+ | # | Cen├írio (a├º├úo na tela) | Esperado na interface | Base Legal |
+ |---|---|---|---|
+-| AS-01 | Logar como backoffice; tentar criar AGO em data j├í usada por outra AGO do mesmo grupo | Formul├írio bloqueia com mensagem de conflito de data | Contrato / Res. BCB 285 |
+-| AS-02 | Instalar AGO com apenas 1 (ou 0) consorciados marcados como presentes | Tela permite instala├º├úo normalmente | Res. BCB 285, Art. 44 |
+-| AS-03 | Logar como consorciado inadimplente; tentar votar em delibera├º├úo listada na tela da AGO | Op├º├úo de voto bloqueada ou ausente para esse consorciado | Circular 3432 |
+-| AS-04 | Criar AGE sem preencher motivo/pauta | Formul├írio exige o campo antes de permitir salvar | ÔÇö |
+-| AS-05 | Criar AGE com data de convoca├º├úo mais de 5 dias ├║teis ap├│s o evento motivador registrado | Tela sinaliza alerta de prazo excedido | Res. BCB 285 |
+-| AS-06 | No backoffice, tentar acessar a tela de apura├º├úo de lances antes de executar o sorteio da mesma AGO | Tela bloqueia o acesso ou exibe aviso de ordem incorreta | Art. 8┬║, Circular 3432 |
+-| AS-07 | Criar AGO marcando modalidade "virtual" ou "h├¡brida" | Tela salva e exibe corretamente a modalidade escolhida | Res. BCB 285, Art. 44 |
++| CL-01 | Selecionar grupo e assembleia (status `CAPTANDO`), buscar cota `ATIVA` e enviar oferta | Confirma├º├úo de lance registrado na interface | Art. 5┬║, X, Circular 3432 |
++| CL-02 | Tentar enviar lance para cota `SUSPENSA` (inadimplente) | Cota n├úo deve ser listada ou deve bloquear com mensagem de inelegibilidade | Regra de elegibilidade |
++| CL-03 | Tentar enviar lance para cota `EXCLUIDA` | Cota n├úo deve aparecer nas op├º├Áes aptas a lance | Exclu├¡do s├│ concorre a sorteio de restitui├º├úo |
++| CL-04 | Tentar selecionar uma assembleia com status diferente de `CAPTANDO` | A dropdown de assembleias s├│ deve mostrar assembleias `CAPTANDO` | Art. 8┬║, Circular 3432 |
++| CL-05 | Preencher valor de lance com zero, negativo | Valida├º├úo de formul├írio bloqueia o envio com mensagem clara | ÔÇö |
++| CL-06 | Selecionar Tipo de Lance (Firme, Embutido, Misto, FGTS, Seguro ├ôbito) e Modalidade (Fixo, Livre) | Todos os campos obrigat├│rios funcionam e bloqueiam caso faltem dados | Res BCB 285 |
+ 
+-### 3.4 Apura├º├úo de Assembleias (Backoffice ÔÇö fluxo ponta a ponta)
++### 3.3 Busca Din├ómica, Emiss├úo e Detalhamento da Cota
+ 
+-Esta ├® a su├¡te mais importante: testa a **sequ├¬ncia completa** de uma AGO clicando pelo backoffice,
+-na ordem legal obrigat├│ria.
+-
+-```
+-FASE 0 ÔÇö Pr├®-checagem (vis├¡vel na tela antes de liberar o bot├úo "Iniciar Apura├º├úo")
+-  ÔåÆ saldo do fundo comum ÔëÑ valor do cr├®dito?
+-  ÔåÆ extra├º├úo da Loteria Federal do per├¡odo est├í cadastrada e correta para o dia da AGO?
+-  ÔåÆ janela de lances est├í fechada?
+-
+-FASE 1 ÔÇö Sorteio de cotas ativas (bot├úo/tela dedicados)
+-FASE 2 ÔÇö Sorteio de cotas exclu├¡das (restitui├º├úo)
+-FASE 3 ÔÇö Apura├º├úo de lances
+-FASE 4 ÔÇö Gera├º├úo da ata (tela de visualiza├º├úo/download)
+-```
++A p├ígina `/cotas` opera como um buscador ativo e n├úo traz cotas at├® que o filtro seja aplicado. A rota `/cotas/:id` mostra detalhes consolidados da cota.
+ 
+ | # | Cen├írio (a├º├úo na tela) | Esperado na interface | Base Legal |
+ |---|---|---|---|
+-| AP-01 | Clicar em "Iniciar Apura├º├úo" com saldo insuficiente para qualquer contempla├º├úo | Tela informa claramente "sem contempla├º├úo" e o motivo, sem travar ou dar erro gen├®rico | Art. 8┬║, Circular 3432 |
+-| AP-02 | Rodar apura├º├úo com saldo para 1 contempla├º├úo e 3 lances qualificados vis├¡veis na tela | Apenas 1 aparece marcado como vencedor; demais aparecem como "fila condicional" | `references/lances.md`, se├º├úo 5 |
+-| AP-03 | Tentar clicar em "Iniciar Apura├º├úo" de uma AGO que j├í foi apurada | Bot├úo desabilitado, ou mensagem de que j├í foi apurada ÔÇö nunca deve permitir rodar de novo | Integridade |
+-| AP-04 | Abrir a tela/documento da ata gerada e conferir campos | Concurso da loteria, data da extra├º├úo, pr├¬mios usados, pedra-chave, cotas contempladas, saldo antes/depois, fallbacks aplicados ÔÇö todos vis├¡veis | `references/sorteio_contemplacao.md`, se├º├úo 7 |
+-| AP-05 | Logar como consorciado comum e acessar a tela p├║blica da ata da AGO | Ata completa dispon├¡vel para consulta | Circular 3432, Art. 11 |
+-
+-### 3.5 Contempla├º├úo por Sorteio (Backoffice)
++| DC-01 | Acessar `/cotas`, sem preencher filtros e clicar em Buscar | Valida├º├úo exige que pelo menos um filtro seja preenchido (Grupo, N├║mero, Vers├úo ou CPF/CNPJ) | ÔÇö |
++| DC-02 | Buscar por cota existente, clicar no resultado e navegar para `/cotas/:id` | Abre a nova p├ígina de detalhamento da cota com as abas Resumo, Plano/Bens, Parcelas. | UX |
++| DC-03 | Acessar detalhes de uma cota inadimplente | Deve exibir um card de alerta de inadimpl├¬ncia em vermelho e o status correto da cota | Circular 3432 |
++| DC-04 | Emitir/Vender uma nova Cota | O sistema deve gerar a primeira parcela como Taxa de Ades├úo com vencimento hoje, e as demais conforme a assembleia. | Res BCB 285 |
++| DC-05 | Visualizar aba de Parcelas em `/cotas/:id` | Exibir corretamente as parcelas a pagar e pagas, com a primeira parcela (ades├úo) com data correta. | UX |
+ 
+-| # | Cen├írio (a├º├úo na tela) | Esperado na interface | Base Legal |
+-|---|---|---|---|
+-| SO-01 | Cadastrar manualmente um resultado de Loteria Federal conhecido e rodar o sorteio nos 3 algoritmos configur├íveis | Tela exibe a pedra-chave calculada; validar manualmente que bate com o c├ílculo esperado para cada algoritmo | `references/sorteio_contemplacao.md`, se├º├úo 2 |
+-| SO-02 | Cadastrar resultado cuja pedra-chave calculada seria 0 | Tela trata sem erro, aplicando a regra configurada (├║ltima cota, ou incremento) | Se├º├úo 2 |
+-| SO-03 | Garantir (via backoffice) que a cota da pedra-chave est├í `SUSPENSA` antes de rodar o sorteio | Tela mostra o fallback sendo aplicado e qual cota foi efetivamente contemplada | Se├º├úo 3 |
+-| SO-04 | Configurar cen├írio em que nenhuma cota est├í apta | Tela exibe "sem contempla├º├úo por sorteio" sem travar o fluxo da AGO | Se├º├úo 6 |
+-| SO-05 | Rodar sorteio de exclu├¡dos quando o n├║mero sorteado corresponde a um exclu├¡do j├í contemplado | Tela n├úo gera nova contempla├º├úo, segue sem restitui├º├úo nesse sorteio | Se├º├úo 4 |
+-| SO-06 | Cadastrar cotas exclu├¡das com mesmo radical e sufixos diferentes; rodar sorteio de exclu├¡dos | Tela contempla o de menor sufixo | Se├º├úo 4 |
+-| SO-07 | Cadastrar uma extra├º├úo que n├úo corresponde ao dia da AGO (ex: data futura ou fora da janela v├ílida) | Tela impede sele├º├úo dessa extra├º├úo ou avisa da inconsist├¬ncia | Se├º├úo 1 |
+-| SO-08 | Rodar sorteio em grupo com m├║ltiplos subgrupos cadastrados | Tela mostra a mesma pedra-chave aplicada a cada subgrupo eleg├¡vel, com resultado por subgrupo distinto | Se├º├úo 6 |
++### 3.4 M├│dulo Financeiro (Cobran├ºa)
+ 
+-### 3.6 Contempla├º├úo por Lance (Backoffice)
++A tela `/financeiro` teve seu fluxo atualizado para remover opera├º├Áes de Amortiza├º├úo por Lance.
+ 
+ | # | Cen├írio (a├º├úo na tela) | Esperado na interface | Base Legal |
+ |---|---|---|---|
+-| CT-01 | Cadastrar lances livres com cartas de valores diferentes no grupo; abrir tela de ranking | Ordena├º├úo por percentual decrescente, calculado corretamente | `references/lances.md`, se├º├úo 3 |
+-| CT-02 | Cadastrar lances empatados; verificar tela de desempate | Vencedor exibido = cota mais pr├│xima da cota sorteada nessa AGO | Se├º├úo 4, crit├®rio 1 |
+-| CT-03 | Empate com mesma dist├óncia da cota sorteada | Tela mostra vencedor = menor n├║mero de cota | Se├º├úo 4, crit├®rio 1 |
+-| CT-04 | Configurar crit├®rio "maior n├║mero de parcelas pagas" e testar com empatados | Tela mostra vencedor = quem pagou mais parcelas at├® a data | Se├º├úo 4, crit├®rio 2 |
+-| CT-05 | Configurar crit├®rio "sorteio entre empatados" | Tela mostra o mini-sorteio sendo executado e o vencedor resultante | Se├º├úo 4, crit├®rio 3 |
+-| CT-06 | Simular (via backoffice) n├úo-pagamento do vencedor dentro do prazo exibido na tela | Status muda para cancelado e o pr├│ximo da fila aparece promovido | Se├º├úo 6 |
+-| CT-07 | Simular n├úo-pagamento em cascata (1┬║ e 2┬║ colocados) | 3┬║ assume; se ningu├®m pagar, tela mostra "sem contempla├º├úo por lance" | Se├º├úo 6 |
+-| CT-08 | Abrir tela financeira do contemplado por lance embutido | Mostra separadamente: cr├®dito distribu├¡do, valor debitado como lance, conta espec├¡fica de abatimento de parcelas | Se├º├úo 7 |
+-| CT-09 | Testar lance de consorciado que entrou em grupo j├í em andamento | Percentual exibido usa o saldo devedor do GRUPO, n├úo da cota individual | Se├º├úo 8 |
++| FIN-01 | Acessar tela `/financeiro` | O formul├írio de "Amortizar por Lance" N├âO deve estar presente | Regra Interna |
++| FIN-02 | Ler os avisos de Compliance (COSIF) | N├úo deve mencionar mais "Amortiza├º├Áes de lances" no texto informativo | ÔÇö |
++| FIN-03 | Realizar Baixa de Parcela | Deve executar adequadamente gerando os movimentos cont├íbeis | Bacen / COSIF |
+ 
+ ---
+ 
+ ## 4. Casos de Borda Transversais (aplicar em todas as ├íreas acima)
+ 
+-- Grupo com 0 cotas ativas restantes ÔÇö telas de sorteio/lance devem informar isso claramente.
+-- Fundo comum com saldo exatamente igual ao valor do cr├®dito (limite exato, n├úo "quase suficiente").
+-- Duas abas/sess├Áes enviando lances concorrentes no mesmo instante (teste de concorr├¬ncia via UI).
+-- Tentar editar ou cancelar, pela tela, um lance que j├í foi apurado.
+-- Cadastro de consorciado e c├┤njuge que juntos excederiam 10% das cotas vendidas at├® a data da
+-  compra ÔÇö a tela de venda de cota deve bloquear (Res. BCB 285, regra din├ómica).
+-- Tentar readmitir, pela tela, um exclu├¡do n├úo contemplado sem quita├º├úo das parcelas em atraso ÔÇö
+-  deve ser bloqueado (Art. 31-A).
+-- Tela de encerramento de grupo com consorciados ainda inadimplentes ÔÇö conferir se exibe
+-  corretamente o rateio e o prazo de 60 dias para restitui├º├úo.
+-- Testar responsividade/uso em mobile das telas mais cr├¡ticas (lance e acompanhamento de ata), j├í
+-  que o consorciado majoritariamente acessa pelo celular.
++- Testar responsividade da p├ígina de detalhes da cota, grupos e credenciamento de lances.
++- Modal de cria├º├úo de grupos precisa ser renderizado em portal centralizado com design id├¬ntico ao ClienteForm.
++- Envio de lances repetidos para a mesma cota na mesma assembleia (como o backend/frontend lida com isso).
++- Pesquisa de CPF/CNPJ na listagem de cotas com formata├º├Áes diferentes (com e sem m├íscara).
+ 
+ ---
+ 
+@@ -223,39 +148,29 @@ FASE 4 ÔÇö Gera├º├úo da ata (tela de visualiza├º├úo/download)
+ Para cada execu├º├úo, gere uma tabela assim:
+ 
+ ```
+-| ID | Perfil/Tela | Regra Testada | Base Legal | Esperado | Obtido (o que a tela mostrou) | Status | Evid├¬ncia |
++| ID | Tela | Regra Testada | Base Legal | Esperado | Obtido (o que a tela mostrou) | Status | Evid├¬ncia |
+ |----|-------------|----------------|------------|----------|-------------------------------|--------|-----------|
+-| CL-02 | Consorciado / tela de lance | Cota SUSPENSA n├úo pode ofertar lance | Circular 3432 | Bot├úo desabilitado | Bot├úo ativo, lance foi enviado com sucesso | FAIL | screenshot cl-02.png |
++| CL-02 | /credenciamento-lances | Cota SUSPENSA n├úo pode ofertar lance | Circular 3432 | Cota bloqueada na dropdown | Permitiu selecionar cota suspensa | FAIL | screenshot cl-02.png |
+ ```
+ 
+ Ao final, gere um **resumo executivo**:
+ - Total de testes executados / passados / falhados / n├úo implementados
+-- Lista de viola├º├Áes regulat├│rias encontradas, ordenadas por severidade (uma cota indevidamente
+-  contemplada ├® cr├¡tica; um campo de ata faltante na tela ├® moderado; uma mensagem de erro gen├®rica
+-  ├® baixo)
+-- Problemas de usabilidade encontrados que n├úo s├úo viola├º├úo regulat├│ria, mas dificultam o uso
+-  correto (ex: nenhum aviso visual de que a janela de lances est├í prestes a fechar)
+-- Recomenda├º├Áes objetivas de corre├º├úo, citando o artigo violado quando aplic├ível
++- Lista de viola├º├Áes regulat├│rias encontradas, ordenadas por severidade.
++- Problemas de usabilidade encontrados.
++- Recomenda├º├Áes objetivas de corre├º├úo.
+ 
+ ---
+ 
+ ## 6. Ordem de Execu├º├úo Sugerida
+ 
+-1. Logar em cada perfil (`consorciado`, `administradora_backoffice`) e confirmar acesso ├ás telas
+-   mapeadas na se├º├úo 0. Reportar qualquer tela ausente antes de prosseguir.
+-2. Pelo backoffice, criar um grupo de teste com par├ómetros conhecidos (n┬║ de cotas, valor do
+-   cr├®dito, taxa de administra├º├úo, fundo de reserva, algoritmo de pedra-chave, dire├º├úo de fallback,
+-   crit├®rio de desempate).
+-3. Pelo backoffice, popular cotas com status variados (ativa, suspensa, exclu├¡da, contemplada, n├úo
+-   comercializada) ÔÇö pr├®-requisito para quase todos os testes de elegibilidade.
+-4. Logar como cada consorciado de teste e rodar a su├¡te de Credenciamento de Lances (3.1).
+-5. Rodar a su├¡te de Tipos de Lance (3.2), um tipo por vez, sempre pela tela do consorciado.
+-6. Pelo backoffice, rodar a su├¡te de Assembleias (3.3) ÔÇö cria├º├úo e regras de instala├º├úo/vota├º├úo.
+-7. Rodar a su├¡te de Apura├º├úo ponta a ponta (3.4) clicando pelo backoffice na ordem legal.
+-8. Rodar casos espec├¡ficos de Sorteio (3.5) e Contempla├º├úo por Lance (3.6) com dados calculados ├á
+-   m├úo previamente, para confer├¬ncia determin├¡stica do que a tela exibe.
+-9. Rodar Casos de Borda (se├º├úo 4).
+-10. Consolidar relat├│rio final (se├º├úo 5), anexando todas as evid├¬ncias visuais coletadas.
++1. Logar no backoffice e confirmar acesso ├ás novas telas (`/grupos`, `/credenciamento-lances`, `/cotas`, `/cotas/:id`).
++2. Tentar criar um novo Grupo Financeiro (verificar UX do modal).
++3. Tentar buscar uma Cota sem utilizar filtros e em seguida buscando por CPF.
++4. Entrar na tela de detalhe (`/cotas/:id`) e verificar apresenta├º├úo visual (badges, alertas, hist├│rico, abas Plano e Parcelas).
++5. Acessar tela de Financeiro (`/financeiro`) e verificar se os campos de amortiza├º├úo n├úo aparecem mais.
++6. Acessar tela de Credenciamento de Lances e validar fluxo (selecionar Grupo ÔåÆ Assembleia Captando ÔåÆ Cota Ativa ÔåÆ Tipo de Lance).
++7. Rodar Casos de Borda (se├º├úo 4).
++8. Consolidar relat├│rio final (se├º├úo 5).
+ 
+ ---
+ 
+@@ -263,11 +178,7 @@ Ao final, gere um **resumo executivo**:
+ 
+ Se o comportamento da interface divergir da regra descrita aqui, **o agente nunca deve presumir que
+ a regra documentada est├í errada**. Ele deve reportar a diverg├¬ncia com a cita├º├úo legal exata e a
+-evid├¬ncia visual, deixando a decis├úo de ajuste (sistema ou regra) para o desenvolvedor. O agente
+-tamb├®m deve sinalizar explicitamente quando uma regra depender de configura├º├úo contratual (ex:
+-crit├®rio de desempate, dire├º├úo de fallback) em vez de trat├í-la como regra fixa universal ÔÇö e, nesse
+-caso, verificar na pr├│pria tela de configura├º├úo do grupo qual crit├®rio est├í definido antes de
+-avaliar o resultado como certo ou errado.
++evid├¬ncia visual, deixando a decis├úo de ajuste (sistema ou regra) para o desenvolvedor.
+ 
+ O agente nunca deve inventar ou presumir o que uma tela exibiria. Toda linha do relat├│rio precisa
+ corresponder a uma intera├º├úo real, executada no navegador, com evid├¬ncia anexada.
+diff --git a/e2e/auth.spec.js b/e2e/auth.spec.js
+index 3e496a2..5833605 100644
+--- a/e2e/auth.spec.js
++++ b/e2e/auth.spec.js
+@@ -13,7 +13,7 @@ test.describe('Autentica├º├úo e Sess├úo (ADR 007)', () => {
+       await route.fulfill({
+         status: 200,
+         contentType: 'application/json',
+-        body: JSON.stringify({ name: 'Admin', role: 'ADMIN' }),
++        body: JSON.stringify({ name: 'Admin', role: 'ADMIN', mfaRequired: false }),
+         headers: { 'Set-Cookie': 'consorcio_session=mocked_token; Path=/; HttpOnly' }
+       });
+     });
+@@ -41,7 +41,7 @@ test.describe('Autentica├º├úo e Sess├úo (ADR 007)', () => {
+       await route.fulfill({
+         status: 200,
+         contentType: 'application/json',
+-        body: JSON.stringify({ name: 'Admin', role: 'ADMIN' }),
++        body: JSON.stringify({ name: 'Admin', role: 'ADMIN', mfaRequired: false }),
+         headers: { 'Set-Cookie': 'consorcio_session=mocked_token; Path=/; HttpOnly' }
+       });
+     });
+@@ -74,7 +74,7 @@ test.describe('Autentica├º├úo e Sess├úo (ADR 007)', () => {
+       await route.fulfill({
+         status: 200,
+         contentType: 'application/json',
+-        body: JSON.stringify({ name: 'Admin', role: 'ADMIN' }),
++        body: JSON.stringify({ name: 'Admin', role: 'ADMIN', mfaRequired: false }),
+         headers: { 'Set-Cookie': 'consorcio_session=mocked_token; Path=/; HttpOnly' }
+       });
+     });
+diff --git a/e2e/financeiro.spec.js b/e2e/financeiro.spec.js
+index b58c8fa..e4bfb2e 100644
+--- a/e2e/financeiro.spec.js
++++ b/e2e/financeiro.spec.js
+@@ -45,16 +45,7 @@ test.describe('Fluxo Financeiro - Fundos e Parcelas', () => {
+         return;
+     }
+ 
+-    // 4. Fluxo de Amortiza├º├úo
+-    const inputAmortizar = page.locator('#valorAmortizar');
+-    if (await inputAmortizar.isVisible()) {
+-      await inputAmortizar.fill('5000');
+-      // Deixa o tipo como DILUICAO
+-      await page.click('button[type="submit"]:has-text("Amortizar Valor")');
+-      
+-      // Verifica o toast
+-      await expect(page.locator('text=Amortiza├º├úo por lance de parcelas executada com sucesso!')).toBeVisible({ timeout: 15000 });
+-    }
++    // 4. (Amortiza├º├úo foi removida para Credenciamento de Lances)
+ 
+     // 5. Fluxo de Baixa (Pagar)
+     // Procurar o primeiro bot├úo 'Baixar'
+diff --git a/playwright.config.js b/playwright.config.js
+index cccad10..94f181b 100644
+--- a/playwright.config.js
++++ b/playwright.config.js
+@@ -9,7 +9,7 @@ export default defineConfig({
+   workers: 1,
+   reporter: 'html',
+   use: {
+-    baseURL: 'http://localhost:5173',
++    baseURL: 'http://localhost',
+     trace: 'on-first-retry',
+   },
+   expect: {
+@@ -21,10 +21,10 @@ export default defineConfig({
+       use: { ...devices['Desktop Chrome'] },
+     },
+   ],
+-  webServer: {
+-    command: 'npm run dev',
+-    url: 'http://localhost:5173',
+-    reuseExistingServer: !process.env.CI,
+-    timeout: 120 * 1000,
+-  },
++  // webServer: {
++  //   command: 'npm run dev',
++  //   url: 'http://localhost:5173',
++  //   reuseExistingServer: !process.env.CI,
++  //   timeout: 120 * 1000,
++  // },
+ });
+diff --git a/src/App.jsx b/src/App.jsx
+index c44a427..c32ee65 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -29,6 +29,8 @@ import { LoteriaFederalPage } from './pages/LoteriaFederalPage';
+ import { MfaSettingsPage } from './pages/MfaSettingsPage';
+ import { PerfisPage } from './pages/PerfisPage';
+ import { UsuariosPage } from './pages/UsuariosPage';
++import { CredenciamentoLancesPage } from './pages/CredenciamentoLancesPage';
++import { CotaDetalhePage } from './pages/CotaDetalhePage';
+ 
+ const queryClient = new QueryClient({
+   defaultOptions: {
+@@ -60,9 +62,11 @@ export default function App() {
+                     <Route path="/clientes" element={<ClientesPage />} />
+                     <Route path="/grupos" element={<GruposPage />} />
+                     <Route path="/cotas" element={<CotasPage />} />
++                    <Route path="/cotas/:id" element={<CotaDetalhePage />} />
+                     <Route path="/assembleias" element={<AssembleiasPage />} />
+                     <Route path="/loteria-federal" element={<LoteriaFederalPage />} />
+                     <Route path="/lances-pendentes" element={<LancesPendentesPage />} />
++                    <Route path="/credenciamento-lances" element={<CredenciamentoLancesPage />} />
+                     <Route path="/reembolsos-excluidos" element={<ReembolsosExcluidosPage />} />
+                     <Route path="/financeiro" element={<FinanceiroPage />} />
+                     
+diff --git a/src/components/forms/GrupoForm.jsx b/src/components/forms/GrupoForm.jsx
+index 40a0b34..6ad6368 100644
+--- a/src/components/forms/GrupoForm.jsx
++++ b/src/components/forms/GrupoForm.jsx
+@@ -1,34 +1,60 @@
+-import React from 'react';
++import { useEffect } from 'react';
++import { createPortal } from 'react-dom';
+ import { useForm } from 'react-hook-form';
+ import { zodResolver } from '@hookform/resolvers/zod';
+ import { z } from 'zod';
+-import { useMutation, useQueryClient } from '@tanstack/react-query';
++import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+ import { api } from '../../services/api';
+ import { useToast } from '../../context/ToastContext';
+ import { X, Loader2 } from 'lucide-react';
+ 
+-// Schema estrito de Regras de Neg├│cio de Grupos
+ const grupoSchema = z.object({
+   codigo: z.string().min(3, "C├│digo BCB deve ter pelo menos 3 caracteres"),
+-  valorCredito: z.coerce.number().min(1000, "O cr├®dito m├¡nimo para formar um grupo ├® R$ 1.000,00"),
+-  prazoMeses: z.coerce.number().min(12, "O prazo m├¡nimo permitido ├® de 12 meses").max(240, "Prazo m├íximo estourado (240 meses)"),
+   taxaAdministracao: z.coerce.number().min(1, "A taxa de administra├º├úo m├¡nima permitida ├® 1%"),
+-  categoriaBem: z.enum(['IMOVEL', 'VEICULO_AUTOMOTOR', 'SERVICO', 'OUTROS_BENS_MOVEIS'], {
+-    errorMap: () => ({ message: "Categoria do Bem ├® obrigat├│ria" })
+-  })
++  quantidadeCotas: z.coerce.number().min(1, "Quantidade de cotas inv├ílida"),
++  diaBaseAssembleias: z.coerce.number().min(1).max(31, "Dia inv├ílido"),
++  diasAntecedenciaVencimento: z.coerce.number().min(1, "Obrigat├│rio"),
++  prazosPermitidos: z.string().transform(v => v.split(',').map(n => Number(n.trim())).filter(n => n > 0)),
++  bensPermitidos: z.array(z.string()).min(1, "Selecione ao menos um bem"),
++  categoriaBem: z.string().min(1, "Categoria do bem ├® obrigat├│ria"),
++  valorCredito: z.coerce.number().min(1, "Valor do cr├®dito ├® obrigat├│rio e deve ser maior que zero"),
++  prazoMeses: z.coerce.number().min(1, "Prazo em meses ├® obrigat├│rio")
+ });
+ 
++const FormField = ({ label, id, error, children, className = '' }) => (
++  <div className={`form-group ${className}`}>
++    <label htmlFor={id}>{label}</label>
++    {children}
++    {error && (
++      <span id={`error-${id}`} className="error-text" role="alert">
++        {error.message}
++      </span>
++    )}
++  </div>
++);
++
++// eslint-disable-next-line react/prop-types
+ export const GrupoForm = ({ onClose }) => {
+   const { triggerToast } = useToast();
+   const queryClient = useQueryClient();
+ 
++  const { data: bens = [] } = useQuery({
++    queryKey: ['bens'],
++    queryFn: () => api.bens.listar()
++  });
++
+   const { register, handleSubmit, formState: { errors } } = useForm({
+     resolver: zodResolver(grupoSchema),
+     defaultValues: {
+-      valorCredito: 80000,
+-      prazoMeses: 60,
+       taxaAdministracao: 15,
+-      categoriaBem: 'VEICULO_AUTOMOTOR'
++      quantidadeCotas: 100,
++      diaBaseAssembleias: 10,
++      diasAntecedenciaVencimento: 5,
++      prazosPermitidos: '36, 60, 72',
++      bensPermitidos: [],
++      categoriaBem: 'VEICULO_AUTOMOTOR',
++      valorCredito: 60000,
++      prazoMeses: 60
+     }
+   });
+ 
+@@ -46,13 +72,20 @@ export const GrupoForm = ({ onClose }) => {
+     mutation.mutate(data);
+   };
+ 
+-  return (
+-    <div className="modal-backdrop" onClick={onClose}>
++  useEffect(() => {
++    document.body.style.overflow = 'hidden';
++    return () => {
++      document.body.style.overflow = 'unset';
++    };
++  }, []);
++
++  const modalContent = (
++    <div className="modal-backdrop flex items-center justify-center p-4 sm:p-6 z-[9999]" onClick={onClose}>
+       <div 
+-        className="w-full max-w-lg mx-4 p-6 rounded-2xl animate-scale-up
++        className="w-full max-w-2xl mx-auto p-5 sm:p-6 rounded-2xl animate-scale-up
+                    bg-white dark:bg-slate-800 
+                    border border-slate-200 dark:border-slate-700/60
+-                   shadow-2xl"
++                   shadow-2xl max-h-[90vh] overflow-y-auto"
+         onClick={(e) => e.stopPropagation()}
+       >
+         <div className="flex items-center justify-between mb-6">
+@@ -70,44 +103,67 @@ export const GrupoForm = ({ onClose }) => {
+         </div>
+         
+         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+-          <div className="form-group">
+-            <label htmlFor="grupo-codigo">C├│digo do Grupo (BACEN) *</label>
+-            <input id="grupo-codigo" type="text" {...register('codigo')} placeholder="Ex: GRUPO-A12" aria-required="true" aria-invalid={!!errors.codigo} />
+-            {errors.codigo && <span className="error-text" role="alert">{errors.codigo.message}</span>}
++          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
++            <FormField label="C├│digo do Grupo (BACEN) *" id="grupo-codigo" error={errors.codigo}>
++              <input id="grupo-codigo" type="text" {...register('codigo')} placeholder="Ex: GRUPO-A12" aria-required="true" aria-invalid={!!errors.codigo} aria-describedby={errors.codigo ? 'error-grupo-codigo' : undefined} />
++            </FormField>
++
++            <FormField label="Quantidade de Cotas *" id="grupo-quantidade" error={errors.quantidadeCotas}>
++              <input id="grupo-quantidade" type="number" {...register('quantidadeCotas')} aria-required="true" aria-invalid={!!errors.quantidadeCotas} aria-describedby={errors.quantidadeCotas ? 'error-grupo-quantidade' : undefined} />
++            </FormField>
+           </div>
+-          
+-          <div className="form-group">
+-            <label htmlFor="grupo-credito">Carta de Cr├®dito Base (R$) *</label>
+-            <input id="grupo-credito" type="number" step="0.01" {...register('valorCredito')} aria-required="true" aria-invalid={!!errors.valorCredito} />
+-            {errors.valorCredito && <span className="error-text" role="alert">{errors.valorCredito.message}</span>}
++
++          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
++            <FormField label="Valor do Cr├®dito (R$) *" id="grupo-valor" error={errors.valorCredito}>
++              <input id="grupo-valor" type="number" step="0.01" {...register('valorCredito')} aria-required="true" aria-invalid={!!errors.valorCredito} />
++            </FormField>
++
++            <FormField label="Prazo em Meses *" id="grupo-prazo" error={errors.prazoMeses}>
++              <input id="grupo-prazo" type="number" {...register('prazoMeses')} aria-required="true" aria-invalid={!!errors.prazoMeses} />
++            </FormField>
+           </div>
+ 
+-          <div className="form-group">
+-            <label htmlFor="grupo-categoria">Categoria do Bem (BCB) *</label>
+-            <select id="grupo-categoria" {...register('categoriaBem')} aria-required="true" aria-invalid={!!errors.categoriaBem}>
+-              <option value="VEICULO_AUTOMOTOR">Ve├¡culos Automotores</option>
+-              <option value="IMOVEL">Bens Im├│veis</option>
+-              <option value="OUTROS_BENS_MOVEIS">Eletroeletr├┤nicos e Outros Bens M├│veis</option>
+-              <option value="SERVICO">Servi├ºos</option>
+-            </select>
+-            {errors.categoriaBem && <span className="error-text" role="alert">{errors.categoriaBem.message}</span>}
++          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
++            <FormField label="Taxa Admin (%) *" id="grupo-taxa" error={errors.taxaAdministracao}>
++              <input id="grupo-taxa" type="number" step="0.01" {...register('taxaAdministracao')} aria-required="true" aria-invalid={!!errors.taxaAdministracao} aria-describedby={errors.taxaAdministracao ? 'error-grupo-taxa' : undefined} />
++            </FormField>
++
++            <FormField label="Dia Base Assemb. *" id="grupo-dia" error={errors.diaBaseAssembleias}>
++              <input id="grupo-dia" type="number" {...register('diaBaseAssembleias')} aria-required="true" aria-invalid={!!errors.diaBaseAssembleias} aria-describedby={errors.diaBaseAssembleias ? 'error-grupo-dia' : undefined} />
++            </FormField>
++
++            <FormField label="Dias Ant. Vencimento *" id="grupo-ant" error={errors.diasAntecedenciaVencimento}>
++              <input id="grupo-ant" type="number" {...register('diasAntecedenciaVencimento')} aria-required="true" aria-invalid={!!errors.diasAntecedenciaVencimento} aria-describedby={errors.diasAntecedenciaVencimento ? 'error-grupo-ant' : undefined} />
++            </FormField>
+           </div>
+ 
+-          <div className="grid grid-cols-2 gap-4">
+-            <div className="form-group">
+-              <label htmlFor="grupo-prazo">Prazo de Dura├º├úo (Meses) *</label>
+-              <input id="grupo-prazo" type="number" {...register('prazoMeses')} aria-required="true" aria-invalid={!!errors.prazoMeses} />
+-              {errors.prazoMeses && <span className="error-text" role="alert">{errors.prazoMeses.message}</span>}
+-            </div>
+-            
+-            <div className="form-group">
+-              <label htmlFor="grupo-taxa">Taxa de Administra├º├úo (%) *</label>
+-              <input id="grupo-taxa" type="number" step="0.01" {...register('taxaAdministracao')} aria-required="true" aria-invalid={!!errors.taxaAdministracao} />
+-              {errors.taxaAdministracao && <span className="error-text" role="alert">{errors.taxaAdministracao.message}</span>}
+-            </div>
++          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
++            <FormField label="Prazos Permitidos (meses separados por v├¡rgula) *" id="grupo-prazos" error={errors.prazosPermitidos}>
++              <input id="grupo-prazos" type="text" placeholder="Ex: 36, 60, 72" {...register('prazosPermitidos')} aria-required="true" aria-invalid={!!errors.prazosPermitidos} aria-describedby={errors.prazosPermitidos ? 'error-grupo-prazos' : undefined} />
++            </FormField>
++
++            <FormField label="Categoria do Bem *" id="grupo-categoria" error={errors.categoriaBem}>
++              <select id="grupo-categoria" {...register('categoriaBem')} aria-required="true" aria-invalid={!!errors.categoriaBem} aria-describedby={errors.categoriaBem ? 'error-grupo-categoria' : undefined}>
++                <option value="IMOVEL">Im├│vel</option>
++                <option value="VEICULO_AUTOMOTOR">Ve├¡culo Automotor</option>
++                <option value="SERVICO">Servi├ºo</option>
++                <option value="OUTROS_BENS_MOVEIS">Outros Bens M├│veis</option>
++              </select>
++            </FormField>
+           </div>
++
++          <FormField label="Bens Permitidos *" id="grupo-bens" error={errors.bensPermitidos}>
++            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
++              {bens.map(bem => (
++                <label key={bem.id} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
++                  <input type="checkbox" value={bem.id} {...register('bensPermitidos')} className="rounded border-slate-300" />
++                  {bem.nome}
++                </label>
++              ))}
++            </div>
++          </FormField>
+           
+-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700/50">
++          <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700/50 mt-4">
+             <button type="button" className="btn btn-outline" onClick={onClose} disabled={mutation.isPending}>
+               Cancelar
+             </button>
+@@ -120,4 +176,6 @@ export const GrupoForm = ({ onClose }) => {
+       </div>
+     </div>
+   );
++
++  return createPortal(modalContent, document.body);
+ };
+diff --git a/src/components/layout/Sidebar.jsx b/src/components/layout/Sidebar.jsx
+index f8deb4a..2528061 100644
+--- a/src/components/layout/Sidebar.jsx
++++ b/src/components/layout/Sidebar.jsx
+@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
+ import { useTheme } from '../../context/ThemeContext';
+ import { 
+   Building2, LayoutDashboard, Users, Grid3X3, CircleHelp, 
+-  CalendarDays, ArrowUpDown, DollarSign, Clock,
++  CalendarDays, ArrowUpDown, DollarSign, Wallet, CircleDollarSign,
+   FileText, BarChart3, Shield, ShieldAlert, LogOut, Sun, Moon, X,
+   ShoppingCart, Tag, Dice5, Settings, ShieldCheck, UserCog
+ } from 'lucide-react';
+@@ -15,13 +15,14 @@ const navLinks = [
+   { to: '/grupos', label: 'Grupos Adm', icon: Grid3X3 },
+   { to: '/cotas', label: 'Cotas', icon: CircleHelp },
+   { to: '/reembolsos-excluidos', label: 'Reembolso Exclu├¡dos', icon: DollarSign },
+-  { to: '/financeiro', label: 'Amortiza├º├úo / Parcelas', icon: Clock },
++  { to: '/financeiro', label: 'Financeiro', icon: Wallet },
+ ];
+ 
+ const contemplacaoLinks = [
+   { to: '/assembleias', label: 'Assembleias AGO', icon: CalendarDays },
+   { to: '/loteria-federal', label: 'Loteria Federal', icon: Dice5 },
+   { to: '/lances-pendentes', label: 'Lances e Integraliza├º├úo', icon: ArrowUpDown },
++  { to: '/credenciamento-lances', label: 'Credenciamento de Lances', icon: CircleDollarSign },
+ ];
+ 
+ const vendaLinks = [
+diff --git a/src/pages/CotasPage.jsx b/src/pages/CotasPage.jsx
+index ceb544f..9a91c0f 100644
+--- a/src/pages/CotasPage.jsx
++++ b/src/pages/CotasPage.jsx
+@@ -1,9 +1,10 @@
+ import { useState } from 'react';
+-import { useCotas } from '../hooks/useCotas';
++import { useNavigate } from 'react-router-dom';
++import { useMutation, useQueryClient } from '@tanstack/react-query';
++import { api } from '../services/api';
+ import { useToast } from '../context/ToastContext';
+-import { CotaForm } from '../components/forms/CotaForm';
+ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+-import { Plus, XCircle, Calculator, X } from 'lucide-react';
++import { XCircle, Calculator, X, Search } from 'lucide-react';
+ import { TableSkeleton } from '../components/ui/Skeleton';
+ 
+ const cotaStatusBadge = (status) => {
+@@ -22,84 +23,189 @@ const cotaStatusBadge = (status) => {
+ 
+ export const CotasPage = () => {
+   const { triggerToast } = useToast();
+-  const [showModal, setShowModal] = useState(false);
++  const navigate = useNavigate();
++  const queryClient = useQueryClient();
++
+   const [cotaCancelarId, setCotaCancelarId] = useState(null);
+   const [simulationResult, setSimulationResult] = useState(null);
++  const [searchResults, setSearchResults] = useState(null);
+ 
+-  const { cotas, isLoading, error, cancelar, reembolsar } = useCotas();
++  // --- Search form state ---
++  const [searchGrupoId, setSearchGrupoId] = useState('');
++  const [searchNumeroCota, setSearchNumeroCota] = useState('');
++  const [searchVersao, setSearchVersao] = useState('');
++  const [searchCpfCnpj, setSearchCpfCnpj] = useState('');
+ 
+-  const handleCancelar = async (id) => {
+-    try {
+-      await cancelar(id);
++  // --- Mutations ---
++  const searchMutation = useMutation({
++    mutationFn: () => api.cotas.buscar(searchGrupoId, searchNumeroCota, searchVersao, searchCpfCnpj),
++    onSuccess: (data) => {
++      setSearchResults(data.content || []);
++      if ((data.content || []).length === 0) {
++        triggerToast('Nenhuma cota encontrada com os filtros informados.', 'warning');
++      }
++    },
++    onError: (err) => triggerToast(err.message || 'Erro ao buscar cotas', 'danger'),
++  });
++
++  const cancelarMutation = useMutation({
++    mutationFn: (id) => api.cotas.cancelar(id),
++    onSuccess: () => {
++      queryClient.invalidateQueries({ queryKey: ['cotas'] });
+       triggerToast("Cota Cancelada logicamente e parcelas exclu├¡das.", "warning");
+-    } catch (err) {
+-      triggerToast(err.message || "Erro ao cancelar cota", "danger");
+-    }
+-    setCotaCancelarId(null);
+-  };
++      // Refresh search results
++      if (searchResults) searchMutation.mutate();
++    },
++    onError: (err) => triggerToast(err.message || "Erro ao cancelar cota", "danger"),
++  });
+ 
+-  const handleReembolsar = async (id) => {
+-    try {
+-      const res = await reembolsar(id);
+-      setSimulationResult(res);
++  const reembolsarMutation = useMutation({
++    mutationFn: (id) => api.cotas.reembolsar(id),
++    onSuccess: (data) => {
++      setSimulationResult(data);
+       triggerToast("C├ílculo de reembolso gerado com sucesso!", "success");
+-    } catch (err) {
+-      triggerToast(err.message || "Erro ao simular reembolso", "danger");
+-    }
++    },
++    onError: (err) => triggerToast(err.message || "Erro ao simular reembolso", "danger"),
++  });
++
++  // --- Handlers ---
++  const handleSearch = (e) => {
++    e.preventDefault();
++    searchMutation.mutate();
+   };
+ 
+-  if (error) return <div className="p-6 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 text-sm">Erro: {error.message}</div>;
++  const handleCancelar = async (id) => {
++    cancelarMutation.mutate(id);
++    setCotaCancelarId(null);
++  };
++
++  const handleReembolsar = (id) => {
++    reembolsarMutation.mutate(id);
++  };
+ 
+   return (
+     <div className="animate-fade-in space-y-6">
+       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+         <div>
+-          <h2 className="font-title text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Emiss├úo & Venda de Cotas</h2>
+-          <p className="text-sm text-slate-400 mt-1">Vincula├º├úo de Clientes a Grupos</p>
++          <h2 className="font-title text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Gest├úo de Cotas</h2>
++          <p className="text-sm text-slate-400 mt-1">Busca e gest├úo de cotas consorciais</p>
+         </div>
+-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+-          <Plus className="w-4 h-4" /> Emitir Nova Cota
+-        </button>
+       </div>
+ 
+-      {isLoading ? (
++      {/* Search Form */}
++      <div className="glass-panel p-5">
++        <h3 className="text-base font-title font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2 mb-4 flex items-center gap-2">
++          <Search className="w-4 h-4 text-brand-500" /> Buscar Cotas
++        </h3>
++        <form onSubmit={handleSearch} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
++          <div className="form-group">
++            <label htmlFor="search-grupo">Grupo</label>
++            <input
++              id="search-grupo"
++              type="text"
++              value={searchGrupoId}
++              onChange={(e) => setSearchGrupoId(e.target.value)}
++              placeholder="Ex: GRUPO-A12"
++            />
++          </div>
++          <div className="form-group">
++            <label htmlFor="search-numero">N┬║ da Cota</label>
++            <input
++              id="search-numero"
++              type="number"
++              value={searchNumeroCota}
++              onChange={(e) => setSearchNumeroCota(e.target.value)}
++              placeholder="Ex: 5"
++            />
++          </div>
++          <div className="form-group">
++            <label htmlFor="search-versao">Vers├úo</label>
++            <input
++              id="search-versao"
++              type="number"
++              value={searchVersao}
++              onChange={(e) => setSearchVersao(e.target.value)}
++              placeholder="Ex: 1"
++            />
++          </div>
++          <div className="form-group">
++            <label htmlFor="search-cpf">CPF/CNPJ</label>
++            <input
++              id="search-cpf"
++              type="text"
++              value={searchCpfCnpj}
++              onChange={(e) => setSearchCpfCnpj(e.target.value)}
++              placeholder="000.000.000-00"
++            />
++          </div>
++          <div className="flex items-end">
++            <button
++              type="submit"
++              className="btn btn-primary btn-block"
++              disabled={searchMutation.isPending}
++            >
++              <Search className="w-4 h-4" />
++              {searchMutation.isPending ? 'Buscando...' : 'Buscar'}
++            </button>
++          </div>
++        </form>
++      </div>
++
++      {/* Results Table */}
++      {searchMutation.isPending && (
+         <div className="animate-fade-in">
+           <TableSkeleton rows={5} columns={5} />
+         </div>
+-      ) : (
++      )}
++
++      {searchResults && !searchMutation.isPending && (
+         <div className="table-container">
+           <table>
+-            <thead><tr><th>N┬║ da Cota</th><th>Cliente ID</th><th>Grupo ID</th><th>Status</th><th>A├º├Áes</th></tr></thead>
++            <thead>
++              <tr>
++                <th>N┬║ da Cota</th><th>Consorciado</th><th>Grupo</th><th>Status</th><th>A├º├Áes</th>
++              </tr>
++            </thead>
+             <tbody>
+-              {Array.isArray(cotas) && cotas.map(c => (
+-                <tr key={c.id}>
+-                  <td className="font-semibold text-slate-900 dark:text-white">Cota {c.numeroCota}</td>
+-                  <td className="text-sm">Ref: {c.clienteId}</td>
+-                  <td className="text-sm">Grupo: {c.grupoId}</td>
+-                  <td><span className={`badge ${cotaStatusBadge(c.status)}`}>{c.status}</span></td>
+-                  <td>
+-                    <div className="flex gap-1.5">
+-                      {c.status !== 'CANCELADA' && c.status !== 'ENCERRADA' && (
+-                        <button className="btn btn-danger btn-xs" onClick={() => setCotaCancelarId(c.id)}>
+-                          <XCircle className="w-3.5 h-3.5" /> Cancelar
+-                        </button>
+-                      )}
+-                      {c.status === 'CANCELADA' && (
+-                        <button className="btn btn-outline btn-xs" onClick={() => handleReembolsar(c.id)}>
+-                          <Calculator className="w-3.5 h-3.5" /> Simular Devolu├º├úo
+-                        </button>
+-                      )}
+-                    </div>
++              {searchResults.length === 0 ? (
++                <tr>
++                  <td colSpan="5" className="text-center text-slate-400 py-8">
++                    Nenhuma cota encontrada.
+                   </td>
+                 </tr>
+-              ))}
++              ) : (
++                searchResults.map(c => (
++                  <tr
++                    key={c.id}
++                    className="cursor-pointer hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors"
++                    onClick={() => navigate(`/cotas/${c.id}`)}
++                  >
++                    <td className="font-semibold text-slate-900 dark:text-white">Cota {c.numeroCota}</td>
++                    <td className="text-sm">{c.nomeConsorciado || c.clienteId}</td>
++                    <td className="text-sm">{c.codigoGrupo || c.grupoId}</td>
++                    <td><span className={`badge ${cotaStatusBadge(c.status)}`}>{c.status}</span></td>
++                    <td>
++                      <div className="flex gap-1.5" onClick={(e) => e.stopPropagation()}>
++                        {c.status !== 'CANCELADA' && c.status !== 'ENCERRADA' && (
++                          <button className="btn btn-danger btn-xs" onClick={() => setCotaCancelarId(c.id)}>
++                            <XCircle className="w-3.5 h-3.5" /> Cancelar
++                          </button>
++                        )}
++                        {c.status === 'CANCELADA' && (
++                          <button className="btn btn-outline btn-xs" onClick={() => handleReembolsar(c.id)}>
++                            <Calculator className="w-3.5 h-3.5" /> Simular Devolu├º├úo
++                          </button>
++                        )}
++                      </div>
++                    </td>
++                  </tr>
++                ))
++              )}
+             </tbody>
+           </table>
+         </div>
+       )}
+ 
+-      {showModal && <CotaForm onClose={() => setShowModal(false)} />}
+-
+       <ConfirmDialog
+         isOpen={cotaCancelarId !== null}
+         title="Cancelar Cota Consorcial?"
+diff --git a/src/pages/FinanceiroPage.jsx b/src/pages/FinanceiroPage.jsx
+index 2cdd633..fc9b7ea 100644
+--- a/src/pages/FinanceiroPage.jsx
++++ b/src/pages/FinanceiroPage.jsx
+@@ -2,7 +2,7 @@ import React, { useState } from 'react';
+ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+ import { api } from '../services/api';
+ import { useToast } from '../context/ToastContext';
+-import { Wallet, Scale, CircleDot, AlertTriangle, CircleDollarSign } from 'lucide-react';
++import { Wallet, Scale, CircleDot, AlertTriangle } from 'lucide-react';
+ 
+ export const FinanceiroPage = () => {
+   const { triggerToast } = useToast();
+@@ -10,10 +10,6 @@ export const FinanceiroPage = () => {
+ 
+   const [selectedCotaId, setSelectedCotaId] = useState('');
+   const [dataPagamentoInput, setDataPagamentoInput] = useState(new Date().toISOString().split('T')[0]);
+-  
+-  // Amortization form states
+-  const [valorAmortizar, setValorAmortizar] = useState('');
+-  const [tipoAmortizacao, setTipoAmortizacao] = useState('DILUICAO');
+ 
+   // Queries
+   const { data: cotasData } = useQuery({ queryKey: ['cotas'], queryFn: () => api.cotas.listar() });
+@@ -56,21 +52,6 @@ export const FinanceiroPage = () => {
+     onError: (err) => triggerToast(err.message, "danger")
+   });
+ 
+-  const amortizarMutation = useMutation({
+-    mutationFn: ({ cotaId, valor, tipo }) => {
+-      if (tipo === 'DILUICAO') return api.parcelas.amortizarPorDiluicao(cotaId, valor);
+-      return api.parcelas.amortizarPorReducaoDePrazo(cotaId, valor);
+-    },
+-    onSuccess: () => {
+-      triggerToast("Amortiza├º├úo por lance de parcelas executada com sucesso!", "success");
+-      queryClient.invalidateQueries({ queryKey: ['parcelas-cota', selectedCotaId] });
+-      queryClient.invalidateQueries({ queryKey: ['inadimplencia-cota', selectedCotaId] });
+-      queryClient.invalidateQueries({ queryKey: ['grupos'] });
+-      setValorAmortizar('');
+-    },
+-    onError: (err) => triggerToast(err.message, "danger")
+-  });
+-
+   const handlePagarParcela = (parcelaId) => {
+     if (!dataPagamentoInput) { triggerToast("Selecione a data do pagamento.", "warning"); return; }
+     pagarMutation.mutate({ id: parcelaId, dataPagamento: dataPagamentoInput });
+@@ -82,13 +63,6 @@ export const FinanceiroPage = () => {
+     }
+   };
+ 
+-  const handleAmortizarSubmit = (e) => {
+-    e.preventDefault();
+-    const valor = Number(valorAmortizar);
+-    if (isNaN(valor) || valor <= 0) { triggerToast("Informe um valor de amortiza├º├úo v├ílido maior que zero.", "warning"); return; }
+-    amortizarMutation.mutate({ cotaId: Number(selectedCotaId), valor, tipo: tipoAmortizacao });
+-  };
+-
+   const activeCota = cotas.find(c => c.id === Number(selectedCotaId));
+ 
+   return (
+@@ -99,7 +73,7 @@ export const FinanceiroPage = () => {
+         <h2 className="font-title text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+           <Wallet className="w-7 h-7 text-brand-500" /> Financeiro e Caixa
+         </h2>
+-        <p className="text-sm text-slate-400 mt-1">Opera├º├Áes de Baixa de Parcelas, Estorno Cont├íbil e Amortiza├º├Áes de Cotas.</p>
++        <p className="text-sm text-slate-400 mt-1">Opera├º├Áes de Baixa de Parcelas e Estorno Cont├íbil de Cotas.</p>
+       </div>
+ 
+       {/* Banner de Conformidade */}
+@@ -107,7 +81,7 @@ export const FinanceiroPage = () => {
+         <Scale className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" />
+         <div className="text-blue-700 dark:text-blue-300">
+           <strong className="block mb-1">Regras de Contabilidade de Grupos (ADR 002):</strong>
+-          Cada baixa de parcela ou estorno efetua automaticamente lan├ºamentos cont├íbeis de partidas dobradas sob a estrutura do plano de contas <strong>COSIF (BACEN)</strong>. Amortiza├º├Áes de lances diluem o valor das parcelas seguintes ou reduzem o prazo final.
++          Cada baixa de parcela ou estorno efetua automaticamente lan├ºamentos cont├íbeis de partidas dobradas sob a estrutura do plano de contas <strong>COSIF (BACEN)</strong>.
+         </div>
+       </div>
+ 
+@@ -166,31 +140,6 @@ export const FinanceiroPage = () => {
+               </div>
+             </div>
+           )}
+-
+-          {/* Form de Amortiza├º├úo */}
+-          {selectedCotaId && activeCota?.status !== 'CANCELADA' && (
+-            <div className="glass-panel p-5 space-y-4">
+-              <h3 className="text-base font-title font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2 flex items-center gap-2">
+-                <CircleDollarSign className="w-4 h-4 text-brand-500" /> Amortizar por Lance
+-              </h3>
+-              <form onSubmit={handleAmortizarSubmit} className="space-y-4">
+-                <div className="form-group">
+-                  <label htmlFor="valorAmortizar">Valor da Amortiza├º├úo (R$) *</label>
+-                  <input id="valorAmortizar" type="number" step="0.01" value={valorAmortizar} onChange={(e) => setValorAmortizar(e.target.value)} placeholder="Ex: 5000" />
+-                </div>
+-                <div className="form-group">
+-                  <label htmlFor="tipoAmortizacao">Tipo de Amortiza├º├úo *</label>
+-                  <select id="tipoAmortizacao" value={tipoAmortizacao} onChange={(e) => setTipoAmortizacao(e.target.value)}>
+-                    <option value="DILUICAO">Diluir saldo nas parcelas seguintes</option>
+-                    <option value="REDUCAO_PRAZO">Reduzir quantidade de meses (fim do prazo)</option>
+-                  </select>
+-                </div>
+-                <button type="submit" className="btn btn-primary btn-block" disabled={amortizarMutation.isPending}>
+-                  {amortizarMutation.isPending ? 'Amortizando...' : 'Amortizar Valor'}
+-                </button>
+-              </form>
+-            </div>
+-          )}
+         </div>
+ 
+         {/* Coluna Direita: Lista de Parcelas */}
+diff --git a/src/pages/GruposPage.jsx b/src/pages/GruposPage.jsx
+index 4bf1792..24e2592 100644
+--- a/src/pages/GruposPage.jsx
++++ b/src/pages/GruposPage.jsx
+@@ -1,4 +1,5 @@
+ import { useState } from 'react';
++import { createPortal } from 'react-dom';
+ import PropTypes from 'prop-types';
+ import { useGrupos, useGrupoSaldo } from '../hooks/useGrupos';
+ import { useToast } from '../context/ToastContext';
+@@ -140,8 +141,8 @@ export const GruposPage = () => {
+       {showModal && <GrupoForm onClose={() => setShowModal(false)} />}
+ 
+       {/* Modal de Inaugura├º├úo */}
+-      {inaugurarGrupoId !== null && (
+-        <div className="modal-backdrop" onClick={() => setInaugurarGrupoId(null)}>
++      {inaugurarGrupoId !== null && createPortal(
++        <div className="modal-backdrop z-[9999]" onClick={() => setInaugurarGrupoId(null)}>
+           <div className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+             <h3 className="text-lg font-title font-bold text-slate-900 dark:text-white flex items-center gap-2">
+               <Rocket className="w-5 h-5 text-brand-500" /> Inaugurar Grupo
+@@ -176,12 +177,13 @@ export const GruposPage = () => {
+               </button>
+             </div>
+           </div>
+-        </div>
++        </div>,
++        document.body
+       )}
+ 
+       {/* Modal de Reajuste */}
+-      {reajustarGrupoId !== null && (
+-        <div className="modal-backdrop" onClick={() => setReajustarGrupoId(null)}>
++      {reajustarGrupoId !== null && createPortal(
++        <div className="modal-backdrop z-[9999]" onClick={() => setReajustarGrupoId(null)}>
+           <div className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+             <h3 className="text-lg font-title font-bold text-slate-900 dark:text-white flex items-center gap-2">
+               <TrendingUp className="w-5 h-5 text-brand-500" /> Ajustar Valor do Bem de Refer├¬ncia
+@@ -218,7 +220,8 @@ export const GruposPage = () => {
+               </button>
+             </div>
+           </div>
+-        </div>
++        </div>,
++        document.body
+       )}
+     </div>
+   );
+diff --git a/src/services/api.js b/src/services/api.js
+index edc594e..2c78234 100644
+--- a/src/services/api.js
++++ b/src/services/api.js
+@@ -40,6 +40,10 @@ export const api = {
+       return response.json(); // { mfaRequired: true, tempToken: "..." }
+     }
+     
++    if (response.status === 401) {
++      throw new Error("Usu├írio ou senha incorretos.");
++    }
++    
+     if (!response.ok) throw await handleResponseError(response, "Falha na autentica├º├úo com o servidor Spring.");
+     return { token: "cookie_managed", message: "Login success" };
+   },
+@@ -276,12 +280,25 @@ export const api = {
+       return response.json();
+     },
+     obterSaldo: async (id) => {
+-            const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/saldo`);
++      const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/saldo`);
+       if (!response.ok) throw await handleResponseError(response, "Erro ao obter saldo atual do grupo na API.");
+       return response.json();
+     },
+   },
+ 
++  // --- BENS ---
++  bens: {
++    listar: async () => {
++      // Mock for bensPermitidos
++      return [
++        { id: 'VEICULO_AUTOMOTOR', nome: 'Ve├¡culo Automotor' },
++        { id: 'IMOVEL', nome: 'Im├│vel' },
++        { id: 'SERVICO', nome: 'Servi├ºo' },
++        { id: 'OUTROS_BENS_MOVEIS', nome: 'Eletroeletr├┤nicos e Outros Bens M├│veis' }
++      ];
++    }
++  },
++
+   // --- RELAT├ôRIOS ---
+   relatorios: {
+     balancete: async (grupoId, dataReferencia) => {
+@@ -312,6 +329,23 @@ export const api = {
+       const data = await response.json();
+       return { content: data.content };
+     },
++    buscar: async (grupoId, numeroCota, versao, cpfCnpj) => {
++      const params = new URLSearchParams();
++      if (grupoId) params.append('grupoId', grupoId);
++      if (numeroCota) params.append('numeroCota', numeroCota);
++      if (versao) params.append('versao', versao);
++      if (cpfCnpj) params.append('cpfCnpj', cpfCnpj.replace(/[^0-9]/g, ''));
++      params.append('size', '50');
++      const response = await fetchApi(`${BASE_URL}/api/cotas/buscar?${params.toString()}`);
++      if (!response.ok) throw await handleResponseError(response, "Erro ao buscar cotas.");
++      const data = await response.json();
++      return { content: data.content || data, totalElements: data.totalElements };
++    },
++    buscarPorId: async (id) => {
++      const response = await fetchApi(`${BASE_URL}/api/cotas/${id}`);
++      if (!response.ok) throw await handleResponseError(response, "Erro ao buscar detalhes da cota.");
++      return response.json();
++    },
+     listarPendentesReembolso: async () => {
+             const response = await fetchApi(`${BASE_URL}/api/cotas/canceladas/pendentes-reembolso`);
+       if (!response.ok) throw new Error("Erro ao buscar cotas canceladas eleg├¡veis a reembolso da API.");

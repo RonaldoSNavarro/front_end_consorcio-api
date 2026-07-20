@@ -108,15 +108,39 @@
 
 ---
 
+## relatorios — Relatórios e PLD/FT
+
+| REQ-ID | Regra | Componente(s) JSX | Hook TanStack | Schema Zod | Teste |
+|--------|-------|-------------------|---------------|-----------|-------|
+| REQ-RELATORIOS-001 | Alerta PLD/FT (Monitoramento) | `RelatorioPldFtPage.jsx` | usePldFtQuery | pldFtFiltroSchema | — |
+| REQ-RELATORIOS-002 | Balancete Contábil (Doc 4110) | `RelatorioBalancetePage.jsx` | useBalanceteQuery | balanceteFiltroSchema | — |
+| REQ-RELATORIOS-003 | Estatísticas do Grupo (Doc 2080) | `RelatorioEstatisticasPage.jsx` | useEstatisticasQuery | estatisticasFiltroSchema | — |
+
+---
+
+## vendas — Módulo de Vendas
+
+| REQ-ID | Regra | Componente(s) JSX | Hook TanStack | Schema Zod | Teste |
+|--------|-------|-------------------|---------------|-----------|-------|
+| REQ-VND-001 | CRUD Categorias e Bens | `TiposDeVendaPage.jsx` | — | — | — |
+| REQ-VND-002 | CRUD Produtos Consórcio | `VendaPropostaPage.jsx` | useVendaProposta | — | `vendas.spec.js` |
+| REQ-VND-003 | Geração Proposta Adesão | `VendaPropostaPage.jsx` | useVendaProposta | — | `vendas.spec.js` |
+| REQ-VND-004 | Aprovação de Proposta | `VendaPropostaPage.jsx` | useVendaProposta | — | `vendas.spec.js` |
+| REQ-VND-005 | Efetivação do Contrato | `VendaPropostaPage.jsx` | useVendaProposta | — | `vendas.spec.js` |
+| REQ-VND-006 | Tipos de Venda (Corretores) | `TiposDeVendaPage.jsx` | — | — | — |
+| REQ-VND-007 | Geração de Comissões | `VendaPropostaPage.jsx` | — | — | `vendas.spec.js` |
+
+---
+
 ## ⚠️ Cobertura de Testes
 
 | Métrica | Valor |
 |---------|-------|
-| Total de REQ-IDs rastreados | 28 |
-| REQ-IDs com componente mapeado | 28/28 (100%) |
-| REQ-IDs com hook TanStack mapeado | 20/28 (71%) |
-| REQ-IDs com schema Zod mapeado | 9/28 (32%) |
-| REQ-IDs com teste Vitest | 3/28 (10%) |
+| Total de REQ-IDs rastreados | 38 |
+| REQ-IDs com componente mapeado | 38/38 (100%) |
+| REQ-IDs com hook TanStack mapeado | 28/38 (73%) |
+| REQ-IDs com schema Zod mapeado | 12/38 (31%) |
+| REQ-IDs com teste E2E/Vitest | 8/38 (21%) |
 
 > **Nota**: A cobertura de testes automatizados está sendo progressivamente expandida. A capabilidade de Compliance está 100% coberta por testes no frontend.
 

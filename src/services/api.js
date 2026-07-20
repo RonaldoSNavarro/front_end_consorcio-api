@@ -1,5 +1,5 @@
 
-const BASE_URL = import.meta.env?.VITE_API_URL || (typeof process !== 'undefined' && process.env.NODE_ENV === 'test' ? 'http://localhost:8080' : '');
+const BASE_URL = import.meta.env?.VITE_API_URL || '';
 
 
 
@@ -30,24 +30,130 @@ export const api = {
 
   // --- AUTH ---
   login: async (username, password) => {
-        const response = await fetchApi(`${BASE_URL}/api/login`, {
+    const response = await fetchApi(`${BASE_URL}/api/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ login: username, senha: password })
     });
+    
+    if (response.status === 202) {
+      return response.json(); // { mfaRequired: true, tempToken: "..." }
+    }
+    
+    if (response.status === 401) {
+      throw new Error("Usuário ou senha incorretos.");
+    }
+    
     if (!response.ok) throw await handleResponseError(response, "Falha na autenticação com o servidor Spring.");
-    // Com HttpOnly Cookie, o token vem no cabeçalho e não no body. O Spring boot foi alterado para retornar vazio no body.
     return { token: "cookie_managed", message: "Login success" };
   },
 
+  loginMfa: async (tempToken, code) => {
+    const response = await fetchApi(`${BASE_URL}/api/login/mfa-verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tempToken, code })
+    });
+    if (!response.ok) throw await handleResponseError(response, "Falha na verificação de MFA.");
+    return { token: "cookie_managed", message: "Login success" };
+  },
+
+  setupMfa: async () => {
+    const response = await fetchApi(`${BASE_URL}/api/mfa/setup`, { method: 'POST' });
+    if (!response.ok) throw await handleResponseError(response, "Falha ao enviar e-mail de verificação.");
+    return true;
+  },
+
+  confirmMfa: async (code) => {
+    const response = await fetchApi(`${BASE_URL}/api/mfa/confirm`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+    if (!response.ok) throw await handleResponseError(response, "Falha ao confirmar MFA.");
+    return true;
+  },
+
+  resetMfa: async () => {
+    const response = await fetchApi(`${BASE_URL}/api/mfa/reset`, {
+      method: 'POST'
+    });
+    if (!response.ok) throw await handleResponseError(response, "Falha ao resetar MFA.");
+    return true;
+  },
+
   logout: async () => {
-        await fetchApi(`${BASE_URL}/api/login/logout`, { method: 'POST' });
+    await fetchApi(`${BASE_URL}/api/login/logout`, { method: 'POST' });
   },
 
   obterUsuarioLogado: async () => {
-        const response = await fetchApi(`${BASE_URL}/api/login/me`);
+    const response = await fetchApi(`${BASE_URL}/api/login/me`);
     if (!response.ok) throw new Error("Sessão inválida ou expirada.");
     return response.json();
+  },
+
+  // --- USUARIOS ---
+  usuarios: {
+    listar: async () => {
+      const response = await fetchApi(`${BASE_URL}/api/usuarios`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar usuários.");
+      return response.json();
+    },
+    salvar: async (dto) => {
+      const response = await fetchApi(`${BASE_URL}/api/usuarios`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao cadastrar usuário.");
+      return response.json();
+    },
+    atualizar: async (id, dto) => {
+      const response = await fetchApi(`${BASE_URL}/api/usuarios/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao atualizar usuário.");
+      return response.json();
+    },
+    excluir: async (id) => {
+      const response = await fetchApi(`${BASE_URL}/api/usuarios/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao excluir usuário.");
+      return true;
+    }
+  },
+
+  // --- PERFIS ---
+  perfis: {
+    listar: async () => {
+      const response = await fetchApi(`${BASE_URL}/api/perfis`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar perfis.");
+      return response.json();
+    },
+    salvar: async (dto) => {
+      const response = await fetchApi(`${BASE_URL}/api/perfis`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao cadastrar perfil.");
+      return response.json();
+    },
+    atualizar: async (id, dto) => {
+      const response = await fetchApi(`${BASE_URL}/api/perfis/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao atualizar perfil.");
+      return response.json();
+    },
+    excluir: async (id) => {
+      const response = await fetchApi(`${BASE_URL}/api/perfis/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao excluir perfil.");
+      return true;
+    }
   },
 
   // --- CLIENTES ---
@@ -130,7 +236,7 @@ export const api = {
             const response = await fetchApi(`${BASE_URL}/api/grupos?size=2000`);
       if (!response.ok) throw new Error("Erro ao listar grupos da API.");
       const data = await response.json();
-      return { content: data.content || data, isMock: false };
+      return { content: data.content || data };
     },
     salvar: async (dto) => {
             const response = await fetchApi(`${BASE_URL}/api/grupos`, {
@@ -159,7 +265,7 @@ export const api = {
             const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/financeiro`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao obter relatório financeiro do grupo na API.");
       const data = await response.json();
-      return { data, isMock: false };
+      return { data };
     },
     encerrar: async (id) => {
             const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/encerrar`, {
@@ -174,10 +280,23 @@ export const api = {
       return response.json();
     },
     obterSaldo: async (id) => {
-            const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/saldo`);
+      const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/saldo`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao obter saldo atual do grupo na API.");
       return response.json();
     },
+  },
+
+  // --- BENS ---
+  bens: {
+    listar: async () => {
+      // Mock for bensPermitidos
+      return [
+        { id: 'VEICULO_AUTOMOTOR', nome: 'Veículo Automotor' },
+        { id: 'IMOVEL', nome: 'Imóvel' },
+        { id: 'SERVICO', nome: 'Serviço' },
+        { id: 'OUTROS_BENS_MOVEIS', nome: 'Eletroeletrônicos e Outros Bens Móveis' }
+      ];
+    }
   },
 
   // --- RELATÓRIOS ---
@@ -189,13 +308,13 @@ export const api = {
       return response.json();
     },
     estatisticas: async (grupoId, dataInicio, dataFim) => {
-            const url = `${BASE_URL}/api/relatorios/estatisticas/${grupoId}?dataInicio=${dataInicio}&dataFim=${dataFim}`;
+            const url = `${BASE_URL}/api/relatorios/estatisticas/${grupoId}?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
       const response = await fetchApi(url);
       if (!response.ok) throw await handleResponseError(response, "Erro ao gerar estatísticas.");
       return response.json();
     },
     pldFt: async (dataInicio, dataFim) => {
-            const url = `${BASE_URL}/api/relatorios/pld-ft?dataInicio=${dataInicio}&dataFim=${dataFim}`;
+            const url = `${BASE_URL}/api/relatorios/pld-ft?dataInicio=${encodeURIComponent(dataInicio)}&dataFim=${encodeURIComponent(dataFim)}`;
       const response = await fetchApi(url);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar alertas PLD/FT.");
       return response.json();
@@ -208,7 +327,24 @@ export const api = {
             const response = await fetchApi(`${BASE_URL}/api/cotas?size=2000`);
       if (!response.ok) throw new Error("Erro ao buscar cotas da API.");
       const data = await response.json();
-      return { content: data.content, isMock: false };
+      return { content: data.content };
+    },
+    buscar: async (grupoId, numeroCota, versao, cpfCnpj) => {
+      const params = new URLSearchParams();
+      if (grupoId) params.append('grupoId', grupoId);
+      if (numeroCota) params.append('numeroCota', numeroCota);
+      if (versao) params.append('versao', versao);
+      if (cpfCnpj) params.append('cpfCnpj', cpfCnpj.replace(/[^0-9]/g, ''));
+      params.append('size', '50');
+      const response = await fetchApi(`${BASE_URL}/api/cotas/buscar?${params.toString()}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao buscar cotas.");
+      const data = await response.json();
+      return { content: data.content || data, totalElements: data.totalElements };
+    },
+    buscarPorId: async (id) => {
+      const response = await fetchApi(`${BASE_URL}/api/cotas/${id}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao buscar detalhes da cota.");
+      return response.json();
     },
     listarPendentesReembolso: async () => {
             const response = await fetchApi(`${BASE_URL}/api/cotas/canceladas/pendentes-reembolso`);
@@ -281,7 +417,7 @@ export const api = {
             const response = await fetchApi(`${BASE_URL}/api/parcelas/cota/${cotaId}`);
       if (!response.ok) throw new Error("Erro ao buscar histórico de parcelas.");
       const data = await response.json();
-      return { content: data, isMock: false };
+      return { content: data };
     },
     salvar: async (dto) => {
             const response = await fetchApi(`${BASE_URL}/api/parcelas`, {
@@ -303,7 +439,7 @@ export const api = {
             const response = await fetchApi(`${BASE_URL}/api/cotas/${cotaId}/inadimplencia`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao obter inadimplência da cota.");
       const data = await response.json();
-      return { data, isMock: false };
+      return { data };
     },
     amortizarPorReducaoDePrazo: async (cotaId, valorLance) => {
             const response = await fetchApi(`${BASE_URL}/api/parcelas/cota/${cotaId}/lance/reducao-prazo?valorLance=${valorLance}`, {
@@ -334,7 +470,7 @@ export const api = {
             const response = await fetchApi(`${BASE_URL}/api/assembleias/grupo/${grupoId}`);
       if (!response.ok) throw new Error("Erro ao listar assembleias do grupo na API.");
       const data = await response.json();
-      return { content: data, isMock: false };
+      return { content: data };
     },
     salvar: async (dto) => {
             const response = await fetchApi(`${BASE_URL}/api/assembleias`, {
@@ -372,7 +508,7 @@ export const api = {
             const response = await fetchApi(`${BASE_URL}/api/contemplacoes/assembleia/${assembleiaId}`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar contemplações da assembleia.");
       const data = await response.json();
-      return { content: data, isMock: false };
+      return { content: data };
     },
     registrar: async (dto) => {
             const response = await fetchApi(`${BASE_URL}/api/contemplacoes`, {
@@ -432,7 +568,7 @@ export const api = {
       const response = await fetchApi(`${BASE_URL}/api/compliance/alertas${query}`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao listar alertas.");
       const data = await response.json();
-      return { content: data, isMock: false };
+      return { content: data };
     },
     deliberarAlerta: async (id, dto) => {
             const response = await fetchApi(`${BASE_URL}/api/compliance/alertas/${id}/deliberar`, {

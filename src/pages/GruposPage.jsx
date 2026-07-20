@@ -1,22 +1,24 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../services/api';
+import { useState } from 'react';
+import { createPortal } from 'react-dom';
+import PropTypes from 'prop-types';
+import { useGrupos, useGrupoSaldo } from '../hooks/useGrupos';
 import { useToast } from '../context/ToastContext';
 import { GrupoForm } from '../components/forms/GrupoForm';
-import { Plus, Rocket, TrendingUp, Loader2 } from 'lucide-react';
+import { Plus, Rocket, TrendingUp } from 'lucide-react';
 import { TableSkeleton } from '../components/ui/Skeleton';
 
 const GrupoSaldoCell = ({ grupoId }) => {
-  const { data: saldo, isLoading, error } = useQuery({
-    queryKey: ['grupo', grupoId, 'saldo'],
-    queryFn: () => api.grupos.obterSaldo(grupoId)
-  });
+  const { data: saldo, isLoading, error } = useGrupoSaldo(grupoId);
 
   if (isLoading) return <span className="text-slate-400 animate-pulse">...</span>;
   if (error) return <span className="text-rose-400 text-xs">Erro</span>;
 
   const valor = typeof saldo === 'number' ? saldo : Number(saldo || 0);
   return <span className="text-emerald-600 dark:text-emerald-400 font-semibold">R$ {valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>;
+};
+
+GrupoSaldoCell.propTypes = {
+  grupoId: PropTypes.number.isRequired,
 };
 
 const statusBadge = (status) => {
@@ -30,37 +32,13 @@ const statusBadge = (status) => {
 
 export const GruposPage = () => {
   const { triggerToast } = useToast();
-  const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [inaugurarGrupoId, setInaugurarGrupoId] = useState(null);
   const [dataInauguracaoInput, setDataInauguracaoInput] = useState('');
   const [reajustarGrupoId, setReajustarGrupoId] = useState(null);
   const [novoValorInput, setNovoValorInput] = useState('');
 
-  const { data: gruposData, isLoading, error } = useQuery({
-    queryKey: ['grupos'],
-    queryFn: () => api.grupos.listar()
-  });
-
-  const grupos = gruposData?.content || gruposData || [];
-
-  const inaugurarMutation = useMutation({
-    mutationFn: ({ id, dataA }) => api.grupos.inaugurar(id, dataA),
-    onSuccess: () => {
-      triggerToast("Grupo Inaugurado com Sucesso! Status: EM_ANDAMENTO.", "success");
-      queryClient.invalidateQueries({ queryKey: ['grupos'] });
-    },
-    onError: (err) => triggerToast(err.message, "danger")
-  });
-
-  const reajustarMutation = useMutation({
-    mutationFn: ({ id, novoValor }) => api.grupos.reajustar(id, novoValor),
-    onSuccess: () => {
-      triggerToast("Crédito Reajustado e parcelas em aberto alteradas proporcionalmente!", "success");
-      queryClient.invalidateQueries({ queryKey: ['grupos'] });
-    },
-    onError: (err) => triggerToast(err.message, "danger")
-  });
+  const { grupos, isLoading, error, inaugurar, reajustar } = useGrupos();
 
   const handleInaugurarGrupo = (id) => {
     setDataInauguracaoInput(new Date().toISOString().split('T')[0]);
@@ -163,8 +141,8 @@ export const GruposPage = () => {
       {showModal && <GrupoForm onClose={() => setShowModal(false)} />}
 
       {/* Modal de Inauguração */}
-      {inaugurarGrupoId !== null && (
-        <div className="modal-backdrop" onClick={() => setInaugurarGrupoId(null)}>
+      {inaugurarGrupoId !== null && createPortal(
+        <div className="modal-backdrop z-[9999]" onClick={() => setInaugurarGrupoId(null)}>
           <div className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-title font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Rocket className="w-5 h-5 text-brand-500" /> Inaugurar Grupo
@@ -184,9 +162,14 @@ export const GruposPage = () => {
               <button type="button" className="btn btn-outline" onClick={() => setInaugurarGrupoId(null)}>Cancelar</button>
               <button 
                 type="button" className="btn btn-primary" 
-                onClick={() => {
+                onClick={async () => {
                   if (!dataInauguracaoInput) { triggerToast("A data da assembleia é obrigatória.", "warning"); return; }
-                  inaugurarMutation.mutate({ id: inaugurarGrupoId, dataA: dataInauguracaoInput });
+                  try {
+                    await inaugurar({ id: inaugurarGrupoId, dataAssembleia: dataInauguracaoInput });
+                    triggerToast("Grupo Inaugurado com Sucesso! Status: EM_ANDAMENTO.", "success");
+                  } catch (err) {
+                    triggerToast(err.message || "Erro ao inaugurar", "danger");
+                  }
                   setInaugurarGrupoId(null);
                 }}
               >
@@ -194,12 +177,13 @@ export const GruposPage = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal de Reajuste */}
-      {reajustarGrupoId !== null && (
-        <div className="modal-backdrop" onClick={() => setReajustarGrupoId(null)}>
+      {reajustarGrupoId !== null && createPortal(
+        <div className="modal-backdrop z-[9999]" onClick={() => setReajustarGrupoId(null)}>
           <div className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-title font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-brand-500" /> Ajustar Valor do Bem de Referência
@@ -220,10 +204,15 @@ export const GruposPage = () => {
               <button type="button" className="btn btn-outline" onClick={() => setReajustarGrupoId(null)}>Cancelar</button>
               <button 
                 type="button" className="btn btn-primary" 
-                onClick={() => {
+                onClick={async () => {
                   const valor = Number(novoValorInput);
                   if (!novoValorInput || isNaN(valor) || valor <= 0) { triggerToast("Informe um valor de crédito válido maior que zero.", "warning"); return; }
-                  reajustarMutation.mutate({ id: reajustarGrupoId, novoValor: valor });
+                  try {
+                    await reajustar({ id: reajustarGrupoId, novoValorCredito: valor });
+                    triggerToast("Crédito Reajustado e parcelas em aberto alteradas proporcionalmente!", "success");
+                  } catch (err) {
+                    triggerToast(err.message || "Erro ao reajustar", "danger");
+                  }
                   setReajustarGrupoId(null);
                 }}
               >
@@ -231,7 +220,8 @@ export const GruposPage = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

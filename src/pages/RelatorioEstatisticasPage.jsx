@@ -39,7 +39,7 @@ export const RelatorioEstatisticasPage = () => {
   
   const handleExportCSV = () => {
     if (!grupoId) return;
-    const url = `http://localhost:8080/api/relatorios/estatisticas/${grupoId}/csv?dataInicio=${dataInicio}&dataFim=${dataFim}`;
+    const url = `http://localhost:8081/api/relatorios/estatisticas/${grupoId}/csv?dataInicio=${dataInicio}&dataFim=${dataFim}`;
     window.open(url, '_blank');
     triggerToast('Download do CSV das Estatísticas iniciado.', 'info');
   };
@@ -49,6 +49,7 @@ export const RelatorioEstatisticasPage = () => {
     totalExclusoes: 0,
     totalLances: 0,
     totalContemplados: 0,
+    totalCotasInadimplentes: 0,
   };
 
   const detalhes = estatisticasData?.detalhesMensais || [];
@@ -118,7 +119,7 @@ export const RelatorioEstatisticasPage = () => {
       ) : (
         <>
           {/* KPI CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             <div className="glass-panel p-6 flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-500/20 flex items-center justify-center border border-emerald-100 dark:border-emerald-500/30">
                 <UserPlus className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
@@ -160,6 +161,17 @@ export const RelatorioEstatisticasPage = () => {
                 <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Contemplações</p>
                 <h3 className="font-title text-2xl font-bold text-blue-600 dark:text-blue-400">{resumo.totalContemplados}</h3>
                 <span className="text-[10px] uppercase font-bold text-blue-500 dark:text-blue-400/80">cotas contempladas</span>
+              </div>
+            </div>
+
+            <div className="glass-panel p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-500/20 flex items-center justify-center border border-slate-100 dark:border-slate-500/30">
+                <AlertTriangle className="w-6 h-6 text-slate-600 dark:text-slate-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Inadimplentes</p>
+                <h3 className="font-title text-2xl font-bold text-slate-600 dark:text-slate-400">{resumo.totalCotasInadimplentes}</h3>
+                <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400/80">&gt; 3 parcelas atraso</span>
               </div>
             </div>
           </div>

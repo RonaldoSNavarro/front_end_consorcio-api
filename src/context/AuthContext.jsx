@@ -8,6 +8,10 @@ export const AuthProvider = ({ children }) => {
   const queryClient = useQueryClient();
   const [token, setToken] = useState(null);
   const [isDetecting, setIsDetecting] = useState(true);
+  
+  // MFA state
+  const [mfaPrompt, setMfaPrompt] = useState(false);
+  const [tempToken, setTempToken] = useState(null);
 
   useEffect(() => {
     const init = async () => {
@@ -37,6 +41,23 @@ export const AuthProvider = ({ children }) => {
       return api.login(username, password);
     },
     onSuccess: async (res) => {
+      if (res.mfaRequired) {
+        setTempToken(res.tempToken);
+        setMfaPrompt(true);
+      } else {
+        setToken(res.token);
+        await queryClient.invalidateQueries({ queryKey: ['session'] });
+      }
+    }
+  });
+
+  const verifyMfaMutation = useMutation({
+    mutationFn: async ({ code }) => {
+      return api.loginMfa(tempToken, code);
+    },
+    onSuccess: async (res) => {
+      setMfaPrompt(false);
+      setTempToken(null);
       setToken(res.token);
       await queryClient.invalidateQueries({ queryKey: ['session'] });
     }
@@ -56,8 +77,14 @@ export const AuthProvider = ({ children }) => {
   const auth = {
     user: sessionQuery.data || null,
     token,
-    isLoading: isDetecting || sessionQuery.isLoading || loginMutation.isPending || logoutMutation.isPending,
+    mfaPrompt,
+    isLoading: isDetecting || sessionQuery.isLoading || loginMutation.isPending || logoutMutation.isPending || verifyMfaMutation.isPending,
     login: async (username, password) => loginMutation.mutateAsync({ username, password }),
+    verifyMfa: async (code) => verifyMfaMutation.mutateAsync({ code }),
+    cancelMfa: () => {
+      setMfaPrompt(false);
+      setTempToken(null);
+    },
     logout: async () => logoutMutation.mutateAsync()
   };
 

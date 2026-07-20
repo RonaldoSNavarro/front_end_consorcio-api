@@ -4,9 +4,9 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { 
   Building2, LayoutDashboard, Users, Grid3X3, CircleHelp, 
-  CalendarDays, ArrowUpDown, DollarSign, Clock,
+  CalendarDays, ArrowUpDown, DollarSign, Wallet, CircleDollarSign,
   FileText, BarChart3, Shield, ShieldAlert, LogOut, Sun, Moon, X,
-  ShoppingCart, Tag, Dice5
+  ShoppingCart, Tag, Dice5, Settings, ShieldCheck, UserCog
 } from 'lucide-react';
 
 const navLinks = [
@@ -15,25 +15,31 @@ const navLinks = [
   { to: '/grupos', label: 'Grupos Adm', icon: Grid3X3 },
   { to: '/cotas', label: 'Cotas', icon: CircleHelp },
   { to: '/reembolsos-excluidos', label: 'Reembolso Excluídos', icon: DollarSign },
-  { to: '/financeiro', label: 'Amortização / Parcelas', icon: Clock },
+  { to: '/financeiro', label: 'Financeiro', icon: Wallet },
 ];
 
 const contemplacaoLinks = [
   { to: '/assembleias', label: 'Assembleias AGO', icon: CalendarDays },
   { to: '/loteria-federal', label: 'Loteria Federal', icon: Dice5 },
   { to: '/lances-pendentes', label: 'Lances e Integralização', icon: ArrowUpDown },
+  { to: '/credenciamento-lances', label: 'Credenciamento de Lances', icon: CircleDollarSign },
 ];
 
 const vendaLinks = [
   { to: '/vendas/proposta', label: 'Nova Proposta', icon: ShoppingCart },
-  { to: '/vendas/tipos', label: 'Tipos de Venda', icon: Tag, roles: ['ADMIN', 'GERENTE'] },
+  { to: '/vendas/tipos', label: 'Tipos de Venda', icon: Tag, authorities: ['MANAGE_GRUPOS'] },
 ];
 
 const reportLinks = [
-  { to: '/relatorios/balancete', label: 'Balancete (4110)', icon: FileText, roles: ['ADMIN', 'AUDITOR'] },
+  { to: '/relatorios/balancete', label: 'Balancete (4110)', icon: FileText, authorities: ['VIEW_REPORTS'] },
   { to: '/relatorios/estatisticas', label: 'Estatísticas (2080)', icon: BarChart3 },
-  { to: '/relatorios/pld-ft', label: 'Monitoramento PLD/FT', icon: Shield, roles: ['ADMIN', 'AUDITOR'] },
-  { to: '/compliance/alertas', label: 'Listas Restritivas (PLD)', icon: ShieldAlert, roles: ['ADMIN', 'COMPLIANCE'] },
+  { to: '/relatorios/pld-ft', label: 'Monitoramento PLD/FT', icon: Shield, authorities: ['VIEW_REPORTS'] },
+  { to: '/compliance/alertas', label: 'Listas Restritivas (PLD)', icon: ShieldAlert, authorities: ['MANAGE_COMPLIANCE'] },
+];
+
+const accessLinks = [
+  { to: '/usuarios', label: 'Usuários', icon: UserCog, authorities: ['MANAGE_USERS'] },
+  { to: '/perfis', label: 'Perfis de Acesso', icon: ShieldCheck, authorities: ['MANAGE_USERS'] },
 ];
 
 export const Sidebar = ({ onClose }) => {
@@ -110,8 +116,11 @@ export const Sidebar = ({ onClose }) => {
           </div>
         </div>
 
-        {vendaLinks.map(({ to, label, icon: Icon, roles }) => {
-          if (roles && !roles.includes(user?.role)) return null;
+        {vendaLinks.map(({ to, label, icon: Icon, authorities }) => {
+          if (authorities) {
+            const hasAuth = authorities.some(auth => user?.authorities?.includes(auth));
+            if (!hasAuth) return null;
+          }
           return (
             <NavLink key={to} to={to} className={linkClass} onClick={onClose}>
               <Icon className="w-[18px] h-[18px] shrink-0" />
@@ -131,8 +140,11 @@ export const Sidebar = ({ onClose }) => {
           </div>
         </div>
 
-        {reportLinks.map(({ to, label, icon: Icon, roles }) => {
-          if (roles && !roles.includes(user?.role)) return null;
+        {reportLinks.map(({ to, label, icon: Icon, authorities }) => {
+          if (authorities) {
+            const hasAuth = authorities.some(auth => user?.authorities?.includes(auth));
+            if (!hasAuth) return null;
+          }
           return (
             <NavLink key={to} to={to} className={linkClass} onClick={onClose}>
               <Icon className="w-[18px] h-[18px] shrink-0" />
@@ -140,6 +152,46 @@ export const Sidebar = ({ onClose }) => {
             </NavLink>
           );
         })}
+
+        {/* Gestão de Acesso */}
+        <div className="pt-5 pb-2 px-3">
+          <div className="flex items-center gap-2">
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700/50" />
+            <span className="text-[0.65rem] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">
+              Gestão de Acesso
+            </span>
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700/50" />
+          </div>
+        </div>
+
+        {accessLinks.map(({ to, label, icon: Icon, authorities }) => {
+          if (authorities) {
+            const hasAuth = authorities.some(auth => user?.authorities?.includes(auth));
+            if (!hasAuth) return null;
+          }
+          return (
+            <NavLink key={to} to={to} className={linkClass} onClick={onClose}>
+              <Icon className="w-[18px] h-[18px] shrink-0" />
+              <span>{label}</span>
+            </NavLink>
+          );
+        })}
+
+        {/* Configurações Section */}
+        <div className="pt-5 pb-2 px-3">
+          <div className="flex items-center gap-2">
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700/50" />
+            <span className="text-[0.65rem] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">
+              Sistema
+            </span>
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700/50" />
+          </div>
+        </div>
+
+        <NavLink to="/configuracoes/mfa" className={linkClass} onClick={onClose}>
+          <Settings className="w-[18px] h-[18px] shrink-0" />
+          <span>Configurações MFA</span>
+        </NavLink>
       </nav>
 
       {/* Footer */}

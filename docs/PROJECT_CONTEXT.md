@@ -36,6 +36,8 @@ Este documento descreve o estado atual do frontend, a stack de referência, as A
 | Relatório Balancete | `RelatorioBalancetePage.jsx` | `/relatorios/balancete` | 🔒 ADMIN, AUDITOR |
 | Relatório Estatísticas | `RelatorioEstatisticasPage.jsx` | `/relatorios/estatisticas` | 🔒 Autenticado |
 | Relatório PLD/FT | `RelatorioPldFtPage.jsx` | `/relatorios/pld-ft` | 🔒 ADMIN, AUDITOR |
+| Venda (Proposta) | `VendaPropostaPage.jsx` | `/vendas/proposta` | 🔒 Autenticado |
+| Tipos de Venda | `TiposDeVendaPage.jsx` | `/vendas/tipos` | 🔒 ADMIN, GERENTE |
 
 ### Componentes (9)
 
@@ -98,8 +100,8 @@ Este documento descreve o estado atual do frontend, a stack de referência, as A
 
 ## 📈 5. Estado Atual do Projeto
 
-- **Fase Atual**: Capability de Compliance PLD/FT e Estabilização Regulatória (Wave 4 Concluída).
-- **Backend de Referência**: Funcionalidades BCB 285/2023 100% integradas.
+- **Fase Atual**: Módulo de Vendas e Relatórios PLD/FT/Contábil — Projeto 100% Estabilizado (Fase 5 Concluída).
+- **Backend de Referência**: Funcionalidades BCB 285/2023 100% integradas, incluindo esteira comercial completa.
 - **Status Frontend**: Estética Premium aplicada (Skeletons de Loading, Glassmorphism Avançado, Temas Dinâmicos). Totalmente integrado à API real sem simuladores locais.
 - **Testes**: 8/8 testes E2E (Playwright) passando com 100% de sucesso. Testes unitários também em conformidade. UI Drift e Mocks completamente erradicados do código.
 - **Artefatos Gerados**:

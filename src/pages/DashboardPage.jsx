@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
@@ -58,37 +59,53 @@ export const DashboardPage = () => {
   const { data: stats, isLoading, isError, error } = useQuery({
     queryKey: ['dashboardStats'],
     queryFn: async () => {
-      const cls = await api.clientes.listar(0, 100);
-      const clientesList = cls.content || cls;
-      const totalClientes = Array.isArray(clientesList)
-        ? clientesList.filter(c => c.statusCliente !== 'INATIVO').length
-        : 0;
+      let totalClientes = 0;
+      try {
+        const cls = await api.clientes.listar(0, 100);
+        const clientesList = cls.content || cls;
+        totalClientes = Array.isArray(clientesList)
+          ? clientesList.filter(c => c.statusCliente !== 'INATIVO').length
+          : 0;
+      } catch (e) {
+        console.warn('Sem permissão para listar clientes', e);
+      }
 
-      const gps = await api.grupos.listar();
-      const gruposList = gps.content || gps;
-      const verifiedGpsList = Array.isArray(gruposList) ? gruposList : [];
+      let verifiedGpsList = [];
+      try {
+        const gps = await api.grupos.listar();
+        const gruposList = gps.content || gps;
+        verifiedGpsList = Array.isArray(gruposList) ? gruposList : [];
+      } catch (e) {
+        console.warn('Sem permissão para listar grupos', e);
+      }
 
       let arrecadacaoTotal = 0;
       const gruposFinanceiro = [];
-      await Promise.all(
-        verifiedGpsList.map(async (g) => {
-          try {
-            const fin = await api.grupos.obterFinanceiro(g.id);
-            const fdata = fin.data || fin;
-            // FIX: campo correto é totalFundoComumArrecadado
-            arrecadacaoTotal += (fdata.totalFundoComumArrecadado || 0);
-            gruposFinanceiro.push({ grupo: g, financeiro: fdata });
-          } catch (e) {
-            gruposFinanceiro.push({ grupo: g, financeiro: null });
-          }
-        })
-      );
+      if (verifiedGpsList.length > 0) {
+        await Promise.all(
+          verifiedGpsList.map(async (g) => {
+            try {
+              const fin = await api.grupos.obterFinanceiro(g.id);
+              const fdata = fin.data || fin;
+              arrecadacaoTotal += (fdata.totalFundoComumArrecadado || 0);
+              gruposFinanceiro.push({ grupo: g, financeiro: fdata });
+            } catch (e) {
+              gruposFinanceiro.push({ grupo: g, financeiro: null });
+            }
+          })
+        );
+      }
 
-      const cts = await api.cotas.listar();
-      const cotasList = cts.content || cts;
-      const totalCotas = Array.isArray(cotasList)
-        ? cotasList.filter(c => c.status === 'ATIVA' || c.status === 'CONTEMPLADA').length
-        : 0;
+      let totalCotas = 0;
+      try {
+        const cts = await api.cotas.listar();
+        const cotasList = cts.content || cts;
+        totalCotas = Array.isArray(cotasList)
+          ? cotasList.filter(c => c.status === 'ATIVA' || c.status === 'CONTEMPLADA').length
+          : 0;
+      } catch (e) {
+        console.warn('Sem permissão para listar cotas', e);
+      }
 
       const gruposAtivos = verifiedGpsList.filter(g => g.status === 'EM_ANDAMENTO').length;
       const gruposFormacao = verifiedGpsList.filter(g => g.status === 'EM_FORMACAO').length;
@@ -257,14 +274,14 @@ export const DashboardPage = () => {
               { label: 'Agendar assembleia ordinária', href: '/assembleias', color: 'text-emerald-600 dark:text-emerald-400' },
               { label: 'Painel de Compliance PLD/FT', href: '/compliance/alertas', color: 'text-amber-600 dark:text-amber-400' },
             ].map(item => (
-              <a
+              <Link
                 key={item.href}
-                href={item.href}
+                to={item.href}
                 className={`flex items-center gap-2 text-sm py-1.5 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 transition-colors ${item.color} font-medium`}
               >
                 <span className="w-1 h-1 rounded-full bg-current inline-block" />
                 {item.label}
-              </a>
+              </Link>
             ))}
           </div>
         </div>

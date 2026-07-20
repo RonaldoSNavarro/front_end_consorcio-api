@@ -109,24 +109,34 @@ function maskCpfCnpj(value) { return value; }
 
   try {
     // ----------------------------------------------------
-    // 1. LOGIN
+    // 1. LOGIN (JWT Customizado)
     // ----------------------------------------------------
-    log("📍 Acessando http://localhost:5173...");
-    await page.goto('http://localhost:5173', { waitUntil: 'networkidle' });
+    log("📍 Acessando http://localhost:5173/login...");
+    await page.goto('http://localhost:5173/login', { waitUntil: 'networkidle' });
     
     await page.screenshot({ path: path.join(screenshotDir, '01_login_screen.png') });
     log("📸 Print da tela de login gerado.");
 
     log("✍️ Preenchendo credenciais...");
-    await page.fill('#login-username', 'admin');
-    await page.fill('#login-password', 'admin');
+    // Ajuste os seletores abaixo conforme a sua tela de login real
+    await page.fill('input[name="username"], input[type="text"]', 'admin');
+    await page.fill('input[name="password"], input[type="password"]', 'admin123');
     
-    log("🔑 Clicando em Autenticar...");
+    log("🔑 Clicando em Log In...");
     await page.click('button[type="submit"]');
 
+    // Nota: Caso o MFA esteja ativo para o 'admin', o script E2E precisará ser ajustado 
+    // futuramente para capturar o código do banco de dados ou usar um bypass de E2E.
     log("⏳ Aguardando redirecionamento para o Dashboard...");
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
-    await page.waitForSelector('text=Dashboard Operacional', { timeout: 15000 });
+    try {
+      await page.waitForURL('**/dashboard', { timeout: 15000 });
+      await page.waitForSelector('text=Dashboard Operacional', { timeout: 15000 });
+    } catch (e) {
+      await page.screenshot({ path: path.join(screenshotDir, '01_login_failed.png') });
+      log("📸 Erro ao aguardar o Dashboard. Print salvo como 01_login_failed.png");
+      log("URL atual: " + page.url());
+      throw e;
+    }
     
     await page.screenshot({ path: path.join(screenshotDir, '02_dashboard_loaded.png') });
     log("📸 Login efetuado com sucesso! Print do Dashboard gerado.");

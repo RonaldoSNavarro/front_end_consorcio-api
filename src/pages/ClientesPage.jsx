@@ -1,26 +1,20 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../services/api';
+import { useClientes, useClienteHistorico } from '../hooks/useClientes';
 import { useToast } from '../context/ToastContext';
 import { ClienteForm } from '../components/forms/ClienteForm';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-import { Plus, ScrollText, Trash2, Loader2, X, Clock, Search } from 'lucide-react';
+import { Plus, ScrollText, Trash2, X, Clock, Search } from 'lucide-react';
 import { TableSkeleton, Skeleton } from '../components/ui/Skeleton';
 
 export const ClientesPage = () => {
   const { triggerToast } = useToast();
-  const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [editClienteId, setEditClienteId] = useState(null);
   const [confirmInativarId, setConfirmInativarId] = useState(null);
   const [historicoClienteId, setHistoricoClienteId] = useState(null);
   const [showHistoricoModal, setShowHistoricoModal] = useState(false);
 
-  const { data: historicoData, isLoading: historicoLoading } = useQuery({
-    queryKey: ['clienteHistorico', historicoClienteId],
-    queryFn: () => api.clientes.obterHistorico(historicoClienteId),
-    enabled: !!historicoClienteId,
-  });
+  const { data: historicoData, isLoading: historicoLoading } = useClienteHistorico(historicoClienteId);
 
   const handleHistoricoClick = (id) => {
     setHistoricoClienteId(id);
@@ -41,23 +35,7 @@ export const ClientesPage = () => {
     return () => clearTimeout(handler);
   }, [search]);
 
-  // React Query gerenciando o Fetch e Cache com Paginação e Busca!
-  const { data: clientesData, isLoading, error } = useQuery({
-    queryKey: ['clientes', page, size, debouncedSearch],
-    queryFn: () => api.clientes.listar(page, size, debouncedSearch)
-  });
-
-  const clientes = clientesData?.content || clientesData || [];
-  
-  // React Query gerenciando as mutações (ações que alteram dados)
-  const inativarMutation = useMutation({
-    mutationFn: (id) => api.clientes.inativar(id),
-    onSuccess: () => {
-      triggerToast("Cliente inativado logicamente conforme RGPD/LGPD.", "warning");
-      queryClient.invalidateQueries({ queryKey: ['clientes'] });
-    },
-    onError: (err) => triggerToast(err.message, "danger")
-  });
+  const { clientes, clientesData, isLoading, error, inativar } = useClientes(page, size, debouncedSearch);
 
   const handleInativar = (id) => {
     setConfirmInativarId(id);
@@ -273,8 +251,13 @@ export const ClientesPage = () => {
         type="danger"
         confirmText="Confirmar Inativação"
         cancelText="Voltar"
-        onConfirm={() => {
-          inativarMutation.mutate(confirmInativarId);
+        onConfirm={async () => {
+          try {
+            await inativar(confirmInativarId);
+            triggerToast("Cliente inativado logicamente conforme RGPD/LGPD.", "warning");
+          } catch (err) {
+            triggerToast(err.message || "Erro ao inativar", "danger");
+          }
           setConfirmInativarId(null);
         }}
         onCancel={() => setConfirmInativarId(null)}
