@@ -29,6 +29,8 @@ import { LoteriaFederalPage } from './pages/LoteriaFederalPage';
 import { MfaSettingsPage } from './pages/MfaSettingsPage';
 import { PerfisPage } from './pages/PerfisPage';
 import { UsuariosPage } from './pages/UsuariosPage';
+import { CredenciamentoLancesPage } from './pages/CredenciamentoLancesPage';
+import { CotaDetalhePage } from './pages/CotaDetalhePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,9 +62,11 @@ export default function App() {
                     <Route path="/clientes" element={<ClientesPage />} />
                     <Route path="/grupos" element={<GruposPage />} />
                     <Route path="/cotas" element={<CotasPage />} />
+                    <Route path="/cotas/:id" element={<CotaDetalhePage />} />
                     <Route path="/assembleias" element={<AssembleiasPage />} />
                     <Route path="/loteria-federal" element={<LoteriaFederalPage />} />
                     <Route path="/lances-pendentes" element={<LancesPendentesPage />} />
+                    <Route path="/credenciamento-lances" element={<CredenciamentoLancesPage />} />
                     <Route path="/reembolsos-excluidos" element={<ReembolsosExcluidosPage />} />
                     <Route path="/financeiro" element={<FinanceiroPage />} />
                     

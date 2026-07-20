@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
-import { Wallet, Scale, CircleDot, AlertTriangle, CircleDollarSign } from 'lucide-react';
+import { Wallet, Scale, CircleDot, AlertTriangle } from 'lucide-react';
 
 export const FinanceiroPage = () => {
   const { triggerToast } = useToast();
@@ -10,10 +10,6 @@ export const FinanceiroPage = () => {
 
   const [selectedCotaId, setSelectedCotaId] = useState('');
   const [dataPagamentoInput, setDataPagamentoInput] = useState(new Date().toISOString().split('T')[0]);
-  
-  // Amortization form states
-  const [valorAmortizar, setValorAmortizar] = useState('');
-  const [tipoAmortizacao, setTipoAmortizacao] = useState('DILUICAO');
 
   // Queries
   const { data: cotasData } = useQuery({ queryKey: ['cotas'], queryFn: () => api.cotas.listar() });
@@ -56,21 +52,6 @@ export const FinanceiroPage = () => {
     onError: (err) => triggerToast(err.message, "danger")
   });
 
-  const amortizarMutation = useMutation({
-    mutationFn: ({ cotaId, valor, tipo }) => {
-      if (tipo === 'DILUICAO') return api.parcelas.amortizarPorDiluicao(cotaId, valor);
-      return api.parcelas.amortizarPorReducaoDePrazo(cotaId, valor);
-    },
-    onSuccess: () => {
-      triggerToast("Amortização por lance de parcelas executada com sucesso!", "success");
-      queryClient.invalidateQueries({ queryKey: ['parcelas-cota', selectedCotaId] });
-      queryClient.invalidateQueries({ queryKey: ['inadimplencia-cota', selectedCotaId] });
-      queryClient.invalidateQueries({ queryKey: ['grupos'] });
-      setValorAmortizar('');
-    },
-    onError: (err) => triggerToast(err.message, "danger")
-  });
-
   const handlePagarParcela = (parcelaId) => {
     if (!dataPagamentoInput) { triggerToast("Selecione a data do pagamento.", "warning"); return; }
     pagarMutation.mutate({ id: parcelaId, dataPagamento: dataPagamentoInput });
@@ -80,13 +61,6 @@ export const FinanceiroPage = () => {
     if (confirm("Confirmar estorno deste pagamento? O valor será retirado do fundo de caixa do grupo.")) {
       estornarMutation.mutate(parcelaId);
     }
-  };
-
-  const handleAmortizarSubmit = (e) => {
-    e.preventDefault();
-    const valor = Number(valorAmortizar);
-    if (isNaN(valor) || valor <= 0) { triggerToast("Informe um valor de amortização válido maior que zero.", "warning"); return; }
-    amortizarMutation.mutate({ cotaId: Number(selectedCotaId), valor, tipo: tipoAmortizacao });
   };
 
   const activeCota = cotas.find(c => c.id === Number(selectedCotaId));
@@ -99,7 +73,7 @@ export const FinanceiroPage = () => {
         <h2 className="font-title text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
           <Wallet className="w-7 h-7 text-brand-500" /> Financeiro e Caixa
         </h2>
-        <p className="text-sm text-slate-400 mt-1">Operações de Baixa de Parcelas, Estorno Contábil e Amortizações de Cotas.</p>
+        <p className="text-sm text-slate-400 mt-1">Operações de Baixa de Parcelas e Estorno Contábil de Cotas.</p>
       </div>
 
       {/* Banner de Conformidade */}
@@ -107,7 +81,7 @@ export const FinanceiroPage = () => {
         <Scale className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" />
         <div className="text-blue-700 dark:text-blue-300">
           <strong className="block mb-1">Regras de Contabilidade de Grupos (ADR 002):</strong>
-          Cada baixa de parcela ou estorno efetua automaticamente lançamentos contábeis de partidas dobradas sob a estrutura do plano de contas <strong>COSIF (BACEN)</strong>. Amortizações de lances diluem o valor das parcelas seguintes ou reduzem o prazo final.
+          Cada baixa de parcela ou estorno efetua automaticamente lançamentos contábeis de partidas dobradas sob a estrutura do plano de contas <strong>COSIF (BACEN)</strong>.
         </div>
       </div>
 
@@ -164,31 +138,6 @@ export const FinanceiroPage = () => {
                   <span>R$ {inadimplencia.valorTotalParaQuitacao?.toLocaleString('pt-BR')}</span>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Form de Amortização */}
-          {selectedCotaId && activeCota?.status !== 'CANCELADA' && (
-            <div className="glass-panel p-5 space-y-4">
-              <h3 className="text-base font-title font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700/50 pb-2 flex items-center gap-2">
-                <CircleDollarSign className="w-4 h-4 text-brand-500" /> Amortizar por Lance
-              </h3>
-              <form onSubmit={handleAmortizarSubmit} className="space-y-4">
-                <div className="form-group">
-                  <label htmlFor="valorAmortizar">Valor da Amortização (R$) *</label>
-                  <input id="valorAmortizar" type="number" step="0.01" value={valorAmortizar} onChange={(e) => setValorAmortizar(e.target.value)} placeholder="Ex: 5000" />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="tipoAmortizacao">Tipo de Amortização *</label>
-                  <select id="tipoAmortizacao" value={tipoAmortizacao} onChange={(e) => setTipoAmortizacao(e.target.value)}>
-                    <option value="DILUICAO">Diluir saldo nas parcelas seguintes</option>
-                    <option value="REDUCAO_PRAZO">Reduzir quantidade de meses (fim do prazo)</option>
-                  </select>
-                </div>
-                <button type="submit" className="btn btn-primary btn-block" disabled={amortizarMutation.isPending}>
-                  {amortizarMutation.isPending ? 'Amortizando...' : 'Amortizar Valor'}
-                </button>
-              </form>
             </div>
           )}
         </div>

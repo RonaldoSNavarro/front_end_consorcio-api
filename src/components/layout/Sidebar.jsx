@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { 
   Building2, LayoutDashboard, Users, Grid3X3, CircleHelp, 
-  CalendarDays, ArrowUpDown, DollarSign, Clock,
+  CalendarDays, ArrowUpDown, DollarSign, Wallet, CircleDollarSign,
   FileText, BarChart3, Shield, ShieldAlert, LogOut, Sun, Moon, X,
   ShoppingCart, Tag, Dice5, Settings, ShieldCheck, UserCog
 } from 'lucide-react';
@@ -15,13 +15,14 @@ const navLinks = [
   { to: '/grupos', label: 'Grupos Adm', icon: Grid3X3 },
   { to: '/cotas', label: 'Cotas', icon: CircleHelp },
   { to: '/reembolsos-excluidos', label: 'Reembolso Excluídos', icon: DollarSign },
-  { to: '/financeiro', label: 'Amortização / Parcelas', icon: Clock },
+  { to: '/financeiro', label: 'Financeiro', icon: Wallet },
 ];
 
 const contemplacaoLinks = [
   { to: '/assembleias', label: 'Assembleias AGO', icon: CalendarDays },
   { to: '/loteria-federal', label: 'Loteria Federal', icon: Dice5 },
   { to: '/lances-pendentes', label: 'Lances e Integralização', icon: ArrowUpDown },
+  { to: '/credenciamento-lances', label: 'Credenciamento de Lances', icon: CircleDollarSign },
 ];
 
 const vendaLinks = [

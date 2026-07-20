@@ -45,16 +45,7 @@ test.describe('Fluxo Financeiro - Fundos e Parcelas', () => {
         return;
     }
 
-    // 4. Fluxo de Amortização
-    const inputAmortizar = page.locator('#valorAmortizar');
-    if (await inputAmortizar.isVisible()) {
-      await inputAmortizar.fill('5000');
-      // Deixa o tipo como DILUICAO
-      await page.click('button[type="submit"]:has-text("Amortizar Valor")');
-      
-      // Verifica o toast
-      await expect(page.locator('text=Amortização por lance de parcelas executada com sucesso!')).toBeVisible({ timeout: 15000 });
-    }
+    // 4. (Amortização foi removida para Credenciamento de Lances)
 
     // 5. Fluxo de Baixa (Pagar)
     // Procurar o primeiro botão 'Baixar'

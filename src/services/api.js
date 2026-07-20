@@ -40,6 +40,10 @@ export const api = {
       return response.json(); // { mfaRequired: true, tempToken: "..." }
     }
     
+    if (response.status === 401) {
+      throw new Error("Usuário ou senha incorretos.");
+    }
+    
     if (!response.ok) throw await handleResponseError(response, "Falha na autenticação com o servidor Spring.");
     return { token: "cookie_managed", message: "Login success" };
   },
@@ -276,10 +280,23 @@ export const api = {
       return response.json();
     },
     obterSaldo: async (id) => {
-            const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/saldo`);
+      const response = await fetchApi(`${BASE_URL}/api/grupos/${id}/saldo`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao obter saldo atual do grupo na API.");
       return response.json();
     },
+  },
+
+  // --- BENS ---
+  bens: {
+    listar: async () => {
+      // Mock for bensPermitidos
+      return [
+        { id: 'VEICULO_AUTOMOTOR', nome: 'Veículo Automotor' },
+        { id: 'IMOVEL', nome: 'Imóvel' },
+        { id: 'SERVICO', nome: 'Serviço' },
+        { id: 'OUTROS_BENS_MOVEIS', nome: 'Eletroeletrônicos e Outros Bens Móveis' }
+      ];
+    }
   },
 
   // --- RELATÓRIOS ---
@@ -311,6 +328,23 @@ export const api = {
       if (!response.ok) throw new Error("Erro ao buscar cotas da API.");
       const data = await response.json();
       return { content: data.content };
+    },
+    buscar: async (grupoId, numeroCota, versao, cpfCnpj) => {
+      const params = new URLSearchParams();
+      if (grupoId) params.append('grupoId', grupoId);
+      if (numeroCota) params.append('numeroCota', numeroCota);
+      if (versao) params.append('versao', versao);
+      if (cpfCnpj) params.append('cpfCnpj', cpfCnpj.replace(/[^0-9]/g, ''));
+      params.append('size', '50');
+      const response = await fetchApi(`${BASE_URL}/api/cotas/buscar?${params.toString()}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao buscar cotas.");
+      const data = await response.json();
+      return { content: data.content || data, totalElements: data.totalElements };
+    },
+    buscarPorId: async (id) => {
+      const response = await fetchApi(`${BASE_URL}/api/cotas/${id}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao buscar detalhes da cota.");
+      return response.json();
     },
     listarPendentesReembolso: async () => {
             const response = await fetchApi(`${BASE_URL}/api/cotas/canceladas/pendentes-reembolso`);

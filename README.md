@@ -1,68 +1,69 @@
-# ConsÃ³rcio Admin - Frontend Financeiro ðŸ“Š
+# Consórcio Admin - Frontend Financeiro 📊
 
-Este Ã© o mÃ³dulo Frontend de administraÃ§Ã£o do **ConsÃ³rcio API**, responsÃ¡vel por se conectar com nosso motor financeiro Spring Boot e administrar grupos, cotas, parcelas e apuraÃ§Ã£o de assembleias de forma visual, segura e com foco em alta fidelidade regulatÃ³ria.
-
----
-
-## ðŸ�—ï¸� Arquitetura e Tecnologias
-
-A aplicaÃ§Ã£o adota um ecossistema modular escalÃ¡vel, projetado para suportar fluxos de caixa complexos com robustez e consistÃªncia de estado:
-
-*   **React 18**: ConstruÃ§Ã£o da interface declarativa com hooks.
-*   **Vite**: Ferramenta de build de Ãºltima geraÃ§Ã£o para desenvolvimento Ã¡gil.
-*   **React Router DOM**: GestÃ£o de rotas da SPA com controle de acesso baseado em perfis (RBAC) e proteÃ§Ã£o contra acessos diretos indevidos.
-*   **TanStack Query (React Query) v5**: GestÃ£o absoluta de Server State, cache de dados, paginaÃ§Ã£o e invalidaÃ§Ã£o instantÃ¢nea de queries pÃ³s-mutaÃ§Ã£o para evitar cliques duplos e inconsistÃªncias financeiras.
-*   **Zod & React Hook Form**: FormulÃ¡rios nÃ£o-controlados super performÃ¡ticos que validam formatos (CPF/CNPJ, datas, moedas) e previnem valores negativos ou injeÃ§Ãµes no lado do cliente.
-*   **ViaCEP Integrado**: Consulta automatizada de CEPs via proxy no backend (prevenindo problemas de CORS e exposiÃ§Ã£o a terceiros no cliente).
+Este é o módulo Frontend de administração do **Consórcio API**, responsável por se conectar com nosso motor financeiro Spring Boot e administrar grupos, cotas, parcelas e apuração de assembleias de forma visual, segura e com foco em alta fidelidade regulatória.
 
 ---
 
-## ðŸŽ¨ Identidade Visual & Design System Premium
+## 🏗️ Arquitetura e Tecnologias
 
-A aplicaÃ§Ã£o foi reformulada para seguir uma estÃ©tica corporativa sÃ³bria e premium (padrÃ£o de bancos e fintechs):
+A aplicação adota um ecossistema modular escalável, projetado para suportar fluxos de caixa complexos com robustez e consistência de estado:
 
-*   **Tema Escuro HSL HarmÃ´nico**:
+*   **React 18**: Construção da interface declarativa com hooks.
+*   **Vite**: Ferramenta de build de última geração para desenvolvimento ágil.
+*   **React Router DOM**: Gestão de rotas da SPA com controle de acesso baseado em perfis (RBAC) e proteção contra acessos diretos indevidos.
+*   **TanStack Query (React Query) v5**: Gestão absoluta de Server State, cache de dados, paginação e invalidação instantânea de queries pós-mutação para evitar cliques duplos e inconsistências financeiras.
+*   **Zod & React Hook Form**: Formulários não-controlados super performáticos que validam formatos (CPF/CNPJ, datas, moedas) e previnem valores negativos ou injeções no lado do cliente.
+*   **ViaCEP Integrado**: Consulta automatizada de CEPs via proxy no backend (prevenindo problemas de CORS e exposição a terceiros no cliente).
+
+---
+
+## 🎨 Identidade Visual & Design System Premium
+
+A aplicação foi reformulada para seguir uma estética corporativa sóbria e premium (padrão de bancos e fintechs):
+
+*   **Tema Escuro HSL Harmônico**:
     *   **Background Principal**: `#0B0F19` (Midnight Navy profundo)
-    *   **Background de PainÃ©is**: `#111827` (Deep Slate / Slate 900)
-    *   **Bordas & Vidro**: TransparÃªncias suaves e sombras com sensaÃ§Ã£o de profundidade (`box-shadow`).
-    *   **Acento PrimÃ¡rio**: `#3B82F6` (Corporate Blue) e `#6366F1` (Indigo), com `#F59E0B` (Amber) reservado exclusivamente para sinalizaÃ§Ã£o de lances contemplados ou avisos financeiros.
-*   **Zero Emojis**: Todos os emojis nativos foram substituÃ­dos por Ã­cones vetoriais SVG minimalistas importados de `Icons.jsx`.
+    *   **Background de Painéis**: `#111827` (Deep Slate / Slate 900)
+    *   **Bordas & Vidro**: Transparências suaves e sombras com sensação de profundidade (`box-shadow`).
+    *   **Acento Primário**: `#3B82F6` (Corporate Blue) e `#6366F1` (Indigo), com `#F59E0B` (Amber) reservado exclusivamente para sinalização de lances contemplados ou avisos financeiros.
+*   **Zero Emojis**: Todos os emojis nativos foram substituídos por ícones vetoriais SVG minimalistas importados de `Icons.jsx`.
 *   **Scrollbars & Focos**: Scrollbars de trilha oculta super finos e anel de foco Indigo unificado para todos os elementos interativos.
-*   **Modais EstÃ¡veis (Anti-Overflow)**: Os backdrops e contÃªineres de modal utilizam alinhamento dinÃ¢mico (`items-start` no topo para telas pequenas com scroll vertical ativo, e `md:items-center` em resoluÃ§Ãµes normais), impedindo que formulÃ¡rios extensos cortem o cabeÃ§alho no limite do navegador.
+*   **Modais Estáveis (Anti-Overflow)**: Os backdrops e contêineres de modal utilizam alinhamento dinâmico (`items-start` no topo para telas pequenas com scroll vertical ativo, e `md:items-center` em resoluções normais), impedindo que formulários extensos cortem o cabeçalho no limite do navegador.
 
 ---
 
-## ðŸ›¡ï¸� ValidaÃ§Ãµes Estritas & Conformidade RegulatÃ³ria
+## 🛡️ Validações Estritas & Conformidade Regulatória
 
-Nossa malha de formulÃ¡rios e exibiÃ§Ãµes garante total aderÃªncia contÃ¡bil e de compliance:
-*   **IntegralizaÃ§Ã£o de Lances (ADR 004)**: Controle de lances pendentes com prazos Ãºteis rÃ­gidos e justificativa obrigatÃ³ria de cancelamento por decurso de prazo.
-*   **RestituiÃ§Ã£o de ExcluÃ­dos (ADR 005 - Art. 30 da Lei 11.795/08)**: MemÃ³ria de cÃ¡lculo detalhada aplicando a amortizaÃ§Ã£o do fundo comum sobre o valor atualizado do bem na data da AGO de sorteio, com deduÃ§Ã£o de 10% da clÃ¡usula penal contÃ¡bil.
-*   **GestÃ£o de InadimplÃªncia**: VisualizaÃ§Ã£o explÃ­cita de cotas `EXCLUIDA` e `EM_EXECUCAO`, com quebra de encargos (Multa/Juros) diretamente na fatura das parcelas atrasadas.
-*   **Fluxo de InauguraÃ§Ã£o**: Cotas de Grupos `EM_FORMACAO` entram em perÃ­odo de carÃªncia (`AGUARDANDO_INAUGURACAO`) e sÃ£o ativadas em cascata apenas na oficializaÃ§Ã£o da 1Âª AGO.
-*   **Mapeamento COSIF**: IndicaÃ§Ãµes explÃ­citas de partidas dobradas e contas contÃ¡beis de auditoria (BACEN) em cada operaÃ§Ã£o.
+Nossa malha de formulários e exibições garante total aderência contábil e de compliance:
+*   **Integralização de Lances (ADR 004)**: Controle de lances pendentes com prazos úteis rígidos e justificativa obrigatória de cancelamento por decurso de prazo.
+*   **Restituição de Excluídos (ADR 005 - Art. 30 da Lei 11.795/08)**: Memória de cálculo detalhada aplicando a amortização do fundo comum sobre o valor atualizado do bem na data da AGO de sorteio, com dedução de 10% da cláusula penal contábil.
+*   **Gestão de Inadimplência**: Visualização explícita de cotas `EXCLUIDA` e `EM_EXECUCAO`, com quebra de encargos (Multa/Juros) diretamente na fatura das parcelas atrasadas.
+*   **Fluxo de Inauguração**: Cotas de Grupos `EM_FORMACAO` entram em período de carência (`AGUARDANDO_INAUGURACAO`) e são ativadas em cascata apenas na oficialização da 1ª AGO.
+*   **Mapeamento COSIF**: Indicações explícitas de partidas dobradas e contas contábeis de auditoria (BACEN) em cada operação.
 
 ---
 
-## ðŸ“‘ SDD (Spec-Driven Development) & Capabilities
+## 📄 SDD (Spec-Driven Development) & Capabilities
 
-O projeto Ã© guiado estritamente por especificaÃ§Ãµes de UI (`docs/specs/`) vinculadas aos contratos de API do backend. 
-Atualmente, o **Sign-Off** foi concluÃ­do com sucesso para as seguintes 12 capabilities (`IMPLEMENTED v1.0`):
-1. AutenticaÃ§Ã£o e SessÃ£o (com F5-Safety)
-2. GestÃ£o de Assembleias
-3. ComposiÃ§Ã£o de Fundos e Parcelas
-4. Oferta de Lances
-5. ApuraÃ§Ã£o e ContemplaÃ§Ãµes
-6. Mora e InadimplÃªncia
+O projeto é guiado estritamente por especificações de UI (`docs/specs/`) vinculadas aos contratos de API do backend. 
+Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 13 capabilities (`IMPLEMENTED v1.0`):
+1. Autenticação e Sessão (com F5-Safety)
+2. Gestão de Assembleias
+3. Composição de Fundos e Parcelas
+4. Oferta de Lances e Credenciamento
+5. Apuração e Contemplações
+6. Mora e Inadimplência
 7. Seguros
-8. RestituiÃ§Ã£o de ExcluÃ­dos
+8. Restituição de Excluídos
 9. Reajustes e Encerramento
-10. RelatÃ³rios (PLD/FT, Balancete e EstatÃ­sticas)
+10. Relatórios (PLD/FT, Balancete e Estatísticas)
 11. Compliance e Listas Restritivas (PLD/FT)
-12. Esteira de Vendas (Proposta de AdesÃ£o, Produtos e Planos)
+12. Esteira de Vendas (Proposta de Adesão, Produtos e Planos)
+13. Busca Refinada e Filtros de Cota
 
 **Em Andamento / Recentes:**
+* **Credenciamento de Lances:** Novo fluxo dedicado na captação das assembleias, com cálculos de lance fixo automático.
 * **Gestão de Acessos (RBAC):** Novas páginas completas para administração de Perfis (`PerfisPage`) e Usuários (`UsuariosPage`). O frontend agora gerencia as Permissões Granulares em interface e fornece avisos de sistema (Toasts) requerendo logout sempre que os privilégios da sessão ativa são modificados, garantindo consistência JWT em conformidade com o backend.
-
 ---
 
 ## ðŸ“‚ Estrutura de DiretÃ³rios

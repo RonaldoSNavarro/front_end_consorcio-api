@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import { useGrupos, useGrupoSaldo } from '../hooks/useGrupos';
 import { useToast } from '../context/ToastContext';
@@ -140,8 +141,8 @@ export const GruposPage = () => {
       {showModal && <GrupoForm onClose={() => setShowModal(false)} />}
 
       {/* Modal de Inauguração */}
-      {inaugurarGrupoId !== null && (
-        <div className="modal-backdrop" onClick={() => setInaugurarGrupoId(null)}>
+      {inaugurarGrupoId !== null && createPortal(
+        <div className="modal-backdrop z-[9999]" onClick={() => setInaugurarGrupoId(null)}>
           <div className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-title font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Rocket className="w-5 h-5 text-brand-500" /> Inaugurar Grupo
@@ -176,12 +177,13 @@ export const GruposPage = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal de Reajuste */}
-      {reajustarGrupoId !== null && (
-        <div className="modal-backdrop" onClick={() => setReajustarGrupoId(null)}>
+      {reajustarGrupoId !== null && createPortal(
+        <div className="modal-backdrop z-[9999]" onClick={() => setReajustarGrupoId(null)}>
           <div className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-title font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-brand-500" /> Ajustar Valor do Bem de Referência
@@ -218,7 +220,8 @@ export const GruposPage = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

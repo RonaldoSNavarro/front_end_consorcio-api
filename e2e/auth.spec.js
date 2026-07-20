@@ -13,7 +13,7 @@ test.describe('Autenticação e Sessão (ADR 007)', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ name: 'Admin', role: 'ADMIN' }),
+        body: JSON.stringify({ name: 'Admin', role: 'ADMIN', mfaRequired: false }),
         headers: { 'Set-Cookie': 'consorcio_session=mocked_token; Path=/; HttpOnly' }
       });
     });
@@ -41,7 +41,7 @@ test.describe('Autenticação e Sessão (ADR 007)', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ name: 'Admin', role: 'ADMIN' }),
+        body: JSON.stringify({ name: 'Admin', role: 'ADMIN', mfaRequired: false }),
         headers: { 'Set-Cookie': 'consorcio_session=mocked_token; Path=/; HttpOnly' }
       });
     });
@@ -74,7 +74,7 @@ test.describe('Autenticação e Sessão (ADR 007)', () => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({ name: 'Admin', role: 'ADMIN' }),
+        body: JSON.stringify({ name: 'Admin', role: 'ADMIN', mfaRequired: false }),
         headers: { 'Set-Cookie': 'consorcio_session=mocked_token; Path=/; HttpOnly' }
       });
     });
