@@ -66,31 +66,31 @@ Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 13 capab
 * **Gestão de Acessos (RBAC):** Novas páginas completas para administração de Perfis (`PerfisPage`) e Usuários (`UsuariosPage`). O frontend agora gerencia as Permissões Granulares em interface e fornece avisos de sistema (Toasts) requerendo logout sempre que os privilégios da sessão ativa são modificados, garantindo consistência JWT em conformidade com o backend.
 ---
 
-## ðŸ“‚ Estrutura de DiretÃ³rios
+## 📂 Estrutura de Diretórios
 
 ```text
 src/
- â”£ components/
- â”ƒ â”£ forms/       # FormulÃ¡rios validados por Schemas Zod
- â”ƒ â”£ layout/      # Sidebar, AppLayout e ProtectedRoute (RBAC)
- â”ƒ â”— ui/          # Ã�cones SVG e notificaÃ§Ãµes de Toast
- â”£ context/       # AuthContext (JWT) e ToastContext (Alertas)
- â”£ hooks/         # Custom Hooks isolando todas as Queries/MutaÃ§Ãµes do TanStack
- â”£ pages/         # Telas (Dashboard, Clientes, Financeiro, AGO, Lances, Reembolsos, etc)
- â”£ schemas/       # Schemas Zod de validaÃ§Ã£o estrita (login, assembleia, lance, etc)
- â”£ services/      # Isolamento da conexÃ£o com o Backend Spring Boot (api.js & mockDb.js)
- â”£ test/          # SuÃ­te de testes unitÃ¡rios de Schemas e Hooks
- â”£ App.jsx        # ConfiguraÃ§Ã£o de Rotas e Provedores do App
- â”— main.jsx       # Ponto de montagem no DOM
+ ┣ components/
+ ┃ ┣ forms/       # Formulários validados por Schemas Zod
+ ┃ ┣ layout/      # Sidebar, AppLayout e ProtectedRoute (RBAC)
+ ┃ ┗ ui/          # Ícones SVG e notificações de Toast
+ ┣ context/       # AuthContext (JWT) e ToastContext (Alertas)
+ ┣ hooks/         # Custom Hooks isolando todas as Queries/Mutações do TanStack
+ ┣ pages/         # Telas (Dashboard, Clientes, Financeiro, AGO, Lances, Reembolsos, etc)
+ ┣ schemas/       # Schemas Zod de validação estrita (login, assembleia, lance, etc)
+ ┣ services/      # Isolamento da conexão com o Backend Spring Boot (api.js & mockDb.js)
+ ┣ test/          # Suíte de testes unitários de Schemas e Hooks
+ ┣ App.jsx        # Configuração de Rotas e Provedores do App
+ ┗ main.jsx       # Ponto de montagem no DOM
 ```
 
 ---
 
-## ðŸš€ Como Executar
+## 🚀 Como Executar
 
-O frontend foi desenvolvido para operar conectado em 100% do tempo Ã  API real Spring Boot na porta 8080. O modo mock foi permanentemente descontinuado para garantir fidelidade total nas validaÃ§Ãµes transacionais (Lances, IntegralizaÃ§Ãµes, etc).
+O frontend foi desenvolvido para operar conectado em 100% do tempo à API real Spring Boot na porta 8080. O modo mock foi permanentemente descontinuado para garantir fidelidade total nas validações transacionais (Lances, Integralizações, etc).
 
-1. Instale todas as dependÃªncias:
+1. Instale todas as dependências:
    ```bash
    npm install
    ```
@@ -100,19 +100,19 @@ O frontend foi desenvolvido para operar conectado em 100% do tempo Ã  API real
    npm run dev
    ```
 
-3. Execute a suÃ­te de testes unitÃ¡rios e de integraÃ§Ã£o:
+3. Execute a suíte de testes unitários e de integração:
    ```bash
    npm run test:run
    ```
 
 ---
 
-## ðŸ§ª Cobertura de Testes (Vitest)
+## 🧪 Cobertura de Testes (Vitest)
 
-A aplicaÃ§Ã£o conta com validaÃ§Ã£o automatizada contÃ­nua por meio de Vitest, cobrindo:
-*   **Schemas Zod**: ValidaÃ§Ã£o de CPFs/CNPJs, regras financeiras, patrimÃ´nio e formatos.
-* - **Estado Frontend**: Totalmente refatorado para estÃ©tica Premium, com Skeletons de alto nÃ­vel (`TableSkeleton`, `CardSkeleton`) e temas dinÃ¢micos (Ã‚mbar, Oceano, Esmeralda). As dependÃªncias offline foram erradicadas, tornando o consumo 100% voltado para a API de produÃ§Ã£o Spring Boot.
-- **Testes**: 8/8 testes E2E passando com 100% de sucesso. Testes unitÃ¡rios tambÃ©m em conformidade. UI Drift resolvido.
+A aplicação conta com validação automatizada contínua por meio de Vitest, cobrindo:
+*   **Schemas Zod**: Validação de CPFs/CNPJs, regras financeiras, patrimônio e formatos.
+*   **Estado Frontend**: Totalmente refatorado para estética Premium, com Skeletons de alto nível (`TableSkeleton`, `CardSkeleton`) e temas dinâmicos (Âmbar, Oceano, Esmeralda). As dependências offline foram erradicadas, tornando o consumo 100% voltado para a API de produção Spring Boot.
+*   **Testes**: 8/8 testes E2E passando com 100% de sucesso. Testes unitários também em conformidade. UI Drift resolvido.
 
 Todos os **47 testes integrados** passam com 100% de sucesso.
 

@@ -42,6 +42,10 @@ const accessLinks = [
   { to: '/perfis', label: 'Perfis de Acesso', icon: ShieldCheck, authorities: ['MANAGE_USERS'] },
 ];
 
+const complianceLinks = [
+  { to: '/compliance/analise-risco', label: 'Análise de Risco', icon: ShieldAlert, authorities: ['MANAGE_COMPLIANCE'] },
+];
+
 export const Sidebar = ({ onClose }) => {
   const { user, logout } = useAuth();
   const { isDark, toggleTheme, brandTheme, changeBrandTheme } = useTheme();
@@ -141,6 +145,30 @@ export const Sidebar = ({ onClose }) => {
         </div>
 
         {reportLinks.map(({ to, label, icon: Icon, authorities }) => {
+          if (authorities) {
+            const hasAuth = authorities.some(auth => user?.authorities?.includes(auth));
+            if (!hasAuth) return null;
+          }
+          return (
+            <NavLink key={to} to={to} className={linkClass} onClick={onClose}>
+              <Icon className="w-[18px] h-[18px] shrink-0" />
+              <span>{label}</span>
+            </NavLink>
+          );
+        })}
+
+        {/* Compliance Section */}
+        <div className="pt-5 pb-2 px-3">
+          <div className="flex items-center gap-2">
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700/50" />
+            <span className="text-[0.65rem] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">
+              Compliance
+            </span>
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700/50" />
+          </div>
+        </div>
+
+        {complianceLinks.map(({ to, label, icon: Icon, authorities }) => {
           if (authorities) {
             const hasAuth = authorities.some(auth => user?.authorities?.includes(auth));
             if (!hasAuth) return null;

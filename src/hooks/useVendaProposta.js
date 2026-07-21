@@ -113,13 +113,14 @@ export function useVendaProposta() {
 
   const vacantQuotas = useMemo(() => {
     const vacant = [];
-    for (let i = 1; i <= 100; i++) {
+    const maxCotas = selectedGrupo?.quantidadeCotas || 1000;
+    for (let i = 1; i <= maxCotas; i++) {
       if (!occupiedQuotas.includes(i)) {
         vacant.push(i);
       }
     }
     return vacant;
-  }, [occupiedQuotas]);
+  }, [occupiedQuotas, selectedGrupo]);
 
   // Auto-select primeira cota vaga
   useEffect(() => {
@@ -179,19 +180,31 @@ export function useVendaProposta() {
       });
 
       // 2. Aprovar Proposta
-      const contrato = await api.vendas.aprovarProposta(proposta.id);
+      let contrato;
+      try {
+        contrato = await api.vendas.aprovarProposta(proposta.id);
+      } catch (err) {
+        if (err.message && err.message.includes("Compliance")) {
+          return { isCompliance: true, message: err.message };
+        }
+        throw err;
+      }
 
       // 3. Efetivar Contrato (Simulação de Pagamento)
       const efetivacao = await api.vendas.efetivarContrato(contrato.id);
 
       return efetivacao;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['cotas'] });
       queryClient.invalidateQueries({ queryKey: ['clientes'] });
       queryClient.invalidateQueries({ queryKey: ['grupos'] });
 
-      triggerToast("Venda efetivada!", "success");
+      if (data && data.isCompliance) {
+        triggerToast(data.message, "warning");
+      } else {
+        triggerToast("Venda efetivada!", "success");
+      }
       navigate("/cotas");
     },
     onError: (err) => {

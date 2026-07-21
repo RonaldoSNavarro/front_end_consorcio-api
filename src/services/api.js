@@ -358,7 +358,7 @@ export const api = {
       return data.content || data;
     },
     listarPorGrupo: async (grupoId) => {
-            const response = await fetchApi(`${BASE_URL}/api/cotas/grupo/${grupoId}`);
+      const response = await fetchApi(`${BASE_URL}/api/cotas/grupo/${grupoId}?size=2000`);
       if (!response.ok) throw new Error("Erro ao buscar cotas do grupo.");
       const data = await response.json();
       return data.content || data;
@@ -668,6 +668,20 @@ export const api = {
     produtos: async () => {
       const response = await fetchApi(`${BASE_URL}/api/vendas/produtos`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao listar produtos.");
+      return response.json();
+    },
+    listarPendentesRisco: async () => {
+      const response = await fetchApi(`${BASE_URL}/api/vendas/propostas/pendentes-risco`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar propostas pendentes de análise de risco.");
+      return response.json();
+    },
+    analisarRisco: async (id, aprovada, justificativa) => {
+      const response = await fetchApi(`${BASE_URL}/api/vendas/propostas/${id}/analise-risco`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ aprovada, justificativa })
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao analisar risco.");
       return response.json();
     },
     criarProposta: async (dto) => {

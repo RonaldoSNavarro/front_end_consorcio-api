@@ -31,6 +31,7 @@ import { PerfisPage } from './pages/PerfisPage';
 import { UsuariosPage } from './pages/UsuariosPage';
 import { CredenciamentoLancesPage } from './pages/CredenciamentoLancesPage';
 import { CotaDetalhePage } from './pages/CotaDetalhePage';
+import { AnaliseRiscoPage } from './pages/AnaliseRiscoPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -82,6 +83,7 @@ export default function App() {
                     {/* Compliance (Listas Restritivas) */}
                     <Route element={<ProtectedRoute allowedAuthorities={['MANAGE_COMPLIANCE']} />}>
                       <Route path="/compliance/alertas" element={<CompliancePainelPage />} />
+                      <Route path="/compliance/analise-risco" element={<AnaliseRiscoPage />} />
                     </Route>
 
                     {/* Gestão de Acesso */}
