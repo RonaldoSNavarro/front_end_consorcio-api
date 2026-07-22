@@ -12,6 +12,8 @@ export const LancesPendentesPage = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [cancelLanceId, setCancelLanceId] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [motivoCancelamento, setMotivoCancelamento] = useState('PRAZO_EXPIRADO');
+  const [justificativaCancelamento, setJustificativaCancelamento] = useState('');
 
   const { data: lancesData, isLoading, isError, refetch } = useQuery({
     queryKey: ['lancesIntegralizacao'],
@@ -33,12 +35,13 @@ export const LancesPendentesPage = () => {
   });
 
   const cancelarMutation = useMutation({
-    mutationFn: (id) => api.contemplacoes.cancelar(id),
+    mutationFn: ({ id, motivo, justificativa }) => api.contemplacoes.cancelar(id, motivo, justificativa),
     onSuccess: () => {
       triggerToast('Contemplação cancelada com sucesso! Lance desclassificado e cota ativa.', 'success');
       queryClient.invalidateQueries({ queryKey: ['lancesIntegralizacao'] });
       setShowCancelModal(false);
       setCancelLanceId(null);
+      setJustificativaCancelamento('');
     },
     onError: (err) => triggerToast(err.message, 'danger'),
   });
@@ -65,7 +68,11 @@ export const LancesPendentesPage = () => {
   const handleCancelSubmit = (e) => {
     e.preventDefault();
     if (cancelLanceId) {
-      cancelarMutation.mutate(cancelLanceId);
+      if (!justificativaCancelamento || justificativaCancelamento.length < 15) {
+        triggerToast('A justificativa deve conter no mínimo 15 caracteres.', 'warning');
+        return;
+      }
+      cancelarMutation.mutate({ id: cancelLanceId, motivo: motivoCancelamento, justificativa: justificativaCancelamento });
     }
   };
 
@@ -276,7 +283,7 @@ export const LancesPendentesPage = () => {
               <p className="text-slate-600 dark:text-slate-300 text-sm">Você está prestes a cancelar a contemplação <strong className="text-brand-600 dark:text-brand-400">#{cancelLanceId}</strong> por falta de integralização.</p>
               <div className="form-group">
                 <label>Motivo do Cancelamento *</label>
-                <select required defaultValue="PRAZO_EXPIRADO">
+                <select required value={motivoCancelamento} onChange={e => setMotivoCancelamento(e.target.value)}>
                   <option value="PRAZO_EXPIRADO">Decurso de prazo (2 a 5 dias úteis sem pagamento)</option>
                   <option value="SOLICITACAO_CLIENTE">Desistência formalizada pelo consorciado</option>
                   <option value="FRAUDE_DOCUMENTAL">Fraude ou erro no processamento</option>
@@ -284,7 +291,7 @@ export const LancesPendentesPage = () => {
               </div>
               <div className="form-group">
                 <label>Justificativa Detalhada (Mín. 15 caracteres) *</label>
-                <textarea required rows="3" minLength="15" placeholder="Justifique o cancelamento..."></textarea>
+                <textarea required rows="3" minLength="15" value={justificativaCancelamento} onChange={e => setJustificativaCancelamento(e.target.value)} placeholder="Justifique o cancelamento..."></textarea>
               </div>
               <div className="p-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-lg text-xs text-rose-700 dark:text-rose-400 flex gap-2 items-start">
                 <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />

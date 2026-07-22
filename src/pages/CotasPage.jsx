@@ -40,9 +40,10 @@ export const CotasPage = () => {
   const searchMutation = useMutation({
     mutationFn: () => api.cotas.buscar(searchGrupoId, searchNumeroCota, searchVersao, searchCpfCnpj),
     onSuccess: (data) => {
-      setSearchResults(data.content || []);
-      if ((data.content || []).length === 0) {
-        triggerToast('Nenhuma cota encontrada com os filtros informados.', 'warning');
+      const res = (data.content || data || []).filter(c => c.status !== 'DISPONIVEL' && (c.nomeConsorciado || c.clienteId));
+      setSearchResults(res);
+      if (res.length === 0) {
+        triggerToast('Nenhuma cota com consorciado encontrada para os filtros informados.', 'warning');
       }
     },
     onError: (err) => triggerToast(err.message || 'Erro ao buscar cotas', 'danger'),
@@ -53,7 +54,6 @@ export const CotasPage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cotas'] });
       triggerToast("Cota Cancelada logicamente e parcelas excluídas.", "warning");
-      // Refresh search results
       if (searchResults) searchMutation.mutate();
     },
     onError: (err) => triggerToast(err.message || "Erro ao cancelar cota", "danger"),
@@ -158,7 +158,7 @@ export const CotasPage = () => {
         </div>
       )}
 
-      {searchResults && !searchMutation.isPending && (
+      {searchResults !== null && !searchMutation.isPending && (
         <div className="table-container">
           <table>
             <thead>
@@ -170,7 +170,7 @@ export const CotasPage = () => {
               {searchResults.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="text-center text-slate-400 py-8">
-                    Nenhuma cota encontrada.
+                    Nenhuma cota comercializada/vinculada a consorciado encontrada.
                   </td>
                 </tr>
               ) : (

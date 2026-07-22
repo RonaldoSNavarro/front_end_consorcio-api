@@ -108,7 +108,11 @@ export function useVendaProposta() {
 
   const occupiedQuotas = useMemo(() => {
     const list = cotasData || [];
-    return list.map(c => c.numeroCota).filter(Boolean);
+    // Cotas CANCELADAS ou EXCLUIDAS estão vagas para venda de reposição (Art. 31-A BCB 285)
+    return list
+      .filter(c => c.status !== 'CANCELADA' && c.status !== 'EXCLUIDA')
+      .map(c => c.numeroCota)
+      .filter(Boolean);
   }, [cotasData]);
 
   const vacantQuotas = useMemo(() => {
@@ -201,11 +205,12 @@ export function useVendaProposta() {
       queryClient.invalidateQueries({ queryKey: ['grupos'] });
 
       if (data && data.isCompliance) {
-        triggerToast(data.message, "warning");
+        triggerToast("Proposta com cliente de alto risco/alerta enviada para a Esteira de Análise de Risco (Compliance).", "warning");
+        navigate("/compliance/analise-risco");
       } else {
-        triggerToast("Venda efetivada!", "success");
+        triggerToast("Venda efetivada com sucesso!", "success");
+        navigate("/cotas");
       }
-      navigate("/cotas");
     },
     onError: (err) => {
       triggerToast(err.message || "Erro ao efetivar proposta.", "danger");

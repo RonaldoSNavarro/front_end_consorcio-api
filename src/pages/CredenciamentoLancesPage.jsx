@@ -33,7 +33,7 @@ export const CredenciamentoLancesPage = () => {
     enabled: !!selectedGrupoId,
   });
   const assembleiasCaptando = (assembleiasData?.content || []).filter(
-    (a) => a.status === 'CAPTANDO'
+    (a) => a.status === 'CAPTANDO' || a.status === 'AGENDADA'
   );
 
   const { data: cotasData } = useQuery({
@@ -76,6 +76,25 @@ export const CredenciamentoLancesPage = () => {
       triggerToast('Informe um valor de oferta válido maior que zero.', 'warning');
       return;
     }
+
+    const grupoSelecionado = grupos?.find(g => g.id === Number(selectedGrupoId));
+    if (tipoLance === 'EMBUTIDO' && grupoSelecionado) {
+      const limitePercentual = grupoSelecionado.percentualLanceEmbutidoMaximo || 0.30;
+      const limiteValor = grupoSelecionado.valorCredito ? (grupoSelecionado.valorCredito * limitePercentual) : null;
+      if (limiteValor && valor > limiteValor) {
+        triggerToast(`O valor do lance embutido ultrapassa o teto máximo permitido de ${(limitePercentual * 100).toFixed(0)}% (Max: R$ ${limiteValor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}).`, 'danger');
+        return;
+      }
+    }
+
+    if (tipoLance === 'FGTS' && grupoSelecionado) {
+      const categoria = grupoSelecionado.categoria || grupoSelecionado.categoriaBem;
+      if (categoria && categoria !== 'IMOVEL') {
+        triggerToast('A oferta de lance utilizando recursos do FGTS é permitida exclusivamente para consórcios da categoria IMÓVEL.', 'danger');
+        return;
+      }
+    }
+
     salvarLanceMutation.mutate({
       cotaId: Number(selectedCotaId),
       assembleiaId: Number(selectedAssembleiaId),

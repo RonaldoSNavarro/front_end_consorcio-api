@@ -1,5 +1,5 @@
 
-const BASE_URL = import.meta.env?.VITE_API_URL || '';
+export const BASE_URL = import.meta.env?.VITE_API_URL || '';
 
 
 
@@ -539,8 +539,12 @@ export const api = {
       if (!response.ok) throw await handleResponseError(response, "Erro ao registrar pagamento do bem.");
       return response.json();
     },
-    cancelar: async (id) => {
-      const response = await fetchApi(`${BASE_URL}/api/contemplacoes/lances/${id}/cancelar`, {
+    cancelar: async (id, motivo, justificativa) => {
+      const params = new URLSearchParams();
+      if (motivo) params.append('motivo', motivo);
+      if (justificativa) params.append('justificativa', justificativa);
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+      const response = await fetchApi(`${BASE_URL}/api/contemplacoes/lances/${id}/cancelar${queryString}`, {
         method: 'POST'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao cancelar contemplação.");

@@ -59,7 +59,7 @@ Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 13 capab
 10. Relatórios (PLD/FT, Balancete e Estatísticas)
 11. Compliance e Listas Restritivas (PLD/FT)
 12. Esteira de Vendas (Proposta de Adesão, Produtos e Planos)
-13. Busca Refinada e Filtros de Cota
+13. Busca Refinada e Filtros de Cota (Consulta sob demanda via formulário de busca, filtrando cotas comercializadas com consorciados e omitindo cotas disponíveis).
 
 **Em Andamento / Recentes:**
 * **Credenciamento de Lances:** Novo fluxo dedicado na captação das assembleias, com cálculos de lance fixo automático.
@@ -112,8 +112,7 @@ O frontend foi desenvolvido para operar conectado em 100% do tempo à API real S
 A aplicação conta com validação automatizada contínua por meio de Vitest, cobrindo:
 *   **Schemas Zod**: Validação de CPFs/CNPJs, regras financeiras, patrimônio e formatos.
 *   **Estado Frontend**: Totalmente refatorado para estética Premium, com Skeletons de alto nível (`TableSkeleton`, `CardSkeleton`) e temas dinâmicos (Âmbar, Oceano, Esmeralda). As dependências offline foram erradicadas, tornando o consumo 100% voltado para a API de produção Spring Boot.
-*   **Testes**: 8/8 testes E2E passando com 100% de sucesso. Testes unitários também em conformidade. UI Drift resolvido.
 
-Todos os **47 testes integrados** passam com 100% de sucesso.
+Todos os **51 testes integrados (Vitest)** passam com 100% de sucesso.
 
 * **CRM e Vendas:** Motor de originação de consórcios com cadastro de Corretores, orçamentação e Propostas de Adesão. Tipos de Venda determinam o comissionamento de cada produto, enquanto a Alocação Inteligente encontra o melhor grupo (em andamento ou formação) para alocar o consorciado através de cruzamento da Categoria do Bem e limite de cotas. As regras de cálculo e estornos de Comissões serão estendidas em módulo futuro, tendo a primeira parcela do consórcio composta integralmente por Taxa de Administração e Fundo de Reserva.

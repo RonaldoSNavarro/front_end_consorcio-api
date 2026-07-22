@@ -43,7 +43,7 @@ export const GrupoForm = ({ onClose }) => {
     queryFn: () => api.bens.listar()
   });
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm({
     resolver: zodResolver(grupoSchema),
     defaultValues: {
       taxaAdministracao: 15,
@@ -56,6 +56,13 @@ export const GrupoForm = ({ onClose }) => {
       valorCredito: 60000,
       prazoMeses: 60
     }
+  });
+
+  const selectedCategoria = watch('categoriaBem');
+  const bensFiltrados = bens.filter(bem => {
+    if (!selectedCategoria) return true;
+    const cat = bem.categoria || bem.categoriaBem;
+    return !cat || cat === selectedCategoria;
   });
 
   const mutation = useMutation({
@@ -154,12 +161,16 @@ export const GrupoForm = ({ onClose }) => {
 
           <FormField label="Bens Permitidos *" id="grupo-bens" error={errors.bensPermitidos}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-              {bens.map(bem => (
-                <label key={bem.id} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-                  <input type="checkbox" value={bem.id} {...register('bensPermitidos')} className="rounded border-slate-300" />
-                  {bem.nome}
-                </label>
-              ))}
+              {bensFiltrados.length === 0 ? (
+                <p className="text-xs text-slate-400 italic">Nenhum bem cadastrado para esta categoria.</p>
+              ) : (
+                bensFiltrados.map(bem => (
+                  <label key={bem.id} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                    <input type="checkbox" value={bem.id} {...register('bensPermitidos')} className="rounded border-slate-300" />
+                    {bem.nome || bem.descricao}
+                  </label>
+                ))
+              )}
             </div>
           </FormField>
           

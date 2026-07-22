@@ -1,4 +1,6 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { api, BASE_URL } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { BarChart3, Download, UserPlus, UserMinus, Tags, Trophy, Calendar, Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -7,15 +9,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { estatisticasFiltroSchema } from '../schemas/relatoriosSchema';
 import { useEstatisticasQuery } from '../hooks/useRelatorios';
 
-// Idealmente os grupos viriam de uma query `useGrupos()`
-const MOCK_GRUPOS = [
-  { id: 1, codigo: 'GRP-AUTO-002' },
-  { id: 2, codigo: 'GRP-IMOVEL-010' },
-  { id: 3, codigo: 'GRP-MOTO-005' },
-];
-
 export const RelatorioEstatisticasPage = () => {
   const { triggerToast } = useToast();
+
+  const { data: gruposData } = useQuery({ queryKey: ['grupos'], queryFn: () => api.grupos.listar() });
+  const grupos = gruposData?.content || gruposData || [];
 
   const { register, watch, formState: { errors, isValid } } = useForm({
     resolver: zodResolver(estatisticasFiltroSchema),
@@ -39,7 +37,7 @@ export const RelatorioEstatisticasPage = () => {
   
   const handleExportCSV = () => {
     if (!grupoId) return;
-    const url = `http://localhost:8081/api/relatorios/estatisticas/${grupoId}/csv?dataInicio=${dataInicio}&dataFim=${dataFim}`;
+    const url = `${BASE_URL}/api/relatorios/estatisticas/${grupoId}/csv?dataInicio=${dataInicio}&dataFim=${dataFim}`;
     window.open(url, '_blank');
     triggerToast('Download do CSV das Estatísticas iniciado.', 'info');
   };
@@ -86,7 +84,7 @@ export const RelatorioEstatisticasPage = () => {
           <label htmlFor="select-grupo-est">Grupo *</label>
           <select id="select-grupo-est" {...register('grupoId')} className={errors.grupoId ? 'border-rose-500' : ''}>
             <option value="">Selecione um grupo...</option>
-            {MOCK_GRUPOS.map((g) => <option key={g.id} value={g.id}>{g.codigo}</option>)}
+            {grupos.map((g) => <option key={g.id} value={g.id}>{g.codigo || `Grupo #${g.id}`}</option>)}
           </select>
           {errors.grupoId && <span className="text-xs text-rose-500 mt-1">{errors.grupoId.message}</span>}
         </div>
