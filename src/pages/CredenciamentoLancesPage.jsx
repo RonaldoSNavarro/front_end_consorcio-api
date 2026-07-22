@@ -205,7 +205,7 @@ export const CredenciamentoLancesPage = () => {
                     <option value="">Selecione uma cota ativa...</option>
                     {cotasAtivas.map((c) => (
                       <option key={c.id} value={c.id}>
-                        Cota #{c.numeroCota} — Cliente {c.clienteId}
+                        Cota #{c.codigoCota || c.numeroCota} — Cliente {c.clienteId}
                       </option>
                     ))}
                   </select>

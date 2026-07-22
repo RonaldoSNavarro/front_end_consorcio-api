@@ -89,7 +89,7 @@ export const GruposPage = () => {
             <tbody>
               {Array.isArray(grupos) && grupos.map(g => (
                 <tr key={g.id}>
-                  <td className="font-semibold text-slate-900 dark:text-white">{g.codigo}</td>
+                  <td className="font-semibold text-slate-900 dark:text-white">{g.codigoGrupo || g.codigo}</td>
                   <td>
                     <span className={`badge ${statusBadge(g.status)}`}>
                       {g.status?.replace('_', ' ')}

@@ -76,7 +76,7 @@ export const GrupoForm = ({ onClose }) => {
   });
 
   const onSubmit = (data) => {
-    mutation.mutate(data);
+    mutation.mutate({ ...data, codigoGrupo: data.codigo });
   };
 
   useEffect(() => {

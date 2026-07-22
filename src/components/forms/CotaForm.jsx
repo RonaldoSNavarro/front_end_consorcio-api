@@ -40,7 +40,7 @@ export const CotaForm = ({ onClose }) => {
   });
 
   const onSubmit = (data) => {
-    mutation.mutate(data);
+    mutation.mutate({ ...data, codigoCota: data.numeroCota });
   };
 
   return (
@@ -89,7 +89,7 @@ export const CotaForm = ({ onClose }) => {
             <select id="cota-grupo" {...register('grupoId')} aria-required="true" aria-invalid={!!errors.grupoId}>
               <option value="">Selecione um grupo ativo...</option>
               {Array.isArray(grupos) && grupos.filter(g => g.status !== 'ENCERRADO').map(g => (
-                <option key={g.id} value={g.id}>{g.codigo} - Crédito Base: R$ {g.valorCredito?.toLocaleString('pt-BR')}</option>
+                <option key={g.id} value={g.id}>{g.codigoGrupo || g.codigo} - Crédito Base: R$ {g.valorCredito?.toLocaleString('pt-BR')}</option>
               ))}
             </select>
             {errors.grupoId && <span className="error-text" role="alert">{errors.grupoId.message}</span>}

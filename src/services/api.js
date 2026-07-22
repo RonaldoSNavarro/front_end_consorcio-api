@@ -332,8 +332,14 @@ export const api = {
     buscar: async (grupoId, numeroCota, versao, cpfCnpj) => {
       const params = new URLSearchParams();
       if (grupoId) params.append('grupoId', grupoId);
-      if (numeroCota) params.append('numeroCota', numeroCota);
-      if (versao) params.append('versao', versao);
+      if (numeroCota) {
+        params.append('codigoCota', numeroCota);
+        params.append('numeroCota', numeroCota);
+      }
+      if (versao) {
+        params.append('versaoHistorico', versao);
+        params.append('versao', versao);
+      }
       if (cpfCnpj) params.append('cpfCnpj', cpfCnpj.replace(/[^0-9]/g, ''));
       params.append('size', '50');
       const response = await fetchApi(`${BASE_URL}/api/cotas/buscar?${params.toString()}`);

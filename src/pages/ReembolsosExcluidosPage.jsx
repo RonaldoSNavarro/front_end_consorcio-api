@@ -122,7 +122,7 @@ export const ReembolsosExcluidosPage = () => {
                 return (
                   <tr key={item.id}>
                     <td>
-                      <div className="font-bold text-slate-900 dark:text-white">Cota #{item.numeroCota || item.id}</div>
+                      <div className="font-bold text-slate-900 dark:text-white">Cota #{item.codigoCota || item.numeroCota || item.id}</div>
                       <div className="text-xs font-semibold text-slate-700 dark:text-slate-300">{item.clienteNome || `Cliente #${item.clienteId}`}</div>
                       <div className="text-[10px] font-mono text-slate-500">{item.cpfCnpj || item.clienteCpfCnpj || ''}</div>
                     </td>
@@ -184,7 +184,7 @@ export const ReembolsosExcluidosPage = () => {
               <div className="space-y-4 text-sm">
                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700/50">
                   <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400">
-                    <div>Cota: <strong className="text-slate-900 dark:text-white">#{selectedReembolso.numeroCota || selectedReembolso.id}</strong></div>
+                    <div>Cota: <strong className="text-slate-900 dark:text-white">#{selectedReembolso.codigoCota || selectedReembolso.numeroCota || selectedReembolso.id}</strong></div>
                     <div>Cliente: <strong className="text-slate-900 dark:text-white">{selectedReembolso.clienteNome || `Cliente #${selectedReembolso.clienteId}`}</strong></div>
                     <div>AGO Contemplação: <strong className="text-slate-900 dark:text-white">{selectedReembolso.numeroAssembleiaAGO || 'AGO-N/A'}</strong></div>
                     <div>Data AGO: <strong className="text-slate-900 dark:text-white">{selectedReembolso.dataContemplacaoAGO ? new Date(selectedReembolso.dataContemplacaoAGO).toLocaleDateString('pt-BR') : '—'}</strong></div>
@@ -255,7 +255,7 @@ export const ReembolsosExcluidosPage = () => {
               </div>
 
               <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700/50 text-xs mb-4 grid grid-cols-2 gap-2 text-slate-600 dark:text-slate-400">
-                <div>Cota: <span className="font-semibold text-slate-900 dark:text-white">#{selectedReembolso.numeroCota || selectedReembolso.id}</span></div>
+                <div>Cota: <span className="font-semibold text-slate-900 dark:text-white">#{selectedReembolso.codigoCota || selectedReembolso.numeroCota || selectedReembolso.id}</span></div>
                 <div>Cliente: <span className="font-semibold text-slate-900 dark:text-white">{selectedReembolso.clienteNome || `Cliente #${selectedReembolso.clienteId}`}</span></div>
                 <div className="col-span-2 text-sm">Total Líquido: <span className="font-bold font-mono text-emerald-600 dark:text-emerald-400">R$ {valorLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
               </div>

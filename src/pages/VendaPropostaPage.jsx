@@ -199,7 +199,7 @@ export const VendaPropostaPage = () => {
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <div className="font-semibold text-slate-900 dark:text-white">{g.codigo}</div>
+                        <div className="font-semibold text-slate-900 dark:text-white">{g.codigoGrupo || g.codigo}</div>
                         <div className="text-xs text-slate-500 mt-1">Status: <span className="font-semibold">{g.status?.replace('_', ' ')}</span></div>
                         <div className="text-xs text-slate-500 mt-1">Prazo Total: {g.prazoMeses} meses | TX Adm: {g.taxaAdministracao}%</div>
                         <div className="mt-2 flex gap-4 text-xs">
@@ -265,7 +265,7 @@ export const VendaPropostaPage = () => {
           <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-400 flex gap-2">
             <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <div>
-              Grupo: <strong>{selectedGrupo?.codigo}</strong> | Cota: <strong>{selectedCotaNumero}</strong> | Crédito: <strong>R$ {Number(valorCredito || 0).toLocaleString('pt-BR')}</strong>
+              Grupo: <strong>{selectedGrupo?.codigoGrupo || selectedGrupo?.codigo}</strong> | Cota: <strong>{selectedCotaNumero}</strong> | Crédito: <strong>R$ {Number(valorCredito || 0).toLocaleString('pt-BR')}</strong>
             </div>
           </div>
 
@@ -346,7 +346,7 @@ export const VendaPropostaPage = () => {
               </div>
               <div>
                 <span className="text-slate-400 text-xs uppercase block">Grupo e Cota Reservada</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">Grupo {selectedGrupo?.codigo}</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">Grupo {selectedGrupo?.codigoGrupo || selectedGrupo?.codigo}</span>
                 <span className="text-slate-500 block text-xs">Cota Reservada: <strong>{String(selectedCotaNumero).padStart(3, '0')}</strong></span>
               </div>
               <div>

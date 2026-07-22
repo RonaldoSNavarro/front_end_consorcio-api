@@ -84,7 +84,7 @@ export const RelatorioEstatisticasPage = () => {
           <label htmlFor="select-grupo-est">Grupo *</label>
           <select id="select-grupo-est" {...register('grupoId')} className={errors.grupoId ? 'border-rose-500' : ''}>
             <option value="">Selecione um grupo...</option>
-            {grupos.map((g) => <option key={g.id} value={g.id}>{g.codigo || `Grupo #${g.id}`}</option>)}
+            {grupos.map((g) => <option key={g.id} value={g.id}>{g.codigoGrupo || g.codigo || `Grupo #${g.id}`}</option>)}
           </select>
           {errors.grupoId && <span className="text-xs text-rose-500 mt-1">{errors.grupoId.message}</span>}
         </div>

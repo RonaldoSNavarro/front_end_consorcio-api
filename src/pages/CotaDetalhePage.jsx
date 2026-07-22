@@ -105,7 +105,7 @@ export const CotaDetalhePage = () => {
             </div>
             <div>
               <h2 className="font-title text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                Cota #{cota.numeroCota}
+                Cota #{cota.codigoCota || cota.numeroCota}
               </h2>
               <p className="text-sm text-slate-400 mt-0.5">
                 Grupo: {cota.codigoGrupo || cota.grupoId} · Consorciado: {cota.nomeConsorciado || cota.clienteId}

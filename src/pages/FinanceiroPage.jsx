@@ -212,7 +212,7 @@ export const FinanceiroPage = () => {
               <label htmlFor="select-cota">Ou selecione diretamente da lista:</label>
               <select id="select-cota" value={selectedCotaId} onChange={(e) => handleSelectCotaDirectly(e.target.value)}>
                 <option value="">Selecione uma cota...</option>
-                {cotas.map(c => <option key={c.id} value={c.id}>Cota #{c.numeroCota} - {c.nomeConsorciado || 'Consorciado'} (Status: {c.status})</option>)}
+                {cotas.map(c => <option key={c.id} value={c.id}>Cota #{c.codigoCota || c.numeroCota} - {c.nomeConsorciado || 'Consorciado'} (Status: {c.status})</option>)}
               </select>
             </div>
             
@@ -224,7 +224,7 @@ export const FinanceiroPage = () => {
                 {cotaEncontrada.cpfCnpj && (
                   <div><strong>CPF/CNPJ:</strong> {cotaEncontrada.cpfCnpj}</div>
                 )}
-                <div><strong>Cota:</strong> #{cotaEncontrada.numeroCota} (Versão {cotaEncontrada.versao || 1})</div>
+                <div><strong>Cota:</strong> #{cotaEncontrada.codigoCota || cotaEncontrada.numeroCota} (Versão {cotaEncontrada.versaoHistorico || cotaEncontrada.versao || 1})</div>
                 <div><strong>Grupo:</strong> {cotaEncontrada.codigoGrupo || `#${cotaEncontrada.grupoId}`}</div>
                 <div>
                   <strong>Status Cota:</strong>{' '}
