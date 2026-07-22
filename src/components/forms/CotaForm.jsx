@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -17,6 +18,13 @@ const cotaSchema = z.object({
 export const CotaForm = ({ onClose }) => {
   const { triggerToast } = useToast();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
 
   // O React Query já vai pegar as listas em CACHE, sem precisar bater na API de novo!
   const { data: clientesData } = useQuery({ queryKey: ['clientes'], queryFn: () => api.clientes.listar(0, 100) });
@@ -43,13 +51,13 @@ export const CotaForm = ({ onClose }) => {
     mutation.mutate({ ...data, codigoCota: data.numeroCota });
   };
 
-  return (
-    <div className="modal-backdrop" onClick={onClose}>
+  const modalContent = (
+    <div className="modal-backdrop flex items-center justify-center p-4 sm:p-6 z-[9999]" onClick={onClose}>
       <div 
-        className="w-full max-w-lg mx-4 p-6 rounded-2xl animate-scale-up
+        className="w-full max-w-lg mx-auto p-5 sm:p-6 rounded-2xl animate-scale-up
                    bg-white dark:bg-slate-800 
                    border border-slate-200 dark:border-slate-700/60
-                   shadow-2xl"
+                   shadow-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
@@ -108,4 +116,6 @@ export const CotaForm = ({ onClose }) => {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };

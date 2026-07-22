@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
@@ -18,6 +19,13 @@ const TipoVendaModal = ({ tipoVenda, onClose }) => {
     nome: '', descricao: '', canal: 'VENDA_DIRETA',
     percentualComissao: 0.05, exigeSeguro: false, permiteReajuste: true, ativo: true
   });
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
 
   const mutation = useMutation({
     mutationFn: (data) => tipoVenda
@@ -41,15 +49,15 @@ const TipoVendaModal = ({ tipoVenda, onClose }) => {
     mutation.mutate({ ...form, percentualComissao: parseFloat(form.percentualComissao) });
   };
 
-  return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="w-full max-w-lg mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl" onClick={e => e.stopPropagation()}>
+  const modalContent = (
+    <div className="modal-backdrop flex items-center justify-center p-4 sm:p-6 z-[9999]" onClick={onClose}>
+      <div className="w-full max-w-lg mx-auto p-5 sm:p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-title font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Tag className="w-5 h-5 text-brand-500" />
             {tipoVenda ? 'Editar Tipo de Venda' : 'Novo Tipo de Venda'}
           </h3>
-          <button onClick={onClose} className="btn-ghost p-2 rounded-lg"><X className="w-4 h-4" /></button>
+          <button onClick={onClose} className="btn-ghost p-2 rounded-lg" aria-label="Fechar"><X className="w-4 h-4" /></button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="form-group">
@@ -100,6 +108,8 @@ const TipoVendaModal = ({ tipoVenda, onClose }) => {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export const TiposDeVendaPage = () => {
