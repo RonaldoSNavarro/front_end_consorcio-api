@@ -77,38 +77,38 @@ export const GruposPage = () => {
           <table>
             <thead>
               <tr>
-                <th>Código BCB</th>
-                <th>Status</th>
-                <th>Categoria</th>
-                <th>Prazo</th>
-                <th>Crédito Base</th>
-                <th>Fundo Comum (Saldo)</th>
-                <th>Ações Regulatórias</th>
+                <th className="text-left">Código BCB</th>
+                <th className="text-center">Status</th>
+                <th className="text-center">Categoria</th>
+                <th className="text-center">Prazo</th>
+                <th className="text-right">Crédito Base</th>
+                <th className="text-right">Fundo Comum (Saldo)</th>
+                <th className="text-center">Ações Regulatórias</th>
               </tr>
             </thead>
             <tbody>
               {Array.isArray(grupos) && grupos.map(g => (
                 <tr key={g.id}>
-                  <td className="font-semibold text-slate-900 dark:text-white">{g.codigoGrupo || g.codigo}</td>
-                  <td>
+                  <td className="text-left font-semibold text-slate-900 dark:text-white">{g.codigoGrupo || g.codigo}</td>
+                  <td className="text-center">
                     <span className={`badge ${statusBadge(g.status)}`}>
                       {g.status?.replace('_', ' ')}
                     </span>
                   </td>
-                  <td>
+                  <td className="text-center">
                     {g.categoriaBem && (
                       <span className="badge bg-slate-100 text-slate-600 dark:bg-slate-700/50 dark:text-slate-300">
                         {g.categoriaBem.replace('_', ' ')}
                       </span>
                     )}
                   </td>
-                  <td>{g.prazoMeses}x</td>
-                  <td className="font-mono text-sm">R$ {g.valorCredito?.toLocaleString('pt-BR')}</td>
-                  <td>
+                  <td className="text-center font-mono">{g.prazoMeses}x</td>
+                  <td className="text-right font-mono text-sm font-semibold text-slate-900 dark:text-white">R$ {g.valorCredito?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                  <td className="text-right font-mono text-sm">
                     <GrupoSaldoCell grupoId={g.id} />
                   </td>
-                  <td>
-                    <div className="flex gap-1.5">
+                  <td className="text-center">
+                    <div className="flex gap-1.5 justify-center">
                       {g.status === 'EM_FORMACAO' && (
                         <button className="btn btn-outline btn-xs" onClick={() => handleInaugurarGrupo(g.id)}>
                           <Rocket className="w-3.5 h-3.5" /> Inaugurar

@@ -6,13 +6,14 @@ import {
   Building2, LayoutDashboard, Users, Grid3X3, CircleHelp, 
   CalendarDays, ArrowUpDown, DollarSign, Wallet, CircleDollarSign,
   FileText, BarChart3, Shield, ShieldAlert, LogOut, Sun, Moon, X,
-  ShoppingCart, Tag, Dice5, Settings, ShieldCheck, UserCog
+  ShoppingCart, Tag, Dice5, Settings, ShieldCheck, UserCog, Package
 } from 'lucide-react';
 
 const navLinks = [
   { to: '/dashboard', label: 'Visão Geral', icon: LayoutDashboard },
   { to: '/clientes', label: 'Clientes', icon: Users },
   { to: '/grupos', label: 'Grupos Adm', icon: Grid3X3 },
+  { to: '/bens-referencia', label: 'Bens de Referência', icon: Package },
   { to: '/cotas', label: 'Cotas', icon: CircleHelp },
   { to: '/reembolsos-excluidos', label: 'Reembolso Excluídos', icon: DollarSign },
   { to: '/financeiro', label: 'Financeiro', icon: Wallet },

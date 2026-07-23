@@ -286,16 +286,73 @@ export const api = {
     },
   },
 
-  // --- BENS ---
+  // --- BENS DE REFERÊNCIA ---
   bens: {
-    listar: async () => {
-      // Mock for bensPermitidos
-      return [
-        { id: 'VEICULO_AUTOMOTOR', nome: 'Veículo Automotor' },
-        { id: 'IMOVEL', nome: 'Imóvel' },
-        { id: 'SERVICO', nome: 'Serviço' },
-        { id: 'OUTROS_BENS_MOVEIS', nome: 'Eletroeletrônicos e Outros Bens Móveis' }
-      ];
+    categorias: async () => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/categorias`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar categorias de bem.");
+      return response.json();
+    },
+    listar: async (categoriaId, page = 0, size = 50) => {
+      const url = categoriaId 
+        ? `${BASE_URL}/api/bens-referencia?categoriaId=${categoriaId}&page=${page}&size=${size}`
+        : `${BASE_URL}/api/bens-referencia?page=${page}&size=${size}`;
+      const response = await fetchApi(url);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar bens de referência.");
+      return response.json();
+    },
+    listarTodos: async () => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/todos`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar bens de referência.");
+      return response.json();
+    },
+    obterPorId: async (id) => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/${id}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao obter bem de referência.");
+      return response.json();
+    },
+    criar: async (dto) => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao cadastrar bem de referência.");
+      return response.json();
+    },
+    atualizar: async (id, dto, origem = 'MANUAL') => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/${id}?origemReajuste=${origem}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao atualizar bem de referência.");
+      return response.json();
+    },
+    obterHistorico: async (id) => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/${id}/historico`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao consultar histórico de preços.");
+      return response.json();
+    },
+    fipeMarcas: async () => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/fipe/marcas`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao consultar marcas FIPE.");
+      return response.json();
+    },
+    fipeModelos: async (marcaId) => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/fipe/marcas/${marcaId}/modelos`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao consultar modelos FIPE.");
+      return response.json();
+    },
+    fipeAnos: async (marcaId, modeloId) => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/fipe/marcas/${marcaId}/modelos/${modeloId}/anos`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao consultar anos FIPE.");
+      return response.json();
+    },
+    fipeConsultar: async (marcaId, modeloId, anoId) => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/fipe/consultar?marcaId=${marcaId}&modeloId=${modeloId}&anoId=${anoId}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao consultar valor oficial FIPE.");
+      return response.json();
     }
   },
 

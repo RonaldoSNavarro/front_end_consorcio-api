@@ -46,7 +46,7 @@ Nossa malha de formulários e exibições garante total aderência contábil e d
 ## 📄 SDD (Spec-Driven Development) & Capabilities
 
 O projeto é guiado estritamente por especificações de UI (`docs/specs/`) vinculadas aos contratos de API do backend. 
-Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 13 capabilities (`IMPLEMENTED v1.0`):
+Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 14 capabilities (`IMPLEMENTED v1.0`):
 1. Autenticação e Sessão (com F5-Safety)
 2. Gestão de Assembleias
 3. Composição de Fundos e Parcelas
@@ -60,8 +60,10 @@ Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 13 capab
 11. Compliance e Listas Restritivas (PLD/FT)
 12. Esteira de Vendas (Proposta de Adesão, Produtos e Planos)
 13. Busca Refinada e Filtros de Cota (Consulta sob demanda via formulário de busca, filtrando cotas comercializadas com consorciados e omitindo cotas disponíveis).
+14. Cadastro e Reajuste de Bens de Referência (Menu localizado na Sidebar entre Grupos Adm e Cotas, formulários com busca interativa na Tabela FIPE, categorias BACEN e modal de histórico de auditoria de preços).
 
 **Em Andamento / Recentes:**
+* **Bens de Referência:** Módulo completo de catálogo (`BensReferenciaPage`), formulário com aba de busca oficial da Tabela FIPE (`BemReferenciaModal`) e visualizador temporal de reajustes (`HistoricoPrecosModal`).
 * **Credenciamento de Lances:** Novo fluxo dedicado na captação das assembleias, com cálculos de lance fixo automático.
 * **Gestão de Acessos (RBAC):** Novas páginas completas para administração de Perfis (`PerfisPage`) e Usuários (`UsuariosPage`). O frontend agora gerencia as Permissões Granulares em interface e fornece avisos de sistema (Toasts) requerendo logout sempre que os privilégios da sessão ativa são modificados, garantindo consistência JWT em conformidade com o backend.
 ---

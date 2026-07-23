@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { Tag, Plus, Edit3, Trash2, Loader2, X, CheckCircle, AlertCircle } from 'lucide-react';
 
 const CANAL_LABELS = {
@@ -15,9 +16,14 @@ const CANAL_LABELS = {
 const TipoVendaModal = ({ tipoVenda, onClose }) => {
   const { triggerToast } = useToast();
   const queryClient = useQueryClient();
-  const [form, setForm] = useState(tipoVenda || {
-    nome: '', descricao: '', canal: 'VENDA_DIRETA',
-    percentualComissao: 0.05, exigeSeguro: false, permiteReajuste: true, ativo: true
+  const [form, setForm] = useState({
+    nome: tipoVenda?.nome || '',
+    descricao: tipoVenda?.descricao || '',
+    canal: tipoVenda?.canal || 'VENDA_DIRETA',
+    percentualComissaoInput: ((tipoVenda?.percentualComissao != null ? tipoVenda.percentualComissao : 0.05) * 100).toString(),
+    exigeSeguro: tipoVenda?.exigeSeguro ?? false,
+    permiteReajuste: tipoVenda?.permiteReajuste ?? true,
+    ativo: tipoVenda?.ativo ?? true,
   });
 
   useEffect(() => {
@@ -32,7 +38,7 @@ const TipoVendaModal = ({ tipoVenda, onClose }) => {
       ? api.vendas.atualizarTipo(tipoVenda.id, data)
       : api.vendas.criarTipo(data),
     onSuccess: () => {
-      triggerToast(tipoVenda ? 'Tipo de venda atualizado!' : 'Tipo de venda criado!', 'success');
+      triggerToast(tipoVenda ? 'Tipo de venda atualizado com sucesso!' : 'Tipo de venda criado com sucesso!', 'success');
       queryClient.invalidateQueries({ queryKey: ['tiposVenda'] });
       onClose();
     },
@@ -46,7 +52,20 @@ const TipoVendaModal = ({ tipoVenda, onClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutation.mutate({ ...form, percentualComissao: parseFloat(form.percentualComissao) });
+    const comissaoPercent = parseFloat(form.percentualComissaoInput);
+    if (isNaN(comissaoPercent) || comissaoPercent < 0 || comissaoPercent > 20) {
+      triggerToast('A comissão deve ser entre 0% e 20%.', 'warning');
+      return;
+    }
+    mutation.mutate({
+      nome: form.nome.trim(),
+      descricao: form.descricao?.trim() || null,
+      canal: form.canal,
+      percentualComissao: comissaoPercent / 100,
+      exigeSeguro: form.exigeSeguro,
+      permiteReajuste: form.permiteReajuste,
+      ativo: form.ativo,
+    });
   };
 
   const modalContent = (
@@ -66,29 +85,28 @@ const TipoVendaModal = ({ tipoVenda, onClose }) => {
           </div>
           <div className="form-group">
             <label htmlFor="tv-descricao">Descrição</label>
-            <textarea id="tv-descricao" name="descricao" value={form.descricao || ''} onChange={handleChange} rows={2} maxLength={500} />
+            <textarea id="tv-descricao" name="descricao" value={form.descricao || ''} onChange={handleChange} rows={2} maxLength={500} placeholder="Descreva os parâmetros deste canal de venda..." />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="form-group">
-              <label htmlFor="tv-canal">Canal *</label>
+              <label htmlFor="tv-canal">Canal de Venda *</label>
               <select id="tv-canal" name="canal" value={form.canal} onChange={handleChange}>
                 {Object.entries(CANAL_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             </div>
             <div className="form-group">
               <label htmlFor="tv-comissao">Comissão (%) *</label>
-              <input id="tv-comissao" name="percentualComissao" type="number" step="0.01" min="0" max="20" value={(parseFloat(form.percentualComissao) * 100).toFixed(2)}
-                onChange={(e) => setForm(prev => ({ ...prev, percentualComissao: parseFloat(e.target.value) / 100 }))} />
+              <input id="tv-comissao" name="percentualComissaoInput" type="number" step="0.01" min="0" max="20" value={form.percentualComissaoInput} onChange={handleChange} required />
             </div>
           </div>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap gap-6 pt-2">
             <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-700 dark:text-slate-300">
               <input type="checkbox" name="exigeSeguro" checked={form.exigeSeguro} onChange={handleChange} className="w-4 h-4 rounded text-brand-500" />
-              Exige Seguro
+              Exige Seguro de Vida
             </label>
             <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-700 dark:text-slate-300">
               <input type="checkbox" name="permiteReajuste" checked={form.permiteReajuste} onChange={handleChange} className="w-4 h-4 rounded text-brand-500" />
-              Permite Reajuste (INCC)
+              Permite Reajuste de Crédito (INCC)
             </label>
             {tipoVenda && (
               <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-700 dark:text-slate-300">
@@ -101,7 +119,7 @@ const TipoVendaModal = ({ tipoVenda, onClose }) => {
             <button type="button" className="btn btn-outline" onClick={onClose} disabled={mutation.isPending}>Cancelar</button>
             <button type="submit" className="btn btn-primary" disabled={mutation.isPending}>
               {mutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-              {mutation.isPending ? 'Salvando...' : 'Salvar'}
+              {mutation.isPending ? 'Salvando...' : 'Salvar Tipo de Venda'}
             </button>
           </div>
         </form>
@@ -117,6 +135,7 @@ export const TiposDeVendaPage = () => {
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
+  const [confirmInativarItem, setConfirmInativarItem] = useState(null);
 
   const { data: tipos, isLoading, error } = useQuery({
     queryKey: ['tiposVenda'],
@@ -126,8 +145,9 @@ export const TiposDeVendaPage = () => {
   const inativarMutation = useMutation({
     mutationFn: (id) => api.vendas.inativarTipo(id),
     onSuccess: () => {
-      triggerToast('Tipo de venda inativado.', 'success');
+      triggerToast('Tipo de venda inativado com sucesso.', 'success');
       queryClient.invalidateQueries({ queryKey: ['tiposVenda'] });
+      setConfirmInativarItem(null);
     },
     onError: (err) => triggerToast(err.message, 'danger')
   });
@@ -160,38 +180,38 @@ export const TiposDeVendaPage = () => {
           <table>
             <thead>
               <tr>
-                <th>Nome</th>
-                <th>Canal</th>
-                <th>Comissão</th>
-                <th>Seguro</th>
-                <th>Reajuste</th>
-                <th>Status</th>
-                <th>Ações</th>
+                <th className="text-left">Nome / Descrição</th>
+                <th className="text-left">Canal de Venda</th>
+                <th className="text-center">Comissão</th>
+                <th className="text-center">Seguro Exigido</th>
+                <th className="text-center">Permite Reajuste</th>
+                <th className="text-center">Status</th>
+                <th className="text-center">Ações</th>
               </tr>
             </thead>
             <tbody>
               {tipos && tipos.map(t => (
                 <tr key={t.id}>
-                  <td className="font-semibold text-slate-900 dark:text-white">
+                  <td className="text-left font-semibold text-slate-900 dark:text-white">
                     {t.nome}
                     {t.descricao && <div className="text-xs text-slate-400 font-normal mt-0.5">{t.descricao}</div>}
                   </td>
-                  <td><span className="badge bg-brand-100 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">{CANAL_LABELS[t.canal] || t.canal}</span></td>
-                  <td className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">{(t.percentualComissao * 100).toFixed(1)}%</td>
-                  <td>{t.exigeSeguro ? <CheckCircle className="w-4 h-4 text-emerald-500 mx-auto" /> : <span className="text-slate-300 dark:text-slate-600">—</span>}</td>
-                  <td>{t.permiteReajuste ? <CheckCircle className="w-4 h-4 text-emerald-500 mx-auto" /> : <span className="text-slate-300 dark:text-slate-600">—</span>}</td>
-                  <td>
+                  <td className="text-left"><span className="badge bg-brand-100 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">{CANAL_LABELS[t.canal] || t.canal}</span></td>
+                  <td className="text-center font-mono font-semibold text-emerald-600 dark:text-emerald-400">{(t.percentualComissao * 100).toFixed(1)}%</td>
+                  <td className="text-center">{t.exigeSeguro ? <CheckCircle className="w-4 h-4 text-emerald-500 mx-auto" /> : <span className="text-slate-300 dark:text-slate-600">—</span>}</td>
+                  <td className="text-center">{t.permiteReajuste ? <CheckCircle className="w-4 h-4 text-emerald-500 mx-auto" /> : <span className="text-slate-300 dark:text-slate-600">—</span>}</td>
+                  <td className="text-center">
                     {t.ativo
                       ? <span className="badge badge-success">Ativo</span>
                       : <span className="badge bg-slate-100 text-slate-500 dark:bg-slate-700/50">Inativo</span>}
                   </td>
-                  <td>
+                  <td className="text-center">
                     <div className="flex gap-1.5 justify-center">
                       <button className="btn btn-outline btn-xs" onClick={() => handleEdit(t)} title="Editar">
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       {t.ativo && (
-                        <button className="btn btn-outline btn-xs !text-rose-500 !border-rose-200 hover:!bg-rose-50 dark:!border-rose-500/30 dark:hover:!bg-rose-500/10" onClick={() => inativarMutation.mutate(t.id)} title="Inativar">
+                        <button className="btn btn-outline btn-xs !text-rose-500 !border-rose-200 hover:!bg-rose-50 dark:!border-rose-500/30 dark:hover:!bg-rose-500/10" onClick={() => setConfirmInativarItem(t)} title="Inativar">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       )}
@@ -208,6 +228,17 @@ export const TiposDeVendaPage = () => {
       )}
 
       {showModal && <TipoVendaModal tipoVenda={editItem} onClose={() => { setShowModal(false); setEditItem(null); }} />}
+
+      <ConfirmDialog
+        isOpen={!!confirmInativarItem}
+        title="Inativar Tipo de Venda"
+        message={`Deseja realmente inativar o tipo de venda "${confirmInativarItem?.nome}"? Este canal não estará mais disponível para novas propostas de adesão.`}
+        confirmText="Inativar Tipo de Venda"
+        cancelText="Cancelar"
+        type="danger"
+        onConfirm={() => inativarMutation.mutate(confirmInativarItem.id)}
+        onCancel={() => setConfirmInativarItem(null)}
+      />
     </div>
   );
 };

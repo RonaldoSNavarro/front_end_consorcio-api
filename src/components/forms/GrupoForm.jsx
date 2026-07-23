@@ -112,11 +112,16 @@ export const GrupoForm = ({ onClose }) => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField label="Código do Grupo (BACEN) *" id="grupo-codigo" error={errors.codigo}>
-              <input id="grupo-codigo" type="text" {...register('codigo')} placeholder="Ex: GRUPO-A12" aria-required="true" aria-invalid={!!errors.codigo} aria-describedby={errors.codigo ? 'error-grupo-codigo' : undefined} />
+              <input id="grupo-codigo" type="text" {...register('codigo')} placeholder="Ex: GRUPO-A12" aria-required="true" aria-invalid={!!errors.codigo} />
             </FormField>
 
-            <FormField label="Quantidade de Cotas *" id="grupo-quantidade" error={errors.quantidadeCotas}>
-              <input id="grupo-quantidade" type="number" {...register('quantidadeCotas')} aria-required="true" aria-invalid={!!errors.quantidadeCotas} aria-describedby={errors.quantidadeCotas ? 'error-grupo-quantidade' : undefined} />
+            <FormField label="Categoria do Bem *" id="grupo-categoria" error={errors.categoriaBem}>
+              <select id="grupo-categoria" {...register('categoriaBem')} aria-required="true" aria-invalid={!!errors.categoriaBem}>
+                <option value="IMOVEL">Imóvel</option>
+                <option value="VEICULO_AUTOMOTOR">Veículo Automotor</option>
+                <option value="SERVICO">Serviço</option>
+                <option value="OUTROS_BENS_MOVEIS">Outros Bens Móveis</option>
+              </select>
             </FormField>
           </div>
 
@@ -132,44 +137,41 @@ export const GrupoForm = ({ onClose }) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <FormField label="Taxa Admin (%) *" id="grupo-taxa" error={errors.taxaAdministracao}>
-              <input id="grupo-taxa" type="number" step="0.01" {...register('taxaAdministracao')} aria-required="true" aria-invalid={!!errors.taxaAdministracao} aria-describedby={errors.taxaAdministracao ? 'error-grupo-taxa' : undefined} />
+              <input id="grupo-taxa" type="number" step="0.01" {...register('taxaAdministracao')} aria-required="true" aria-invalid={!!errors.taxaAdministracao} />
             </FormField>
 
-            <FormField label="Dia Base Assemb. *" id="grupo-dia" error={errors.diaBaseAssembleias}>
-              <input id="grupo-dia" type="number" {...register('diaBaseAssembleias')} aria-required="true" aria-invalid={!!errors.diaBaseAssembleias} aria-describedby={errors.diaBaseAssembleias ? 'error-grupo-dia' : undefined} />
+            <FormField label="Dia Base Assembleia *" id="grupo-dia" error={errors.diaBaseAssembleias}>
+              <input id="grupo-dia" type="number" min="1" max="31" {...register('diaBaseAssembleias')} aria-required="true" aria-invalid={!!errors.diaBaseAssembleias} />
             </FormField>
 
             <FormField label="Dias Ant. Vencimento *" id="grupo-ant" error={errors.diasAntecedenciaVencimento}>
-              <input id="grupo-ant" type="number" {...register('diasAntecedenciaVencimento')} aria-required="true" aria-invalid={!!errors.diasAntecedenciaVencimento} aria-describedby={errors.diasAntecedenciaVencimento ? 'error-grupo-ant' : undefined} />
+              <input id="grupo-ant" type="number" {...register('diasAntecedenciaVencimento')} aria-required="true" aria-invalid={!!errors.diasAntecedenciaVencimento} />
             </FormField>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormField label="Prazos Permitidos (meses separados por vírgula) *" id="grupo-prazos" error={errors.prazosPermitidos}>
-              <input id="grupo-prazos" type="text" placeholder="Ex: 36, 60, 72" {...register('prazosPermitidos')} aria-required="true" aria-invalid={!!errors.prazosPermitidos} aria-describedby={errors.prazosPermitidos ? 'error-grupo-prazos' : undefined} />
+            <FormField label="Quantidade de Cotas *" id="grupo-quantidade" error={errors.quantidadeCotas}>
+              <input id="grupo-quantidade" type="number" {...register('quantidadeCotas')} aria-required="true" aria-invalid={!!errors.quantidadeCotas} />
             </FormField>
 
-            <FormField label="Categoria do Bem *" id="grupo-categoria" error={errors.categoriaBem}>
-              <select id="grupo-categoria" {...register('categoriaBem')} aria-required="true" aria-invalid={!!errors.categoriaBem} aria-describedby={errors.categoriaBem ? 'error-grupo-categoria' : undefined}>
-                <option value="IMOVEL">Imóvel</option>
-                <option value="VEICULO_AUTOMOTOR">Veículo Automotor</option>
-                <option value="SERVICO">Serviço</option>
-                <option value="OUTROS_BENS_MOVEIS">Outros Bens Móveis</option>
-              </select>
+            <FormField label="Prazos Permitidos (meses) *" id="grupo-prazos" error={errors.prazosPermitidos}>
+              <input id="grupo-prazos" type="text" placeholder="Ex: 36, 60, 72" {...register('prazosPermitidos')} aria-required="true" aria-invalid={!!errors.prazosPermitidos} />
             </FormField>
           </div>
 
           <FormField label="Bens Permitidos *" id="grupo-bens" error={errors.bensPermitidos}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+            <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/60 rounded-xl max-h-40 overflow-y-auto">
               {bensFiltrados.length === 0 ? (
-                <p className="text-xs text-slate-400 italic">Nenhum bem cadastrado para esta categoria.</p>
+                <p className="text-xs text-slate-400 italic py-2 text-center">Nenhum bem cadastrado para esta categoria.</p>
               ) : (
-                bensFiltrados.map(bem => (
-                  <label key={bem.id} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
-                    <input type="checkbox" value={bem.id} {...register('bensPermitidos')} className="rounded border-slate-300" />
-                    {bem.nome || bem.descricao}
-                  </label>
-                ))
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {bensFiltrados.map(bem => (
+                    <label key={bem.id} className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 !normal-case !font-normal !mb-0 cursor-pointer p-2 rounded-lg hover:bg-slate-200/50 dark:hover:bg-slate-800 border border-slate-200/60 dark:border-slate-700/40 transition-colors">
+                      <input type="checkbox" value={bem.id} {...register('bensPermitidos')} className="w-4 h-4 rounded text-brand-500 accent-brand-500 shrink-0" />
+                      <span className="truncate font-medium">{bem.nome || bem.descricao}</span>
+                    </label>
+                  ))}
+                </div>
               )}
             </div>
           </FormField>
