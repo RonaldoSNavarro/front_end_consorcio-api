@@ -11,11 +11,11 @@ test.describe('Compliance e Testes Negativos', () => {
     await page.waitForURL('**/dashboard');
   });
 
-  test('Deve impedir venda para cliente bloqueado em lista restritiva (OFAC/ONU)', async ({ page }) => {
+  test('Deve registrar e encaminhar ao compliance a venda de cliente em lista restritiva (OFAC/ONU)', async ({ page }) => {
     // Navigate to sales proposal page
     await page.goto('/vendas/proposta');
 
-    // 2. Procurar cliente bloqueado
+    // 2. Procurar cliente com alerta restritivo
     const clienteInput = page.locator('input[type="search"]');
     await clienteInput.fill('OSAMA BIN LADEN');
     
@@ -34,9 +34,10 @@ test.describe('Compliance e Testes Negativos', () => {
     // 6. Passo 3: Efetivar Proposta
     await page.getByRole('button', { name: /Efetivar Proposta/i }).click();
 
-    // 7. Espera-se o bloqueio por PLD/FT
-    const toast = page.locator('text=/bloqueada por PLD\\/FT/i');
+    // 7. A proposta deve ser registrada e encaminhada à análise de risco
+    const toast = page.getByText(/enviada para a Esteira de Análise de Risco/i);
     await expect(toast).toBeVisible({ timeout: 5000 });
+    await expect(page).toHaveURL(/\/compliance\/analise-risco$/);
   });
 
   test('Deve bloquear lance de cota CANCELADA na Assembleia', async ({ page }) => {

@@ -6,13 +6,14 @@ import {
   Building2, LayoutDashboard, Users, Grid3X3, CircleHelp, 
   CalendarDays, ArrowUpDown, DollarSign, Wallet, CircleDollarSign,
   FileText, BarChart3, Shield, ShieldAlert, LogOut, Sun, Moon, X,
-  ShoppingCart, Tag, Dice5, Settings, ShieldCheck, UserCog
+  ShoppingCart, Tag, Dice5, Settings, ShieldCheck, UserCog, Package
 } from 'lucide-react';
 
 const navLinks = [
   { to: '/dashboard', label: 'Visão Geral', icon: LayoutDashboard },
   { to: '/clientes', label: 'Clientes', icon: Users },
   { to: '/grupos', label: 'Grupos Adm', icon: Grid3X3 },
+  { to: '/bens-referencia', label: 'Bens de Referência', icon: Package },
   { to: '/cotas', label: 'Cotas', icon: CircleHelp },
   { to: '/reembolsos-excluidos', label: 'Reembolso Excluídos', icon: DollarSign },
   { to: '/financeiro', label: 'Financeiro', icon: Wallet },
@@ -40,6 +41,10 @@ const reportLinks = [
 const accessLinks = [
   { to: '/usuarios', label: 'Usuários', icon: UserCog, authorities: ['MANAGE_USERS'] },
   { to: '/perfis', label: 'Perfis de Acesso', icon: ShieldCheck, authorities: ['MANAGE_USERS'] },
+];
+
+const complianceLinks = [
+  { to: '/compliance/analise-risco', label: 'Análise de Risco', icon: ShieldAlert, authorities: ['MANAGE_COMPLIANCE'] },
 ];
 
 export const Sidebar = ({ onClose }) => {
@@ -141,6 +146,30 @@ export const Sidebar = ({ onClose }) => {
         </div>
 
         {reportLinks.map(({ to, label, icon: Icon, authorities }) => {
+          if (authorities) {
+            const hasAuth = authorities.some(auth => user?.authorities?.includes(auth));
+            if (!hasAuth) return null;
+          }
+          return (
+            <NavLink key={to} to={to} className={linkClass} onClick={onClose}>
+              <Icon className="w-[18px] h-[18px] shrink-0" />
+              <span>{label}</span>
+            </NavLink>
+          );
+        })}
+
+        {/* Compliance Section */}
+        <div className="pt-5 pb-2 px-3">
+          <div className="flex items-center gap-2">
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700/50" />
+            <span className="text-[0.65rem] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest whitespace-nowrap">
+              Compliance
+            </span>
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700/50" />
+          </div>
+        </div>
+
+        {complianceLinks.map(({ to, label, icon: Icon, authorities }) => {
           if (authorities) {
             const hasAuth = authorities.some(auth => user?.authorities?.includes(auth));
             if (!hasAuth) return null;

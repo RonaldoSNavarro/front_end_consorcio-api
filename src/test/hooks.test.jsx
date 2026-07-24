@@ -40,7 +40,7 @@ vi.mock('../services/api', () => ({
     vendas: {
       produtos: vi.fn().mockResolvedValue([{ id: 1, prazoMeses: 100 }]),
       listarTiposAtivos: vi.fn().mockResolvedValue([{ id: 1, nome: 'Canal Online', percentualComissao: 0.1 }]),
-      criarProposta: vi.fn().mockResolvedValue({ id: 10 }),
+      criarProposta: vi.fn().mockResolvedValue({ id: 10, status: 'EM_ANALISE' }),
       aprovarProposta: vi.fn().mockResolvedValue({ id: 20 }),
       efetivarContrato: vi.fn().mockResolvedValue({ id: 30 })
     },
@@ -188,6 +188,52 @@ describe('Testes unitários de Hooks TanStack Query', () => {
         result.current.handlePrevStep();
       });
       expect(result.current.step).toBe(0);
+    });
+
+    it('deve encerrar o fluxo após registrar proposta enviada ao compliance', async () => {
+      api.vendas.criarProposta.mockResolvedValueOnce({
+        id: 10,
+        status: 'PENDENTE_ANALISE_RISCO'
+      });
+
+      const { result } = renderHook(() => useVendaProposta(), { wrapper: createWrapper() });
+
+      act(() => {
+        result.current.setSelectedCliente({ id: 1, nome: 'Cliente com alerta' });
+      });
+
+      await waitFor(() => {
+        expect(result.current.selectedTipo).toBeTruthy();
+        expect(result.current.matchedProduto).toBeTruthy();
+      });
+
+      act(() => {
+        result.current.handleEfetivarProposta();
+      });
+
+      await waitFor(() => expect(api.vendas.criarProposta).toHaveBeenCalled());
+      expect(api.vendas.aprovarProposta).not.toHaveBeenCalled();
+      expect(api.vendas.efetivarContrato).not.toHaveBeenCalled();
+    });
+
+    it('deve registrar a venda sem simular o pagamento da primeira parcela', async () => {
+      const { result } = renderHook(() => useVendaProposta(), { wrapper: createWrapper() });
+
+      act(() => {
+        result.current.setSelectedCliente({ id: 1, nome: 'Cliente regular' });
+      });
+
+      await waitFor(() => {
+        expect(result.current.selectedTipo).toBeTruthy();
+        expect(result.current.matchedProduto).toBeTruthy();
+      });
+
+      act(() => {
+        result.current.handleEfetivarProposta();
+      });
+
+      await waitFor(() => expect(api.vendas.aprovarProposta).toHaveBeenCalledWith(10));
+      expect(api.vendas.efetivarContrato).not.toHaveBeenCalled();
     });
   });
 });

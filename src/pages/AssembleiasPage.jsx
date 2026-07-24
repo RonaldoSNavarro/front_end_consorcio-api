@@ -157,7 +157,7 @@ export const AssembleiasPage = () => {
               <label htmlFor="select-grupo">Grupo de Consórcio *</label>
               <select id="select-grupo" value={grupoId} onChange={(e) => { setGrupoId(e.target.value); setSelectedAssembleiaId(''); }}>
                 <option value="">Selecione um grupo...</option>
-                {grupos.map(g => <option key={g.id} value={g.id}>{g.codigo} (Crédito: R$ {g.valorCredito?.toLocaleString('pt-BR')})</option>)}
+                {grupos.map(g => <option key={g.id} value={g.id}>{g.codigoGrupo || g.codigo} (Crédito: R$ {g.valorCredito?.toLocaleString('pt-BR')})</option>)}
               </select>
             </div>
             {activeGrupo && (
@@ -263,7 +263,7 @@ export const AssembleiasPage = () => {
                       <label htmlFor="select-cota">Cota Ativa *</label>
                       <select id="select-cota" value={cotaIdParaContemplar} onChange={(e) => setCotaIdParaContemplar(e.target.value)}>
                         <option value="">Selecione...</option>
-                        {cotas.filter(c => c.status === 'ATIVA' || c.status === 'INADIMPLENTE').map(c => <option key={c.id} value={c.id}>Cota #{c.numeroCota} ({c.status})</option>)}
+                        {cotas.filter(c => c.status === 'ATIVA' || c.status === 'INADIMPLENTE').map(c => <option key={c.id} value={c.id}>Cota #{c.codigoCota || c.numeroCota} ({c.status})</option>)}
                       </select>
                     </div>
                     <div className="form-group">
@@ -311,7 +311,7 @@ export const AssembleiasPage = () => {
                         {contemplacoes.filter(c => c.tipoContemplacao === 'SORTEIO').map(c => (
                           <div key={c.id} className="bg-brand-50 dark:bg-brand-500/10 border border-brand-200 dark:border-brand-500/30 p-3 rounded-lg text-xs space-y-1">
                             <div className="flex justify-between font-bold text-brand-700 dark:text-brand-300">
-                              <span>Cota #{c.cotaId || c.numeroCota}</span>
+                              <span>Cota #{c.codigoCota || c.numeroCota || c.cotaId}</span>
                               <span className="badge badge-primary">Sorteio</span>
                             </div>
                             <div className="text-slate-500 dark:text-slate-400">Data: {new Date(c.dataContemplacao).toLocaleDateString('pt-BR')}</div>
@@ -327,7 +327,7 @@ export const AssembleiasPage = () => {
                         {contemplacoes.filter(c => c.tipoContemplacao === 'LANCE_FIXO').map(c => (
                           <div key={c.id} className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 p-3 rounded-lg text-xs space-y-1">
                             <div className="flex justify-between font-bold text-emerald-700 dark:text-emerald-300">
-                              <span>Cota #{c.cotaId || c.numeroCota}</span>
+                              <span>Cota #{c.codigoCota || c.numeroCota || c.cotaId}</span>
                               <span className="badge badge-success">Lance Fixo</span>
                             </div>
                             <div className="text-emerald-600 dark:text-emerald-400">Lance Ofertado: R$ {c.valorLance?.toLocaleString('pt-BR')} {c.lanceEmbutido && '(Embutido)'}</div>
@@ -344,7 +344,7 @@ export const AssembleiasPage = () => {
                         {contemplacoes.filter(c => c.tipoContemplacao === 'LANCE_LIVRE').map(c => (
                           <div key={c.id} className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 p-3 rounded-lg text-xs space-y-1">
                             <div className="flex justify-between font-bold text-blue-700 dark:text-blue-300">
-                              <span>Cota #{c.cotaId || c.numeroCota}</span>
+                              <span>Cota #{c.codigoCota || c.numeroCota || c.cotaId}</span>
                               <span className="badge badge-info">Lance Livre</span>
                             </div>
                             <div className="text-blue-600 dark:text-blue-400">Lance Ofertado: R$ {c.valorLance?.toLocaleString('pt-BR')} {c.lanceEmbutido && '(Embutido)'}</div>

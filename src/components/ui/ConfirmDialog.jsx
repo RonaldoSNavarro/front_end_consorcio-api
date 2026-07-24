@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { AlertTriangle, Zap, Info, X } from 'lucide-react';
+/* eslint-disable react/prop-types */
+import { useEffect, useRef } from 'react';
+import { AlertTriangle, Zap, Info } from 'lucide-react';
 
 const ICONS = {
   danger: AlertTriangle,
@@ -33,7 +34,9 @@ export const ConfirmDialog = ({
   onCancel,
   confirmText = "Confirmar",
   cancelText = "Cancelar",
-  type = "primary"
+  type = "primary",
+  isPending = false,
+  pendingText = "Confirmando..."
 }) => {
   const confirmRef = useRef(null);
   const dialogRef = useRef(null);
@@ -44,7 +47,7 @@ export const ConfirmDialog = ({
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        onCancel();
+        if (!isPending) onCancel();
         return;
       }
       // Basic focus trap
@@ -67,15 +70,19 @@ export const ConfirmDialog = ({
     confirmRef.current?.focus();
 
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onCancel]);
+  }, [isOpen, isPending, onCancel]);
 
   if (!isOpen) return null;
 
   const color = COLORS[type] || COLORS.primary;
   const Icon = ICONS[type] || Info;
 
+  const handleCancel = () => {
+    if (!isPending) onCancel();
+  };
+
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
+    <div className="modal-backdrop" onClick={handleCancel}>
       <div 
         ref={dialogRef}
         className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up
@@ -106,7 +113,8 @@ export const ConfirmDialog = ({
           <button 
             type="button" 
             className="btn btn-outline btn-sm"
-            onClick={onCancel}
+            onClick={handleCancel}
+            disabled={isPending}
           >
             {cancelText}
           </button>
@@ -115,8 +123,9 @@ export const ConfirmDialog = ({
             type="button" 
             className={`btn btn-sm ${color.btn}`}
             onClick={onConfirm}
+            disabled={isPending}
           >
-            {confirmText}
+            {isPending ? pendingText : confirmText}
           </button>
         </div>
       </div>

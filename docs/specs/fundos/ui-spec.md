@@ -1,10 +1,10 @@
 # 📋 Especificação de UI — Composição de Fundos e Parcelas (fundos)
 
 *   **Status**: IMPLEMENTED v1.0
-*   **Versão**: v1.0
+*   **Versão**: v1.1
 *   **Spec Backend**: [spec.md](../../../../consorcio-api/docs/specs/fundos/spec.md)
 *   **API Contract**: [api-contract.md](../../../../consorcio-api/docs/specs/fundos/api-contract.md)
-*   **Última alteração**: Criação inicial da especificação de UI — origem: SPECIFY-UI inicial
+*   **Última alteração**: Primeira parcela de adesão exibida como pendente até pagamento real — origem: BUG-FIN-VND-002.
 
 ---
 
@@ -59,3 +59,10 @@ Exibir ao operador o cronograma de parcelas por cota, com detalhamento dos compo
 - **Given**: O operador está preenchendo o formulário de nova parcela.
 - **When**: O operador insere um valor negativo para qualquer componente.
 - **Then**: O schema Zod bloqueia a submissão exibindo mensagem inline "Valor deve ser positivo".
+
+### REQ-FUN-004 - AC-UI-1: Pagamento da adesão
+
+- **Given**: Uma cota recém-vendida está em `AGUARDANDO_PAGAMENTO`.
+- **When**: O operador acessa o módulo Financeiro.
+- **Then**: A parcela nº 1 aparece como `PENDENTE`, com ação `Pagar` e sem data/valor de pagamento.
+- **And**: Após o pagamento, a tabela passa a exibir `PAGA` e o dashboard reflete a arrecadação.

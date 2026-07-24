@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
+import { useQueryClient } from '@tanstack/react-query';
 import { useGrupos, useGrupoSaldo } from '../hooks/useGrupos';
 import { useToast } from '../context/ToastContext';
 import { GrupoForm } from '../components/forms/GrupoForm';
@@ -31,6 +32,7 @@ const statusBadge = (status) => {
 };
 
 export const GruposPage = () => {
+  const queryClient = useQueryClient();
   const { triggerToast } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [inaugurarGrupoId, setInaugurarGrupoId] = useState(null);
@@ -77,38 +79,38 @@ export const GruposPage = () => {
           <table>
             <thead>
               <tr>
-                <th>Código BCB</th>
-                <th>Status</th>
-                <th>Categoria</th>
-                <th>Prazo</th>
-                <th>Crédito Base</th>
-                <th>Fundo Comum (Saldo)</th>
-                <th>Ações Regulatórias</th>
+                <th className="text-left">Código BCB</th>
+                <th className="text-center">Status</th>
+                <th className="text-center">Categoria</th>
+                <th className="text-center">Prazo</th>
+                <th className="text-right">Crédito Base</th>
+                <th className="text-right">Fundo Comum (Saldo)</th>
+                <th className="text-center">Ações Regulatórias</th>
               </tr>
             </thead>
             <tbody>
               {Array.isArray(grupos) && grupos.map(g => (
                 <tr key={g.id}>
-                  <td className="font-semibold text-slate-900 dark:text-white">{g.codigo}</td>
-                  <td>
+                  <td className="text-left font-semibold text-slate-900 dark:text-white">{g.codigoGrupo || g.codigo}</td>
+                  <td className="text-center">
                     <span className={`badge ${statusBadge(g.status)}`}>
                       {g.status?.replace('_', ' ')}
                     </span>
                   </td>
-                  <td>
+                  <td className="text-center">
                     {g.categoriaBem && (
                       <span className="badge bg-slate-100 text-slate-600 dark:bg-slate-700/50 dark:text-slate-300">
                         {g.categoriaBem.replace('_', ' ')}
                       </span>
                     )}
                   </td>
-                  <td>{g.prazoMeses}x</td>
-                  <td className="font-mono text-sm">R$ {g.valorCredito?.toLocaleString('pt-BR')}</td>
-                  <td>
+                  <td className="text-center font-mono">{g.prazoMeses}x</td>
+                  <td className="text-right font-mono text-sm font-semibold text-slate-900 dark:text-white">R$ {g.valorCredito?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                  <td className="text-right font-mono text-sm">
                     <GrupoSaldoCell grupoId={g.id} />
                   </td>
-                  <td>
-                    <div className="flex gap-1.5">
+                  <td className="text-center">
+                    <div className="flex gap-1.5 justify-center">
                       {g.status === 'EM_FORMACAO' && (
                         <button className="btn btn-outline btn-xs" onClick={() => handleInaugurarGrupo(g.id)}>
                           <Rocket className="w-3.5 h-3.5" /> Inaugurar
@@ -200,6 +202,32 @@ export const GruposPage = () => {
                 placeholder="Ex: 85000"
               />
             </div>
+            
+            <div className="p-3 mb-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700/50">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2">Reajuste por Índice BACEN (SGS Oficial)</span>
+              <div className="grid grid-cols-3 gap-2">
+                {['INCC', 'IPCA', 'IGP_M'].map(ind => (
+                  <button
+                    key={ind}
+                    type="button"
+                    className="btn btn-outline btn-xs !py-1 text-slate-700 dark:text-slate-200"
+                    onClick={async () => {
+                      try {
+                        await api.indices.reajustarGrupo(reajustarGrupoId, ind);
+                        triggerToast(`Grupo reajustado com sucesso pelo acumulado 12M do ${ind}!`, "success");
+                        setReajustarGrupoId(null);
+                        queryClient.invalidateQueries({ queryKey: ['grupos'] });
+                      } catch (err) {
+                        triggerToast(err.message || "Erro ao reajustar por índice", "danger");
+                      }
+                    }}
+                  >
+                    Aplicar {ind}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex justify-end gap-3 mt-6">
               <button type="button" className="btn btn-outline" onClick={() => setReajustarGrupoId(null)}>Cancelar</button>
               <button 
@@ -216,7 +244,7 @@ export const GruposPage = () => {
                   setReajustarGrupoId(null);
                 }}
               >
-                Aplicar Reajuste
+                Aplicar Valor Manual
               </button>
             </div>
           </div>

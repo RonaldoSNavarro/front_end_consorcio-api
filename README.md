@@ -46,7 +46,7 @@ Nossa malha de formulários e exibições garante total aderência contábil e d
 ## 📄 SDD (Spec-Driven Development) & Capabilities
 
 O projeto é guiado estritamente por especificações de UI (`docs/specs/`) vinculadas aos contratos de API do backend. 
-Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 13 capabilities (`IMPLEMENTED v1.0`):
+Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 14 capabilities (`IMPLEMENTED v1.0`):
 1. Autenticação e Sessão (com F5-Safety)
 2. Gestão de Assembleias
 3. Composição de Fundos e Parcelas
@@ -59,38 +59,42 @@ Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 13 capab
 10. Relatórios (PLD/FT, Balancete e Estatísticas)
 11. Compliance e Listas Restritivas (PLD/FT)
 12. Esteira de Vendas (Proposta de Adesão, Produtos e Planos)
-13. Busca Refinada e Filtros de Cota
+13. Busca Refinada e Filtros de Cota (Consulta sob demanda via formulário de busca, filtrando cotas comercializadas com consorciados e omitindo cotas disponíveis).
+14. Cadastro e Reajuste de Bens de Referência (Menu localizado na Sidebar entre Grupos Adm e Cotas, formulários com busca interativa na Tabela FIPE, categorias BACEN e modal de histórico de auditoria de preços).
+15. Índices Econômicos BACEN e Simulador de Reajustes (Modal `IndicesEconomicosModal` no módulo de Bens de Referência para consulta temporal do INCC-M, IPCA e IGP-M via API do Banco Central SGS, com simulação e reajuste direto nos Grupos).
 
 **Em Andamento / Recentes:**
+* **Índices BACEN:** Painel interativo com consulta de séries históricas de 12 meses do Banco Central (INCC-M, IPCA, IGP-M), cálculo de fator acumulado 12M e reajuste direto no crédito e parcelas de Grupos.
+* **Bens de Referência:** Módulo completo de catálogo (`BensReferenciaPage`), formulário com aba de busca oficial da Tabela FIPE (`BemReferenciaModal`) e visualizador temporal de reajustes (`HistoricoPrecosModal`).
 * **Credenciamento de Lances:** Novo fluxo dedicado na captação das assembleias, com cálculos de lance fixo automático.
 * **Gestão de Acessos (RBAC):** Novas páginas completas para administração de Perfis (`PerfisPage`) e Usuários (`UsuariosPage`). O frontend agora gerencia as Permissões Granulares em interface e fornece avisos de sistema (Toasts) requerendo logout sempre que os privilégios da sessão ativa são modificados, garantindo consistência JWT em conformidade com o backend.
 ---
 
-## ðŸ“‚ Estrutura de DiretÃ³rios
+## 📂 Estrutura de Diretórios
 
 ```text
 src/
- â”£ components/
- â”ƒ â”£ forms/       # FormulÃ¡rios validados por Schemas Zod
- â”ƒ â”£ layout/      # Sidebar, AppLayout e ProtectedRoute (RBAC)
- â”ƒ â”— ui/          # Ã�cones SVG e notificaÃ§Ãµes de Toast
- â”£ context/       # AuthContext (JWT) e ToastContext (Alertas)
- â”£ hooks/         # Custom Hooks isolando todas as Queries/MutaÃ§Ãµes do TanStack
- â”£ pages/         # Telas (Dashboard, Clientes, Financeiro, AGO, Lances, Reembolsos, etc)
- â”£ schemas/       # Schemas Zod de validaÃ§Ã£o estrita (login, assembleia, lance, etc)
- â”£ services/      # Isolamento da conexÃ£o com o Backend Spring Boot (api.js & mockDb.js)
- â”£ test/          # SuÃ­te de testes unitÃ¡rios de Schemas e Hooks
- â”£ App.jsx        # ConfiguraÃ§Ã£o de Rotas e Provedores do App
- â”— main.jsx       # Ponto de montagem no DOM
+ ┣ components/
+ ┃ ┣ forms/       # Formulários validados por Schemas Zod
+ ┃ ┣ layout/      # Sidebar, AppLayout e ProtectedRoute (RBAC)
+ ┃ ┗ ui/          # Ícones SVG e notificações de Toast
+ ┣ context/       # AuthContext (JWT) e ToastContext (Alertas)
+ ┣ hooks/         # Custom Hooks isolando todas as Queries/Mutações do TanStack
+ ┣ pages/         # Telas (Dashboard, Clientes, Financeiro, AGO, Lances, Reembolsos, etc)
+ ┣ schemas/       # Schemas Zod de validação estrita (login, assembleia, lance, etc)
+ ┣ services/      # Isolamento da conexão com o Backend Spring Boot (api.js & mockDb.js)
+ ┣ test/          # Suíte de testes unitários de Schemas e Hooks
+ ┣ App.jsx        # Configuração de Rotas e Provedores do App
+ ┗ main.jsx       # Ponto de montagem no DOM
 ```
 
 ---
 
-## ðŸš€ Como Executar
+## 🚀 Como Executar
 
-O frontend foi desenvolvido para operar conectado em 100% do tempo Ã  API real Spring Boot na porta 8080. O modo mock foi permanentemente descontinuado para garantir fidelidade total nas validaÃ§Ãµes transacionais (Lances, IntegralizaÃ§Ãµes, etc).
+O frontend foi desenvolvido para operar conectado em 100% do tempo à API real Spring Boot na porta 8080. O modo mock foi permanentemente descontinuado para garantir fidelidade total nas validações transacionais (Lances, Integralizações, etc).
 
-1. Instale todas as dependÃªncias:
+1. Instale todas as dependências:
    ```bash
    npm install
    ```
@@ -100,20 +104,19 @@ O frontend foi desenvolvido para operar conectado em 100% do tempo Ã  API real
    npm run dev
    ```
 
-3. Execute a suÃ­te de testes unitÃ¡rios e de integraÃ§Ã£o:
+3. Execute a suíte de testes unitários e de integração:
    ```bash
    npm run test:run
    ```
 
 ---
 
-## ðŸ§ª Cobertura de Testes (Vitest)
+## 🧪 Cobertura de Testes (Vitest)
 
-A aplicaÃ§Ã£o conta com validaÃ§Ã£o automatizada contÃ­nua por meio de Vitest, cobrindo:
-*   **Schemas Zod**: ValidaÃ§Ã£o de CPFs/CNPJs, regras financeiras, patrimÃ´nio e formatos.
-* - **Estado Frontend**: Totalmente refatorado para estÃ©tica Premium, com Skeletons de alto nÃ­vel (`TableSkeleton`, `CardSkeleton`) e temas dinÃ¢micos (Ã‚mbar, Oceano, Esmeralda). As dependÃªncias offline foram erradicadas, tornando o consumo 100% voltado para a API de produÃ§Ã£o Spring Boot.
-- **Testes**: 8/8 testes E2E passando com 100% de sucesso. Testes unitÃ¡rios tambÃ©m em conformidade. UI Drift resolvido.
+A aplicação conta com validação automatizada contínua por meio de Vitest, cobrindo:
+*   **Schemas Zod**: Validação de CPFs/CNPJs, regras financeiras, patrimônio e formatos.
+*   **Estado Frontend**: Totalmente refatorado para estética Premium, com Skeletons de alto nível (`TableSkeleton`, `CardSkeleton`) e temas dinâmicos (Âmbar, Oceano, Esmeralda). As dependências offline foram erradicadas, tornando o consumo 100% voltado para a API de produção Spring Boot.
 
-Todos os **47 testes integrados** passam com 100% de sucesso.
+Todos os **51 testes integrados (Vitest)** passam com 100% de sucesso.
 
-* **CRM e Vendas:** Motor de originação de consórcios com cadastro de Corretores, orçamentação e Propostas de Adesão. Tipos de Venda determinam o comissionamento de cada produto, enquanto a Alocação Inteligente encontra o melhor grupo (em andamento ou formação) para alocar o consorciado através de cruzamento da Categoria do Bem e limite de cotas. As regras de cálculo e estornos de Comissões serão estendidas em módulo futuro, tendo a primeira parcela do consórcio composta integralmente por Taxa de Administração e Fundo de Reserva.
+* **CRM e Vendas:** Motor de originação de consórcios com cadastro de Corretores, orçamentação e Propostas de Adesão. O valor do crédito é imutável manualmente e derivado automaticamente a partir do valor do Bem de Referência selecionado (com auto-seleção padrão quando houver 1 único bem na categoria). O sistema realiza a alocação automática de Grupo e Cota elegíveis cruzando a Categoria BACEN e o Prazo escolhidos, garantindo estrita homogeneidade regulatória (Lei 11.795/08 e Resolução BCB 285/2023).

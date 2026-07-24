@@ -24,6 +24,7 @@ const clienteSchema = z.object({
   patrimonio: z.coerce.number().min(0, "O patrimônio não pode ser negativo").default(0),
   rendaMensal: z.coerce.number().min(0, "A renda mensal não pode ser negativa").default(0),
   nivelRisco: z.enum(['BAIXO', 'MEDIO', 'ALTO']).default('MEDIO'),
+  pep: z.boolean().default(false).optional(),
 });
 
 const FormField = ({ label, id, error, children, className = '' }) => (
@@ -147,6 +148,13 @@ export const ClienteForm = ({ onClose, editClienteId }) => {
                 <option value="ALTO">ALTO - Necessita Aprovação</option>
               </select>
             </FormField>
+
+            <div className="md:col-span-2 flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl my-1">
+              <input id="cliente-pep" type="checkbox" {...register('pep')} className="w-4 h-4 rounded border-amber-300 text-brand-600 focus:ring-brand-500" />
+              <label htmlFor="cliente-pep" className="text-xs font-semibold text-slate-700 dark:text-slate-200 cursor-pointer">
+                Pessoa Politicamente Exposta (PEP) <span className="font-normal text-slate-500 dark:text-slate-400">— Executa o cruzamento imediato com a base PEP do Governo e gera alerta se houver correspondência.</span>
+              </label>
+            </div>
             
             <FormField label="E-mail" id="cliente-email" error={errors.email}>
               <input id="cliente-email" type="email" {...register('email')} placeholder="Ex: nome@empresa.com" />

@@ -1,5 +1,5 @@
 
-const BASE_URL = import.meta.env?.VITE_API_URL || '';
+export const BASE_URL = import.meta.env?.VITE_API_URL || '';
 
 
 
@@ -286,16 +286,95 @@ export const api = {
     },
   },
 
-  // --- BENS ---
+  // --- BENS DE REFERÊNCIA ---
   bens: {
-    listar: async () => {
-      // Mock for bensPermitidos
-      return [
-        { id: 'VEICULO_AUTOMOTOR', nome: 'Veículo Automotor' },
-        { id: 'IMOVEL', nome: 'Imóvel' },
-        { id: 'SERVICO', nome: 'Serviço' },
-        { id: 'OUTROS_BENS_MOVEIS', nome: 'Eletroeletrônicos e Outros Bens Móveis' }
-      ];
+    categorias: async () => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/categorias`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar categorias de bem.");
+      return response.json();
+    },
+    listar: async (categoriaId, page = 0, size = 50) => {
+      const url = categoriaId 
+        ? `${BASE_URL}/api/bens-referencia?categoriaId=${categoriaId}&page=${page}&size=${size}`
+        : `${BASE_URL}/api/bens-referencia?page=${page}&size=${size}`;
+      const response = await fetchApi(url);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar bens de referência.");
+      return response.json();
+    },
+    listarTodos: async () => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/todos`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar bens de referência.");
+      return response.json();
+    },
+    obterPorId: async (id) => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/${id}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao obter bem de referência.");
+      return response.json();
+    },
+    criar: async (dto) => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao cadastrar bem de referência.");
+      return response.json();
+    },
+    atualizar: async (id, dto, origem = 'MANUAL') => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/${id}?origemReajuste=${origem}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao atualizar bem de referência.");
+      return response.json();
+    },
+    obterHistorico: async (id) => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/${id}/historico`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao consultar histórico de preços.");
+      return response.json();
+    },
+    fipeMarcas: async () => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/fipe/marcas`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao consultar marcas FIPE.");
+      return response.json();
+    },
+    fipeModelos: async (marcaId) => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/fipe/marcas/${marcaId}/modelos`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao consultar modelos FIPE.");
+      return response.json();
+    },
+    fipeAnos: async (marcaId, modeloId) => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/fipe/marcas/${marcaId}/modelos/${modeloId}/anos`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao consultar anos FIPE.");
+      return response.json();
+    },
+    fipeConsultar: async (marcaId, modeloId, anoId) => {
+      const response = await fetchApi(`${BASE_URL}/api/bens-referencia/fipe/consultar?marcaId=${marcaId}&modeloId=${modeloId}&anoId=${anoId}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao consultar valor oficial FIPE.");
+      return response.json();
+    }
+  },
+
+  // --- ÍNDICES ECONÔMICOS BACEN ---
+  indices: {
+    obterUltimos12Meses: async (tipoIndice) => {
+      const response = await fetchApi(`${BASE_URL}/api/indices-economicos/${tipoIndice}/ultimos-12-meses`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao obter últimos 12 meses do índice.");
+      return response.json();
+    },
+    simularReajuste: async (tipoIndice, valorAtual) => {
+      const response = await fetchApi(`${BASE_URL}/api/indices-economicos/simular?tipoIndice=${tipoIndice}&valorAtual=${valorAtual}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao simular reajuste.");
+      return response.json();
+    },
+    reajustarGrupo: async (grupoId, tipoIndice) => {
+      const url = tipoIndice 
+        ? `${BASE_URL}/api/indices-economicos/grupos/${grupoId}/reajustar?tipoIndice=${tipoIndice}`
+        : `${BASE_URL}/api/indices-economicos/grupos/${grupoId}/reajustar`;
+      const response = await fetchApi(url, { method: 'POST' });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao reajustar grupo por índice.");
+      return response.json();
     }
   },
 
@@ -332,8 +411,14 @@ export const api = {
     buscar: async (grupoId, numeroCota, versao, cpfCnpj) => {
       const params = new URLSearchParams();
       if (grupoId) params.append('grupoId', grupoId);
-      if (numeroCota) params.append('numeroCota', numeroCota);
-      if (versao) params.append('versao', versao);
+      if (numeroCota) {
+        params.append('codigoCota', numeroCota);
+        params.append('numeroCota', numeroCota);
+      }
+      if (versao) {
+        params.append('versaoHistorico', versao);
+        params.append('versao', versao);
+      }
       if (cpfCnpj) params.append('cpfCnpj', cpfCnpj.replace(/[^0-9]/g, ''));
       params.append('size', '50');
       const response = await fetchApi(`${BASE_URL}/api/cotas/buscar?${params.toString()}`);
@@ -358,7 +443,7 @@ export const api = {
       return data.content || data;
     },
     listarPorGrupo: async (grupoId) => {
-            const response = await fetchApi(`${BASE_URL}/api/cotas/grupo/${grupoId}`);
+      const response = await fetchApi(`${BASE_URL}/api/cotas/grupo/${grupoId}?size=2000`);
       if (!response.ok) throw new Error("Erro ao buscar cotas do grupo.");
       const data = await response.json();
       return data.content || data;
@@ -539,8 +624,12 @@ export const api = {
       if (!response.ok) throw await handleResponseError(response, "Erro ao registrar pagamento do bem.");
       return response.json();
     },
-    cancelar: async (id) => {
-      const response = await fetchApi(`${BASE_URL}/api/contemplacoes/lances/${id}/cancelar`, {
+    cancelar: async (id, motivo, justificativa) => {
+      const params = new URLSearchParams();
+      if (motivo) params.append('motivo', motivo);
+      if (justificativa) params.append('justificativa', justificativa);
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+      const response = await fetchApi(`${BASE_URL}/api/contemplacoes/lances/${id}/cancelar${queryString}`, {
         method: 'POST'
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao cancelar contemplação.");
@@ -668,6 +757,20 @@ export const api = {
     produtos: async () => {
       const response = await fetchApi(`${BASE_URL}/api/vendas/produtos`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao listar produtos.");
+      return response.json();
+    },
+    listarPendentesRisco: async () => {
+      const response = await fetchApi(`${BASE_URL}/api/vendas/propostas/pendentes-risco`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar propostas pendentes de análise de risco.");
+      return response.json();
+    },
+    analisarRisco: async (id, aprovada, justificativa) => {
+      const response = await fetchApi(`${BASE_URL}/api/vendas/propostas/${id}/analise-risco`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ aprovada, justificativa })
+      });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao analisar risco.");
       return response.json();
     },
     criarProposta: async (dto) => {

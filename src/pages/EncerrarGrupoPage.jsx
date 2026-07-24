@@ -165,7 +165,7 @@ export const EncerrarGrupoPage = () => {
           <div className="space-y-4 text-sm">
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700/50 pb-2">
               <span className="text-slate-500 dark:text-slate-400">Código</span>
-              <span className="font-title font-bold text-brand-600 dark:text-brand-400">{grupo.codigo}</span>
+              <span className="font-title font-bold text-brand-600 dark:text-brand-400">{grupo.codigoGrupo || grupo.codigo}</span>
             </div>
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700/50 pb-2">
               <span className="text-slate-500 dark:text-slate-400">Status Atual</span>
@@ -334,7 +334,7 @@ export const EncerrarGrupoPage = () => {
             <div className="space-y-2 mb-6">
               <div className="flex justify-between items-center p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 text-sm">
                 <span className="text-slate-500 dark:text-slate-400">Grupo</span>
-                <span className="font-bold text-brand-600 dark:text-brand-400">{grupo.codigo}</span>
+                <span className="font-bold text-brand-600 dark:text-brand-400">{grupo.codigoGrupo || grupo.codigo}</span>
               </div>
               <div className="flex justify-between items-center p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 text-sm">
                 <span className="text-slate-500 dark:text-slate-400">Prazo Legal Restante</span>

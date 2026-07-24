@@ -77,9 +77,13 @@ export const CotaDetalhePage = () => {
 
   const parcelasPagas = parcelas.filter(p => p.status === 'PAGA');
   const parcelasAPagar = parcelas.filter(p => p.status !== 'PAGA');
-  const totalParcelas = parcelas.length || 1;
-  const percentualPago = (parcelasPagas.length / totalParcelas) * 100;
-  const percentualAPagar = 100 - percentualPago;
+  
+  // Cálculo de amortização real do Fundo Comum (BACEN BCB 285)
+  const somaPercentualFC = parcelasPagas.reduce((acc, p) => acc + Number(p.percentualFundoComum || p.percentualAmortizado || 0), 0);
+  const percentualPago = somaPercentualFC > 0
+    ? Math.min(100, Math.round(somaPercentualFC * 100 * 100) / 100)
+    : Math.min(100, Math.round((parcelasPagas.length / (parcelas.length || 1)) * 100));
+  const percentualAPagar = Math.max(0, Math.round((100 - percentualPago) * 100) / 100);
 
 
   return (
@@ -101,7 +105,7 @@ export const CotaDetalhePage = () => {
             </div>
             <div>
               <h2 className="font-title text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                Cota #{cota.numeroCota}
+                Cota #{cota.codigoCota || cota.numeroCota}
               </h2>
               <p className="text-sm text-slate-400 mt-0.5">
                 Grupo: {cota.codigoGrupo || cota.grupoId} · Consorciado: {cota.nomeConsorciado || cota.clienteId}

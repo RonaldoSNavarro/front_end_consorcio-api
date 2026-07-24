@@ -31,6 +31,8 @@ import { PerfisPage } from './pages/PerfisPage';
 import { UsuariosPage } from './pages/UsuariosPage';
 import { CredenciamentoLancesPage } from './pages/CredenciamentoLancesPage';
 import { CotaDetalhePage } from './pages/CotaDetalhePage';
+import { AnaliseRiscoPage } from './pages/AnaliseRiscoPage';
+import { BensReferenciaPage } from './pages/BensReferenciaPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,6 +63,7 @@ export default function App() {
                     <Route path="/configuracoes/mfa" element={<MfaSettingsPage />} />
                     <Route path="/clientes" element={<ClientesPage />} />
                     <Route path="/grupos" element={<GruposPage />} />
+                    <Route path="/bens-referencia" element={<BensReferenciaPage />} />
                     <Route path="/cotas" element={<CotasPage />} />
                     <Route path="/cotas/:id" element={<CotaDetalhePage />} />
                     <Route path="/assembleias" element={<AssembleiasPage />} />
@@ -82,6 +85,7 @@ export default function App() {
                     {/* Compliance (Listas Restritivas) */}
                     <Route element={<ProtectedRoute allowedAuthorities={['MANAGE_COMPLIANCE']} />}>
                       <Route path="/compliance/alertas" element={<CompliancePainelPage />} />
+                      <Route path="/compliance/analise-risco" element={<AnaliseRiscoPage />} />
                     </Route>
 
                     {/* Gestão de Acesso */}

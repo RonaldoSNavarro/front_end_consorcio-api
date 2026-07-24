@@ -1,10 +1,10 @@
 # 📋 Especificação de UI — Módulo de Vendas (vendas)
 
-*   **Status**: LOCKED (Updated to v2.0)
-*   **Versão**: v2.0
+*   **Status**: IMPLEMENTED
+*   **Versão**: v2.2
 *   **Spec Backend**: [spec.md](../../consorcio-api/docs/specs/vendas/spec.md)
 *   **API Contract**: [api-contract.md](../../consorcio-api/docs/specs/vendas/api-contract.md)
-*   **Última alteração**: Atualização do Wizard de Vendas para 4 passos e alinhamento com testes E2E.
+*   **Última alteração**: Venda registrada com cota e primeira parcela aguardando pagamento — origem: BUG-FIN-VND-002.
 
 ---
 
@@ -69,8 +69,8 @@ Fornecer uma interface intuitiva em formato de Wizard (esteira de vendas) para q
   - Detalhamento da composição da parcela base (Valores do Fundo Comum, Taxa de Administração, Fundo de Reserva e Seguro Prestamista se contratado).
 - **Ação / Efetivação**: Botão `"Efetivar Proposta"` (`button:has-text("Efetivar Proposta")` ou `getByRole('button', { name: /Efetivar Proposta/i })`).
 - **Feedback / Toasts**:
-  - Em caso de sucesso: Exibir uma notificação Toast contendo o texto `"Venda efetivada!"`.
-  - Em caso de bloqueio por Compliance (ex: cliente na lista restritiva OFAC/ONU): Exibir uma notificação Toast de erro contendo o texto `"bloqueada por PLD/FT"` (regex correspondente: `/bloqueada por PLD\/FT/i`).
+  - Em caso de sucesso: Exibir uma notificação Toast contendo o texto `"Venda registrada! Primeira parcela pendente de pagamento."`.
+  - Quando a proposta for encaminhada ao Compliance (ex: cliente na lista restritiva OFAC/ONU): Exibir uma notificação Toast de aviso informando que a proposta foi registrada e enviada para análise de risco.
 
 ---
 
@@ -82,9 +82,8 @@ Fornecer uma interface intuitiva em formato de Wizard (esteira de vendas) para q
 | `/api/vendas/produtos` | GET | useQuery | Listar produtos de consórcio disponíveis |
 | `/api/grupos` | GET | useQuery | Listar grupos elegíveis para alocação |
 | `/api/vendas/tipos` | GET | useQuery | Listar tipos de venda para o Step 2 |
-| `/api/vendas/propostas` | POST | useMutation | Criar proposta de adesão (retorna proposta em `EM_ANALISE`) |
+| `/api/vendas/propostas` | POST | useMutation | Criar proposta de adesão (retorna `EM_ANALISE` ou `PENDENTE_ANALISE_RISCO`) |
 | `/api/vendas/propostas/{id}/aprovar` | POST | useMutation | Aprovar proposta e gerar contrato de adesão |
-| `/api/vendas/contratos/{id}/efetivar` | POST | useMutation | Confirmar 1ª parcela, alocar no grupo e gerar Cota |
 
 ---
 
@@ -96,11 +95,13 @@ Fornecer uma interface intuitiva em formato de Wizard (esteira de vendas) para q
 - **And** define o valor do crédito, visualiza a simulação e clica em "Avançar" no Step 1
 - **And** escolhe o canal de venda clicando em um botão que exibe "Comissão:" no Step 2
 - **And** clica no botão "Efetivar Proposta" no Step 3
-- **Then** a proposta é gerada, aprovada, paga e a cota é criada no backend, exibindo o toast de sucesso `"Venda efetivada!"`.
+- **Then** a proposta é aprovada, a cota é criada em `AGUARDANDO_PAGAMENTO` e a primeira parcela nasce `PENDENTE`.
+- **And** nenhuma chamada simula ou confirma pagamento.
+- **And** a UI exibe `"Venda registrada! Primeira parcela pendente de pagamento."`.
 
-### AC-VND-02: Bloqueio de Venda por PLD/FT
+### REQ-VND-008 — AC-UI-1: Encaminhamento de Venda para análise PLD/FT
 - **Given** que o corretor busca um cliente em lista restritiva (ex: "OSAMA BIN LADEN") no Step 0
 - **When** completa o fluxo inserindo o valor do crédito no Step 1, escolhendo o canal de venda no Step 2 e clicando em "Efetivar Proposta" no Step 3
-- **Then** o backend intercepta o bloqueio de compliance e retorna erro HTTP 422/400
-- **And** o frontend exibe um toast de erro contendo a mensagem `"bloqueada por PLD/FT"`.
-
+- **Then** a proposta é registrada com status `PENDENTE_ANALISE_RISCO`.
+- **And** o frontend interrompe a aprovação/efetivação automática.
+- **And** exibe um toast de aviso e direciona o usuário para a esteira de análise do Compliance.

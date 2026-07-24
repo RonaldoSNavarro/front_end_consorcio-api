@@ -35,7 +35,7 @@ const GrupoBar = ({ grupo, financeiro }) => {
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <div className={`w-2 h-2 rounded-full shrink-0 ${statusColor}`} />
-          <span className="font-mono font-bold text-sm text-slate-700 dark:text-slate-300 truncate">{grupo.codigo}</span>
+          <span className="font-mono font-bold text-sm text-slate-700 dark:text-slate-300 truncate">{grupo.codigoGrupo || grupo.codigo}</span>
         </div>
         <span className="text-xs font-semibold text-slate-500 shrink-0">
           R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -101,7 +101,12 @@ export const DashboardPage = () => {
         const cts = await api.cotas.listar();
         const cotasList = cts.content || cts;
         totalCotas = Array.isArray(cotasList)
-          ? cotasList.filter(c => c.status === 'ATIVA' || c.status === 'CONTEMPLADA').length
+          ? cotasList.filter(c => [
+              'AGUARDANDO_PAGAMENTO',
+              'AGUARDANDO_INAUGURACAO',
+              'ATIVA',
+              'CONTEMPLADA'
+            ].includes(c.status)).length
           : 0;
       } catch (e) {
         console.warn('Sem permissão para listar cotas', e);
@@ -187,7 +192,7 @@ export const DashboardPage = () => {
           icon={Hash}
           label="Cotas Emitidas"
           value={s.cotas}
-          trend="Ativas ou contempladas"
+          trend="Inclui adesões pendentes"
           color="bg-violet-50 dark:bg-violet-500/10 border-violet-200 dark:border-violet-500/20 text-violet-600 dark:text-violet-400"
           staggerClass="animate-stagger-4"
         />
@@ -210,7 +215,7 @@ export const DashboardPage = () => {
           <div className="h-64 mb-6">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={s.gruposFinanceiro.map(g => ({
-                name: g.grupo.codigo,
+                name: g.grupo.codigoGrupo || g.grupo.codigo,
                 Arrecadado: g.financeiro?.totalFundoComumArrecadado || 0,
                 Liberado: g.financeiro?.totalCreditosLiberados || 0
               }))}>

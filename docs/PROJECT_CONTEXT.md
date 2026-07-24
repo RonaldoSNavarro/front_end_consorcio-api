@@ -1,5 +1,7 @@
 # 📂 Contexto do Projeto — Frontend Consórcio
 
+*   **Última atualização**: 2026-07-24 — patch SDD v2.2 do fluxo de pagamento da adesão.
+
 Este documento descreve o estado atual do frontend, a stack de referência, as ADRs vigentes e as diretrizes técnicas do projeto **front_end_consorcio-api**.
 
 ---
@@ -101,6 +103,9 @@ Este documento descreve o estado atual do frontend, a stack de referência, as A
 ## 📈 5. Estado Atual do Projeto
 
 - **Fase Atual**: Módulo de Vendas e Relatórios PLD/FT/Contábil — Projeto 100% Estabilizado (Fase 5 Concluída).
+- **Patch de Vendas v2.1**: Propostas com risco alto ou alertas restritivos são registradas em `PENDENTE_ANALISE_RISCO`; o frontend interrompe a efetivação automática e encaminha o fluxo ao Compliance.
+- **Patch de Vendas v2.2**: O wizard registra contrato/cota com a primeira parcela `PENDENTE`; somente o módulo Financeiro confirma o pagamento e efetiva a adesão.
+- **Patch de Compliance UI v1.2**: A aprovação de risco usa `ConfirmDialog` acessível do design system, sem confirmações nativas do navegador.
 - **Backend de Referência**: Funcionalidades BCB 285/2023 100% integradas, incluindo esteira comercial completa.
 - **Status Frontend**: Estética Premium aplicada (Skeletons de Loading, Glassmorphism Avançado, Temas Dinâmicos). Totalmente integrado à API real sem simuladores locais.
 - **Testes**: 8/8 testes E2E (Playwright) passando com 100% de sucesso. Testes unitários também em conformidade. UI Drift e Mocks completamente erradicados do código.
