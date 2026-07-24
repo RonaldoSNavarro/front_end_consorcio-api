@@ -93,11 +93,22 @@ export function useVendaProposta() {
   const bensFiltrados = useMemo(() => {
     if (!selectedCategoria) return bensList;
     return bensList.filter(bem => {
-      const tipoBacen = bem.categoriaBem?.tipoBacen;
-      if (selectedCategoria === 'IMOVEL') return tipoBacen === 'BEM_IMOVEL';
-      if (selectedCategoria === 'VEICULO_AUTOMOTOR') return tipoBacen === 'BEM_MOVEL_I';
-      if (selectedCategoria === 'OUTROS_BENS_MOVEIS') return tipoBacen === 'BEM_MOVEL_II';
-      if (selectedCategoria === 'SERVICO') return tipoBacen === 'SERVICO';
+      const tipoBacen = bem.tipoBacen || bem.categoriaBem?.tipoBacen || bem.tipoCategoriaBacen;
+      const nomeCat = (bem.nomeCategoria || bem.categoriaBem?.nome || bem.categoria || '').toUpperCase();
+      const catId = bem.categoriaBemId || bem.categoriaBem?.id;
+
+      if (selectedCategoria === 'IMOVEL') {
+        return tipoBacen === 'BEM_IMOVEL' || nomeCat.includes('IMÓV') || nomeCat.includes('IMOV') || catId === 1;
+      }
+      if (selectedCategoria === 'VEICULO_AUTOMOTOR') {
+        return tipoBacen === 'BEM_MOVEL_I' || nomeCat.includes('VEÍCUL') || nomeCat.includes('VEICUL') || nomeCat.includes('AUTO') || catId === 2;
+      }
+      if (selectedCategoria === 'OUTROS_BENS_MOVEIS') {
+        return tipoBacen === 'BEM_MOVEL_II' || nomeCat.includes('OUTRO') || catId === 3;
+      }
+      if (selectedCategoria === 'SERVICO') {
+        return tipoBacen === 'SERVICO' || nomeCat.includes('SERVI') || catId === 4;
+      }
       return true;
     });
   }, [bensList, selectedCategoria]);
@@ -227,11 +238,16 @@ export function useVendaProposta() {
       const catGroup = selectedGrupo.categoriaBem;
       // 1. Tentar encontrar produto com Categoria de Bem compatível com a do Grupo
       const matched = produtos.find(p => {
-        const tipoBacen = p.bemReferencia?.categoriaBem?.tipoBacen;
-        if (catGroup === 'IMOVEL' && tipoBacen === 'BEM_IMOVEL') return true;
-        if (catGroup === 'VEICULO_AUTOMOTOR' && tipoBacen === 'BEM_MOVEL_I') return true;
-        if (catGroup === 'OUTROS_BENS_MOVEIS' && tipoBacen === 'BEM_MOVEL_II') return true;
-        if (catGroup === 'SERVICO' && tipoBacen === 'SERVICO') return true;
+        const bem = p.bemReferencia;
+        if (!bem) return false;
+        const tipoBacen = bem.tipoBacen || bem.categoriaBem?.tipoBacen || bem.tipoCategoriaBacen;
+        const nomeCat = (bem.nomeCategoria || bem.categoriaBem?.nome || bem.categoria || '').toUpperCase();
+        const catId = bem.categoriaBemId || bem.categoriaBem?.id;
+
+        if (catGroup === 'IMOVEL') return tipoBacen === 'BEM_IMOVEL' || nomeCat.includes('IMÓV') || nomeCat.includes('IMOV') || catId === 1;
+        if (catGroup === 'VEICULO_AUTOMOTOR') return tipoBacen === 'BEM_MOVEL_I' || nomeCat.includes('VEÍCUL') || nomeCat.includes('VEICUL') || nomeCat.includes('AUTO') || catId === 2;
+        if (catGroup === 'OUTROS_BENS_MOVEIS') return tipoBacen === 'BEM_MOVEL_II' || nomeCat.includes('OUTRO') || catId === 3;
+        if (catGroup === 'SERVICO') return tipoBacen === 'SERVICO' || nomeCat.includes('SERVI') || catId === 4;
         return false;
       });
       if (matched) return matched;

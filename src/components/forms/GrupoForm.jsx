@@ -63,8 +63,23 @@ export const GrupoForm = ({ onClose }) => {
   const selectedCategoria = watch('categoriaBem');
   const bensFiltrados = bensList.filter(bem => {
     if (!selectedCategoria) return true;
-    const cat = bem.categoria || bem.categoriaBem?.tipoBacen || bem.categoriaBem?.nome || bem.categoriaBem;
-    return !cat || cat === selectedCategoria;
+    const tipoBacen = bem.tipoBacen || bem.categoriaBem?.tipoBacen || bem.tipoCategoriaBacen;
+    const nomeCat = (bem.nomeCategoria || bem.categoriaBem?.nome || bem.categoria || '').toUpperCase();
+    const catId = bem.categoriaBemId || bem.categoriaBem?.id;
+
+    if (selectedCategoria === 'IMOVEL') {
+      return tipoBacen === 'BEM_IMOVEL' || nomeCat.includes('IMÓV') || nomeCat.includes('IMOV') || catId === 1;
+    }
+    if (selectedCategoria === 'VEICULO_AUTOMOTOR') {
+      return tipoBacen === 'BEM_MOVEL_I' || nomeCat.includes('VEÍCUL') || nomeCat.includes('VEICUL') || nomeCat.includes('AUTO') || catId === 2;
+    }
+    if (selectedCategoria === 'OUTROS_BENS_MOVEIS') {
+      return tipoBacen === 'BEM_MOVEL_II' || nomeCat.includes('OUTRO') || catId === 3;
+    }
+    if (selectedCategoria === 'SERVICO') {
+      return tipoBacen === 'SERVICO' || nomeCat.includes('SERVI') || catId === 4;
+    }
+    return true;
   });
 
   const mutation = useMutation({
