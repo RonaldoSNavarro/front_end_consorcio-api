@@ -125,7 +125,6 @@ export function useVendaProposta() {
   }, [bensFiltrados, selectedBem]);
 
   // Atualizar valorCredito no form dinamicamente a partir do bem selecionado
-  const creditValue = selectedBem ? Number(selectedBem.valorAtual || 0) : (valorCredito || 50000);
   useEffect(() => {
     if (selectedBem) {
       setValue('valorCredito', Number(selectedBem.valorAtual || 0));
@@ -275,6 +274,13 @@ export function useVendaProposta() {
         valorCreditoSolicitado: Number(valorCredito)
       });
 
+      if (proposta.status === 'PENDENTE_ANALISE_RISCO') {
+        return {
+          isCompliance: true,
+          message: 'Proposta registrada e encaminhada para análise de risco (Compliance).'
+        };
+      }
+
       // 2. Aprovar Proposta
       let contrato;
       try {
@@ -286,22 +292,24 @@ export function useVendaProposta() {
         throw err;
       }
 
-      // 3. Efetivar Contrato (Simulação de Pagamento)
-      const efetivacao = await api.vendas.efetivarContrato(contrato.id);
-
-      return efetivacao;
+      // O contrato, a cota e a primeira parcela já foram preparados pela aprovação.
+      // A baixa da adesão ocorre exclusivamente no módulo Financeiro.
+      return contrato;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['cotas'] });
       queryClient.invalidateQueries({ queryKey: ['clientes'] });
       queryClient.invalidateQueries({ queryKey: ['grupos'] });
+      queryClient.invalidateQueries({ queryKey: ['parcelas'] });
+      queryClient.invalidateQueries({ queryKey: ['parcelas-cota'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
 
       if (data && data.isCompliance) {
         triggerToast("Proposta com cliente de alto risco/alerta enviada para a Esteira de Análise de Risco (Compliance).", "warning");
         navigate("/compliance/analise-risco");
       } else {
-        triggerToast("Venda efetivada com sucesso!", "success");
-        navigate("/cotas");
+        triggerToast("Venda registrada! Primeira parcela pendente de pagamento.", "success");
+        navigate("/financeiro");
       }
     },
     onError: (err) => {

@@ -1,10 +1,10 @@
 # 📋 Especificação de UI — Compliance e Listas Restritivas (compliance)
 
-*   **Status**: LOCKED
-*   **Versão**: v1.1
+*   **Status**: IMPLEMENTED
+*   **Versão**: v1.2
 *   **Spec Backend**: [spec.md](../../consorcio-api/docs/specs/compliance/spec.md)
 *   **API Contract**: [api-contract.md](../../consorcio-api/docs/specs/compliance/api-contract.md)
-*   **Última alteração**: Adição de uploads manuais (PEP, ONU, IBGE) e formulário de agendamento do Job via cron. — origem: SPECIFY-UI Sprint 5
+*   **Última alteração**: Substituição da confirmação nativa de aprovação de risco por modal acessível do design system. — origem: UI DRIFT de BUG-COMP-UI-001
 
 ---
 
@@ -62,6 +62,23 @@ Esta capability fornece aos analistas de compliance e administradores um painel 
 | `/api/compliance/config` | GET | useQuery | Buscar configurações do Cron |
 | `/api/compliance/config` | PUT | useMutation | Salvar nova configuração do Cron |
 
+### Página: AnaliseRiscoPage
+- **Rota**: `/compliance/analise-risco`
+- **Permissões**: `MANAGE_COMPLIANCE`
+- **REQ-IDs cobertos**: REQ-VND-008
+- **Aprovação da proposta**:
+  - O clique em “Aprovar” abre um modal de confirmação, sem utilizar `window.confirm`/`confirm`.
+  - O modal exibe título, mensagem contextual, ações “Cancelar” e “Confirmar Aprovação”.
+  - “Cancelar”, tecla Escape ou clique no backdrop fecham o modal sem chamar a API.
+  - “Confirmar Aprovação” chama a análise de risco uma única vez e fica desabilitado durante o envio.
+  - O modal usa `role="alertdialog"`, `aria-modal="true"`, gerenciamento de foco e navegação por teclado.
+
+#### Endpoint Consumido
+
+| Endpoint | Método | Hook | Ação |
+|----------|--------|------|------|
+| `/api/vendas/propostas/{id}/analise-risco` | POST | useMutation | Aprovar ou reprovar proposta retida em `PENDENTE_ANALISE_RISCO` |
+
 ---
 
 ## 🎯 Critérios de Aceitação de UI
@@ -106,3 +123,12 @@ Esta capability fornece aos analistas de compliance e administradores um painel 
 
 ### REQ-COMP-009 - AC-UI-LOGS-1: Visualização de Logs de Execução
 - A aba "Agendamento de Job" deve possuir uma seção para exibir os logs das últimas execuções de sincronização (horário, trigger, status da OFAC e contagem de registros).
+
+### REQ-VND-008 - AC-UI-2: Confirmar aprovação de risco em modal
+- **Given** uma proposta pendente exibida em `/compliance/analise-risco`.
+- **When** o analista clica em “Aprovar”.
+- **Then** o sistema abre um modal acessível de confirmação e ainda não chama a API.
+- **When** o analista cancela.
+- **Then** o modal fecha e nenhuma decisão é enviada.
+- **When** o analista confirma a aprovação.
+- **Then** o sistema envia a decisão aprovada, fecha o modal após sucesso, exibe o toast e atualiza a lista de pendências.

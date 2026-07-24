@@ -27,6 +27,7 @@ export function useParcelas(cotaId) {
       queryClient.invalidateQueries({ queryKey: ['parcelas', cotaId] });
       queryClient.invalidateQueries({ queryKey: ['inadimplencia', cotaId] });
       queryClient.invalidateQueries({ queryKey: ['grupos'] }); // Balanço do grupo
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
     },
   });
 
@@ -36,6 +37,7 @@ export function useParcelas(cotaId) {
       queryClient.invalidateQueries({ queryKey: ['parcelas', cotaId] });
       queryClient.invalidateQueries({ queryKey: ['inadimplencia', cotaId] });
       queryClient.invalidateQueries({ queryKey: ['grupos'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
     },
   });
 

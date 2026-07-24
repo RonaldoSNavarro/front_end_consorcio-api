@@ -78,6 +78,7 @@ export const FinanceiroPage = () => {
       queryClient.invalidateQueries({ queryKey: ['parcelas-cota', selectedCotaId] });
       queryClient.invalidateQueries({ queryKey: ['inadimplencia-cota', selectedCotaId] });
       queryClient.invalidateQueries({ queryKey: ['grupos'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
     },
     onError: (err) => triggerToast(err.message, "danger")
   });
@@ -89,6 +90,7 @@ export const FinanceiroPage = () => {
       queryClient.invalidateQueries({ queryKey: ['parcelas-cota', selectedCotaId] });
       queryClient.invalidateQueries({ queryKey: ['inadimplencia-cota', selectedCotaId] });
       queryClient.invalidateQueries({ queryKey: ['grupos'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
     },
     onError: (err) => triggerToast(err.message, "danger")
   });

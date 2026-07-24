@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { ShieldAlert, CheckCircle, XCircle } from 'lucide-react';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 export const AnaliseRiscoPage = () => {
   const { triggerToast } = useToast();
   const queryClient = useQueryClient();
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [propostaParaAprovar, setPropostaParaAprovar] = useState(null);
   const [selectedPropostaId, setSelectedPropostaId] = useState('');
   const [justificativa, setJustificativa] = useState('');
 
@@ -21,19 +23,32 @@ export const AnaliseRiscoPage = () => {
 
   const analisarMutation = useMutation({
     mutationFn: ({ id, aprovada, justificativa }) => api.vendas.analisarRisco(id, aprovada, justificativa),
-    onSuccess: () => {
-      triggerToast("Análise de risco concluída com sucesso!", "success");
+    onSuccess: (_, variables) => {
+      triggerToast(
+        variables.aprovada
+          ? "Proposta aprovada! Primeira parcela pendente de pagamento."
+          : "Análise de risco concluída com sucesso!",
+        "success"
+      );
       queryClient.invalidateQueries({ queryKey: ['propostas-pendentes-risco'] });
+      queryClient.invalidateQueries({ queryKey: ['cotas'] });
+      queryClient.invalidateQueries({ queryKey: ['parcelas'] });
+      queryClient.invalidateQueries({ queryKey: ['parcelas-cota'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
       setModalOpen(false);
+      setPropostaParaAprovar(null);
       setJustificativa('');
     },
     onError: (err) => triggerToast(err.message, "danger")
   });
 
-  const handleAprovar = (id) => {
-    if (confirm("Confirmar aprovação de risco desta proposta?")) {
-      analisarMutation.mutate({ id, aprovada: true });
-    }
+  const handleAprovar = (proposta) => {
+    setPropostaParaAprovar(proposta);
+  };
+
+  const handleConfirmarAprovacao = () => {
+    if (!propostaParaAprovar || analisarMutation.isPending) return;
+    analisarMutation.mutate({ id: propostaParaAprovar.id, aprovada: true });
   };
 
   const handleReprovarClick = (id) => {
@@ -108,7 +123,7 @@ export const AnaliseRiscoPage = () => {
                     <td>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleAprovar(p.id)}
+                          onClick={() => handleAprovar(p)}
                           disabled={analisarMutation.isPending}
                           className="btn btn-outline btn-xs !text-emerald-600 dark:!text-emerald-400 !border-emerald-200 dark:!border-emerald-500/30 hover:!bg-emerald-50 dark:hover:!bg-emerald-500/10 flex items-center gap-1"
                         >
@@ -130,6 +145,19 @@ export const AnaliseRiscoPage = () => {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={Boolean(propostaParaAprovar)}
+        title="Aprovar proposta"
+        message={`Confirma a aprovação de risco da proposta #${propostaParaAprovar?.numeroProposta || ''}? Após a confirmação, o contrato será efetivado conforme o fluxo de vendas.`}
+        confirmText="Confirmar Aprovação"
+        pendingText="Aprovando..."
+        cancelText="Cancelar"
+        type="primary"
+        isPending={analisarMutation.isPending}
+        onConfirm={handleConfirmarAprovacao}
+        onCancel={() => setPropostaParaAprovar(null)}
+      />
 
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">

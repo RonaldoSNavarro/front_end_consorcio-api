@@ -3,8 +3,8 @@
 *   **Capability**: compliance
 *   **UI Spec de referência**: [ui-spec.md](ui-spec.md)
 *   **API Contract Backend**: [api-contract.md](../../consorcio-api/docs/specs/compliance/api-contract.md)
-*   **Total de tarefas**: 7
-*   **REQ-IDs cobertos**: REQ-COMP-002, REQ-COMP-003, REQ-COMP-004, REQ-COMP-005, REQ-COMP-006, REQ-COMP-008
+*   **Total de tarefas**: 8
+*   **REQ-IDs cobertos**: REQ-COMP-002, REQ-COMP-003, REQ-COMP-004, REQ-COMP-005, REQ-COMP-006, REQ-COMP-008, REQ-VND-008
 
 ---
 
@@ -56,3 +56,9 @@
 ### [TESTE E2E] Estabilidade Global e Bloqueios (Pendência)
 - `[x]` **E2E Flakiness na Venda**: Resolver falhas de timeout (`locator.fill`) no teste E2E `Deve impedir venda para cliente bloqueado em lista restritiva (OFAC/ONU)`, assegurando que o modal não re-renderize perdendo a referência no DOM durante o clique de Avançar.
 - `[x]` **E2E Timeout Global (Login)**: Mitigar sobrecarga de workers no setup global `test.beforeEach` que ocasionalmente causa timeout no carregamento inicial de `http://localhost:5173/login`.
+
+### [FRONTEND] BUG-COMP-UI-001 — REQ-VND-008 / AC-UI-2: Modal de confirmação da aprovação
+- [x] Substituir `confirm()` em `AnaliseRiscoPage.jsx` pelo `ConfirmDialog` do design system.
+- [x] Garantir que cancelar não envie a decisão e que confirmar envie a aprovação uma única vez.
+- [x] Desabilitar as ações do modal enquanto a mutação estiver pendente.
+- [x] Adicionar teste de regressão com Testing Library cobrindo abertura, cancelamento e confirmação.

@@ -44,7 +44,8 @@ test.describe('Fluxo de Venda Proposta', () => {
     // Confirmar
     await page.click('button:has-text("Efetivar Proposta")');
 
-    // Verificar o Toast de sucesso
-    await expect(page.locator('text=Venda efetivada!')).toBeVisible({ timeout: 10000 });
+    // Verificar que a venda foi registrada sem simular o pagamento
+    await expect(page.locator('text=Venda registrada! Primeira parcela pendente de pagamento.')).toBeVisible({ timeout: 10000 });
+    await expect(page).toHaveURL(/.*\/financeiro/);
   });
 });

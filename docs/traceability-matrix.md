@@ -30,6 +30,7 @@
 | REQ-FUN-001 | Composição da Parcela | `FinanceiroPage.jsx` | useParcelas(cotaId) | parcelaSchema | — |
 | REQ-FUN-002 | Hook JPA de Consistência | `FinanceiroPage.jsx` | — | parcelaSchema | — |
 | REQ-FUN-003 | Segregação Contábil | `FinanceiroPage.jsx` | useFinanceiro(grupoId) | — | — |
+| REQ-FUN-004 | Efetivação após pagamento da adesão | `FinanceiroPage.jsx`, `DashboardPage.jsx` | useParcelas(cotaId), usePagarParcela | — | `hooks.test.jsx` |
 
 ---
 
@@ -125,10 +126,11 @@
 | REQ-VND-001 | CRUD Categorias e Bens | `TiposDeVendaPage.jsx` | — | — | — |
 | REQ-VND-002 | CRUD Produtos Consórcio | `VendaPropostaPage.jsx` | useVendaProposta | — | `vendas.spec.js` |
 | REQ-VND-003 | Geração Proposta Adesão | `VendaPropostaPage.jsx` | useVendaProposta | — | `vendas.spec.js` |
-| REQ-VND-004 | Aprovação de Proposta | `VendaPropostaPage.jsx` | useVendaProposta | — | `vendas.spec.js` |
-| REQ-VND-005 | Efetivação do Contrato | `VendaPropostaPage.jsx` | useVendaProposta | — | `vendas.spec.js` |
+| REQ-VND-004 | Aprovação registra adesão aguardando pagamento | `VendaPropostaPage.jsx`, `AnaliseRiscoPage.jsx` | useVendaProposta, useMutation (analisar risco) | — | `hooks.test.jsx`, `AnaliseRiscoPage.test.jsx`, `vendas.spec.js` |
+| REQ-VND-005 | Efetivação ocorre no pagamento financeiro | `FinanceiroPage.jsx`, `DashboardPage.jsx` | useParcelas(cotaId), usePagarParcela | — | `hooks.test.jsx`, `vendas.spec.js` |
 | REQ-VND-006 | Tipos de Venda (Corretores) | `TiposDeVendaPage.jsx` | — | — | — |
 | REQ-VND-007 | Geração de Comissões | `VendaPropostaPage.jsx` | — | — | `vendas.spec.js` |
+| REQ-VND-008 | Retenção PLD/FT e confirmação da decisão de risco | `VendaPropostaPage.jsx`, `AnaliseRiscoPage.jsx`, `ConfirmDialog.jsx` | `useVendaProposta`, useMutation (analisar risco) | — | `hooks.test.jsx`, `AnaliseRiscoPage.test.jsx`, `compliance.spec.js` |
 
 ---
 
@@ -136,11 +138,11 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total de REQ-IDs rastreados | 38 |
-| REQ-IDs com componente mapeado | 38/38 (100%) |
-| REQ-IDs com hook TanStack mapeado | 28/38 (73%) |
-| REQ-IDs com schema Zod mapeado | 12/38 (31%) |
-| REQ-IDs com teste E2E/Vitest | 8/38 (21%) |
+| Total de REQ-IDs rastreados | 39 |
+| REQ-IDs com componente mapeado | 39/39 (100%) |
+| REQ-IDs com hook TanStack mapeado | 29/39 (74%) |
+| REQ-IDs com schema Zod mapeado | 12/39 (31%) |
+| REQ-IDs com teste E2E/Vitest | 9/39 (23%) |
 
 > **Nota**: A cobertura de testes automatizados está sendo progressivamente expandida. A capabilidade de Compliance está 100% coberta por testes no frontend.
 

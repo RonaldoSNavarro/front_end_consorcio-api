@@ -101,7 +101,12 @@ export const DashboardPage = () => {
         const cts = await api.cotas.listar();
         const cotasList = cts.content || cts;
         totalCotas = Array.isArray(cotasList)
-          ? cotasList.filter(c => c.status === 'ATIVA' || c.status === 'CONTEMPLADA').length
+          ? cotasList.filter(c => [
+              'AGUARDANDO_PAGAMENTO',
+              'AGUARDANDO_INAUGURACAO',
+              'ATIVA',
+              'CONTEMPLADA'
+            ].includes(c.status)).length
           : 0;
       } catch (e) {
         console.warn('Sem permissão para listar cotas', e);
@@ -187,7 +192,7 @@ export const DashboardPage = () => {
           icon={Hash}
           label="Cotas Emitidas"
           value={s.cotas}
-          trend="Ativas ou contempladas"
+          trend="Inclui adesões pendentes"
           color="bg-violet-50 dark:bg-violet-500/10 border-violet-200 dark:border-violet-500/20 text-violet-600 dark:text-violet-400"
           staggerClass="animate-stagger-4"
         />
