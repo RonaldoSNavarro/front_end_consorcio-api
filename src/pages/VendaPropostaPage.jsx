@@ -25,20 +25,30 @@ export const VendaPropostaPage = () => {
     setStep,
     selectedCliente,
     setSelectedCliente,
+    selectedCategoria,
+    setSelectedCategoria,
+    selectedBem,
+    setSelectedBem,
+    bensFiltrados,
+    isLoadingBens,
     valorCredito,
     selectedGrupo,
     setSelectedGrupo,
+    gruposElegiveis,
     selectedCotaNumero,
     setSelectedCotaNumero,
     selectedTipo,
     setSelectedTipo,
     contratarSeguro,
     setContratarSeguro,
+    selectedPrazo,
+    setSelectedPrazo,
     clienteSearch,
     setClienteSearch,
     isSubmitting,
     clientes,
     isLoadingClientes,
+    matchedProduto,
     gruposList,
     isLoadingGrupos,
     vacantQuotas,
@@ -125,12 +135,12 @@ export const VendaPropostaPage = () => {
         </div>
       )}
 
-      {/* PASSO 1 — Valor do Crédito & Simulação & Grupo/Cota */}
+      {/* PASSO 1 — Escolha da Categoria, Bem de Referência, Prazo & Atribuição Automática de Grupo */}
       {step === 1 && (
         <div className="glass-panel p-6 space-y-6">
           <div className="flex items-center gap-2 mb-4">
             <Package className="w-5 h-5 text-brand-500" />
-            <h3 className="font-title font-bold text-slate-900 dark:text-white">Valor do Crédito</h3>
+            <h3 className="font-title font-bold text-slate-900 dark:text-white">Especificação do Consórcio</h3>
           </div>
           
           <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 text-sm text-emerald-700 dark:text-emerald-400 flex gap-2">
@@ -138,20 +148,99 @@ export const VendaPropostaPage = () => {
             Cliente Selecionado: <strong>{selectedCliente?.nome}</strong>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="credit-value" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Valor do Crédito (R$)</label>
-            <input 
-              id="credit-value"
-              type="number" 
-              className="form-input" 
-              {...register('valorCredito', { valueAsNumber: true })}
-              placeholder="Ex: 50000"
-            />
-            {errors.valorCredito && (
-              <span className="text-red-500 text-xs mt-1 block">
-                {errors.valorCredito.message}
-              </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Seletor da Categoria de Bem BACEN */}
+            <div className="space-y-1.5">
+              <label htmlFor="cat-bem-select" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Categoria do Bem (BACEN)</label>
+              <select
+                id="cat-bem-select"
+                className="form-input"
+                value={selectedCategoria}
+                onChange={e => setSelectedCategoria(e.target.value)}
+              >
+                <option value="IMOVEL">Imóvel</option>
+                <option value="VEICULO_AUTOMOTOR">Veículo Automotor</option>
+                <option value="SERVICO">Serviço</option>
+                <option value="OUTROS_BENS_MOVEIS">Outros Bens Móveis</option>
+              </select>
+            </div>
+
+            {/* Seletor de Prazo Desejado */}
+            <div className="space-y-1.5">
+              <label htmlFor="prazo-select" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Prazo do Plano</label>
+              <select
+                id="prazo-select"
+                className="form-input"
+                value={selectedPrazo || 120}
+                onChange={e => setSelectedPrazo(Number(e.target.value))}
+              >
+                <option value={36}>36 meses</option>
+                <option value={60}>60 meses</option>
+                <option value={72}>72 meses</option>
+                <option value={120}>120 meses</option>
+                <option value={180}>180 meses</option>
+                <option value={240}>240 meses</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Bem de Referência Escolhido / Auto-selecionado */}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex justify-between items-center">
+              <span>Bem de Referência</span>
+              {bensFiltrados.length === 1 && (
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400">
+                  Bem Selecionado por Padrão (Único para a categoria)
+                </span>
+              )}
+            </label>
+
+            {isLoadingBens ? (
+              <div className="text-center py-4 text-slate-400"><Loader2 className="w-5 h-5 animate-spin mx-auto" /> Carregando bens de referência...</div>
+            ) : bensFiltrados.length === 0 ? (
+              <div className="p-4 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 text-xs">
+                Nenhum bem de referência cadastrado para a categoria <strong>{selectedCategoria}</strong>. É necessário cadastrar ao menos um bem de referência nesta categoria.
+              </div>
+            ) : bensFiltrados.length === 1 ? (
+              <div className="p-4 rounded-xl border border-brand-200 dark:border-brand-500/30 bg-brand-50/50 dark:bg-brand-500/10 flex items-center justify-between text-sm">
+                <div>
+                  <div className="font-bold text-slate-900 dark:text-white">{selectedBem?.descricao}</div>
+                  <div className="text-xs text-slate-500 mt-0.5">Código FIPE/ID: {selectedBem?.codigoFipe || selectedBem?.id}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-slate-400 uppercase font-semibold">Valor de Referência</div>
+                  <div className="font-bold text-base text-brand-500">R$ {Number(selectedBem?.valorAtual || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+                </div>
+              </div>
+            ) : (
+              <select
+                className="form-input"
+                value={selectedBem?.id || ''}
+                onChange={e => {
+                  const bem = bensFiltrados.find(b => b.id === Number(e.target.value));
+                  if (bem) setSelectedBem(bem);
+                }}
+              >
+                {bensFiltrados.map(b => (
+                  <option key={b.id} value={b.id}>
+                    {b.descricao} — R$ {Number(b.valorAtual || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </option>
+                ))}
+              </select>
             )}
+          </div>
+
+          {/* Valor do Crédito (Imutável - Derivado do Bem) */}
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-slate-400 uppercase block">Valor do Crédito da Proposta</span>
+              <div className="text-xl font-bold text-slate-900 dark:text-white mt-0.5">
+                R$ {Number(valorCredito || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            </div>
+            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+              Adquirido via Bem de Referência
+            </span>
           </div>
 
           {/* Simulação de Parcelas */}
@@ -181,63 +270,43 @@ export const VendaPropostaPage = () => {
             </div>
           </div>
 
-          {/* Seleção do Grupo */}
+          {/* Atribuição Automática de Grupo e Cota */}
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Selecionar Grupo</label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {isLoadingGrupos ? (
-                <div className="col-span-2 text-center py-4 text-slate-400"><Loader2 className="w-5 h-5 animate-spin mx-auto" /> Carregando grupos...</div>
-              ) : gruposList.map(g => {
-                const arrecadado = g.status === 'EM_FORMACAO' ? '15%' : '65%';
-                const prazoRestante = g.status === 'EM_FORMACAO' ? g.prazoMeses : Math.max(1, g.prazoMeses - 6);
-                return (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => setSelectedGrupo(g)}
-                    className={`w-full text-left p-4 rounded-xl border transition-all ${selectedGrupo?.id === g.id ? 'border-brand-500 bg-brand-50 dark:bg-brand-500/10' : 'border-slate-200 dark:border-slate-700/50 hover:border-brand-300 dark:hover:border-brand-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="font-semibold text-slate-900 dark:text-white">{g.codigoGrupo || g.codigo}</div>
-                        <div className="text-xs text-slate-500 mt-1">Status: <span className="font-semibold">{g.status?.replace('_', ' ')}</span></div>
-                        <div className="text-xs text-slate-500 mt-1">Prazo Total: {g.prazoMeses} meses | TX Adm: {g.taxaAdministracao}%</div>
-                        <div className="mt-2 flex gap-4 text-xs">
-                          <span className="text-emerald-600 dark:text-emerald-400">Arrecadado: <strong>{arrecadado}</strong></span>
-                          <span className="text-amber-500">Prazo Restante: <strong>{prazoRestante} meses</strong></span>
-                        </div>
-                      </div>
-                      {selectedGrupo?.id === g.id && <CheckCircle className="w-5 h-5 text-brand-500 shrink-0" />}
-                    </div>
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Atribuição Automática de Grupo e Cota</label>
+            
+            {gruposElegiveis.length === 0 && !isLoadingGrupos ? (
+              <div className="p-4 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-bold text-sm">Nenhum Grupo Elegível Encontrado</div>
+                  <div className="text-xs mt-1">Não há grupo ativo em formação para a categoria <strong>{selectedCategoria}</strong> e prazo de <strong>{selectedPrazo} meses</strong>. O sistema não cria grupos automaticamente.</div>
+                  <button type="button" className="btn btn-outline btn-sm mt-3 border-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/30" onClick={() => navigate('/grupos')}>
+                    Cadastrar Grupo Elegível
                   </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Seleção de Cota Vaga */}
-          {selectedGrupo && (
-            <div className="space-y-2">
-              <label htmlFor="quota-select" className="text-sm font-semibold text-slate-700 dark:text-slate-300">Reservar Cota Vaga</label>
-              {isLoadingCotas ? (
-                <div className="text-slate-400 text-xs flex items-center gap-1"><Loader2 className="w-4 h-4 animate-spin" /> Buscando cotas ocupadas...</div>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <select
-                    id="quota-select"
-                    className="form-input max-w-[200px]"
-                    value={selectedCotaNumero || ''}
-                    onChange={e => setSelectedCotaNumero(Number(e.target.value))}
-                  >
-                    {vacantQuotas.map(q => (
-                      <option key={q} value={q}>Cota {String(q).padStart(3, '0')}</option>
-                    ))}
-                  </select>
-                  <span className="text-xs text-slate-400">({vacantQuotas.length} cotas disponíveis de 100)</span>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            ) : selectedGrupo && (
+              <div className="p-4 rounded-xl border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/10 space-y-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-500" />
+                      Grupo Selecionado pelo Sistema: <strong>{selectedGrupo.codigoGrupo || selectedGrupo.codigo}</strong>
+                    </div>
+                    <div className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                      Categoria: <strong>{selectedGrupo.categoriaBem}</strong> | Status: <span className="font-semibold">{selectedGrupo.status?.replace('_', ' ')}</span> | Taxa Adm: {selectedGrupo.taxaAdministracao}%
+                    </div>
+                  </div>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+                    {vacantQuotas.length} cotas disponíveis de {selectedGrupo?.quantidadeCotas || 1000}
+                  </span>
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 border-t border-emerald-100 dark:border-emerald-500/20 pt-2">
+                  A cota sequencial será alocada e vinculada ao consorciado no ato da efetivação da proposta.
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Botão de Avanço */}
           <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-700/50">
@@ -246,7 +315,7 @@ export const VendaPropostaPage = () => {
               type="button" 
               className="btn btn-primary flex-1" 
               onClick={handleNextStep}
-              disabled={!selectedGrupo || !selectedCotaNumero}
+              disabled={!selectedGrupo || !selectedBem}
             >
               Avançar
             </button>
@@ -345,9 +414,15 @@ export const VendaPropostaPage = () => {
                 <span className="text-slate-500 block text-xs font-mono">{selectedCliente?.cpfCnpj}</span>
               </div>
               <div>
-                <span className="text-slate-400 text-xs uppercase block">Grupo e Cota Reservada</span>
+                <span className="text-slate-400 text-xs uppercase block">Grupo Selecionado</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200">Grupo {selectedGrupo?.codigoGrupo || selectedGrupo?.codigo}</span>
-                <span className="text-slate-500 block text-xs">Cota Reservada: <strong>{String(selectedCotaNumero).padStart(3, '0')}</strong></span>
+                <span className="text-slate-500 block text-xs">Cota: <strong>Atribuição Automática (Sequencial)</strong></span>
+              </div>
+              <div>
+                <span className="text-slate-400 text-xs uppercase block">Bem de Referência</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {selectedBem?.descricao || matchedProduto?.bemReferencia?.descricao || matchedProduto?.nome || 'Conforme Categoria do Grupo'}
+                </span>
               </div>
               <div>
                 <span className="text-slate-400 text-xs uppercase block">Crédito Contratado</span>

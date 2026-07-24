@@ -90,11 +90,14 @@ export const AnaliseRiscoPage = () => {
                       R$ {p.valorCreditoSolicitado?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </td>
                     <td>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-1 max-w-sm">
                         {p.alertas && p.alertas.length > 0 ? (
                           p.alertas.map((a, i) => (
-                            <span key={i} className="badge badge-danger text-[0.65rem]">
-                              {a.tipo} - {a.descricao}
+                            <span key={i} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/20" title={a.descricao}>
+                              <span className="font-bold uppercase tracking-wider text-[0.6rem] bg-rose-600 text-white px-1.5 py-0.5 rounded shadow-sm shrink-0">
+                                {a.tipo || a.origem || 'ALERTA'}
+                              </span>
+                              <span className="truncate">{a.descricao}</span>
                             </span>
                           ))
                         ) : (

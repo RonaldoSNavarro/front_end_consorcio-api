@@ -7,3 +7,8 @@ Ao trabalhar em qualquer tarefa do repositório `front_end_consorcio-api`, os ag
 3. **Módulo Financeiro e Contemplação:** Respeitar a separação entre "Financeiro" (listagem de parcelas, cobrança, quitação) e "Contemplação/Credenciamento de Lances" (oferta de lance livre/fixo/embutido).
 4. **Busca Ativa de Cotas:** Manter o padrão de Busca Ativa no módulo de Cotas (filtragem por Grupo, Cota, Versão e CPF/CNPJ), evitando fetch global de listagem inteira.
 5. **Automação Mandatória de Skills (.agents):** Ao atuar neste repositório, o agente é OBRIGADO a verificar o conteúdo da pasta `.agents` e carregar/ler os arquivos lá contidos sempre que o contexto exigir, utilizando as ferramentas ativas, sem precisar de aprovação prévia.
+6. **Venda de Proposta & Bens de Referência**:
+   - No formulário de venda de proposta (`useVendaProposta.js` / `VendaPropostaPage.jsx`), o campo de valor do crédito é imutável manualmente e preenchido automaticamente a partir do Bem de Referência selecionado.
+   - Caso a categoria/grupo possua apenas 1 bem de referência, este deve vir previamente selecionado. Se houver múltiplos, deve ser exibido um `<select>` para escolha.
+   - A seleção do Grupo e Cota é automatizada com base na Categoria do Bem e no Prazo escolhido.
+

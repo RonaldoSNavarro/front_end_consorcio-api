@@ -356,6 +356,28 @@ export const api = {
     }
   },
 
+  // --- ÍNDICES ECONÔMICOS BACEN ---
+  indices: {
+    obterUltimos12Meses: async (tipoIndice) => {
+      const response = await fetchApi(`${BASE_URL}/api/indices-economicos/${tipoIndice}/ultimos-12-meses`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao obter últimos 12 meses do índice.");
+      return response.json();
+    },
+    simularReajuste: async (tipoIndice, valorAtual) => {
+      const response = await fetchApi(`${BASE_URL}/api/indices-economicos/simular?tipoIndice=${tipoIndice}&valorAtual=${valorAtual}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao simular reajuste.");
+      return response.json();
+    },
+    reajustarGrupo: async (grupoId, tipoIndice) => {
+      const url = tipoIndice 
+        ? `${BASE_URL}/api/indices-economicos/grupos/${grupoId}/reajustar?tipoIndice=${tipoIndice}`
+        : `${BASE_URL}/api/indices-economicos/grupos/${grupoId}/reajustar`;
+      const response = await fetchApi(url, { method: 'POST' });
+      if (!response.ok) throw await handleResponseError(response, "Erro ao reajustar grupo por índice.");
+      return response.json();
+    }
+  },
+
   // --- RELATÓRIOS ---
   relatorios: {
     balancete: async (grupoId, dataReferencia) => {

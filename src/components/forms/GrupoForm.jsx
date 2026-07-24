@@ -38,10 +38,12 @@ export const GrupoForm = ({ onClose }) => {
   const { triggerToast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: bens = [] } = useQuery({
+  const { data: bensRes = [] } = useQuery({
     queryKey: ['bens'],
     queryFn: () => api.bens.listar()
   });
+
+  const bensList = Array.isArray(bensRes?.content) ? bensRes.content : (Array.isArray(bensRes) ? bensRes : []);
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
     resolver: zodResolver(grupoSchema),
@@ -59,9 +61,9 @@ export const GrupoForm = ({ onClose }) => {
   });
 
   const selectedCategoria = watch('categoriaBem');
-  const bensFiltrados = bens.filter(bem => {
+  const bensFiltrados = bensList.filter(bem => {
     if (!selectedCategoria) return true;
-    const cat = bem.categoria || bem.categoriaBem;
+    const cat = bem.categoria || bem.categoriaBem?.tipoBacen || bem.categoriaBem?.nome || bem.categoriaBem;
     return !cat || cat === selectedCategoria;
   });
 

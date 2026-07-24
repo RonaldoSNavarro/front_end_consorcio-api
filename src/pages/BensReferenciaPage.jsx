@@ -3,12 +3,14 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { BemReferenciaModal } from '../components/modals/BemReferenciaModal';
 import { HistoricoPrecosModal } from '../components/modals/HistoricoPrecosModal';
-import { Package, Plus, Edit3, History, AlertCircle, Filter, Search } from 'lucide-react';
+import { IndicesEconomicosModal } from '../components/modals/IndicesEconomicosModal';
+import { Package, Plus, Edit3, History, AlertCircle, Filter, Search, TrendingUp } from 'lucide-react';
 
 export const BensReferenciaPage = () => {
   const [categoriaFiltro, setCategoriaFiltro] = useState('');
   const [busca, setBusca] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showIndicesModal, setShowIndicesModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [historicoItem, setHistoricoItem] = useState(null);
 
@@ -34,11 +36,16 @@ export const BensReferenciaPage = () => {
           <h2 className="font-title text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <Package className="w-6 h-6 text-brand-500" /> Bens de Referência
           </h2>
-          <p className="text-sm text-slate-400 mt-1">Catálogo de referência para cartas de crédito e reajuste de tabela (FIPE/INCC)</p>
+          <p className="text-sm text-slate-400 mt-1">Catálogo de referência para cartas de crédito e reajuste de tabela (FIPE/INCC/IPCA)</p>
         </div>
-        <button className="btn btn-primary" onClick={handleNew}>
-          <Plus className="w-4 h-4" /> Novo Bem de Referência
-        </button>
+        <div className="flex gap-2.5">
+          <button className="btn btn-outline flex items-center gap-1.5" onClick={() => setShowIndicesModal(true)}>
+            <TrendingUp className="w-4 h-4 text-brand-500" /> Índices BACEN (SGS)
+          </button>
+          <button className="btn btn-primary" onClick={handleNew}>
+            <Plus className="w-4 h-4" /> Novo Bem de Referência
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row items-center gap-3 p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-sm">
@@ -135,6 +142,7 @@ export const BensReferenciaPage = () => {
 
       {showModal && <BemReferenciaModal bem={editItem} onClose={() => { setShowModal(false); setEditItem(null); }} />}
       {historicoItem && <HistoricoPrecosModal bem={historicoItem} onClose={() => setHistoricoItem(null)} />}
+      {showIndicesModal && <IndicesEconomicosModal onClose={() => setShowIndicesModal(false)} />}
     </div>
   );
 };

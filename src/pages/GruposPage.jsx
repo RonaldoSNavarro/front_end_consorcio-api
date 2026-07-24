@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
+import { useQueryClient } from '@tanstack/react-query';
 import { useGrupos, useGrupoSaldo } from '../hooks/useGrupos';
 import { useToast } from '../context/ToastContext';
 import { GrupoForm } from '../components/forms/GrupoForm';
@@ -31,6 +32,7 @@ const statusBadge = (status) => {
 };
 
 export const GruposPage = () => {
+  const queryClient = useQueryClient();
   const { triggerToast } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [inaugurarGrupoId, setInaugurarGrupoId] = useState(null);
@@ -200,6 +202,32 @@ export const GruposPage = () => {
                 placeholder="Ex: 85000"
               />
             </div>
+            
+            <div className="p-3 mb-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700/50">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-2">Reajuste por Índice BACEN (SGS Oficial)</span>
+              <div className="grid grid-cols-3 gap-2">
+                {['INCC', 'IPCA', 'IGP_M'].map(ind => (
+                  <button
+                    key={ind}
+                    type="button"
+                    className="btn btn-outline btn-xs !py-1 text-slate-700 dark:text-slate-200"
+                    onClick={async () => {
+                      try {
+                        await api.indices.reajustarGrupo(reajustarGrupoId, ind);
+                        triggerToast(`Grupo reajustado com sucesso pelo acumulado 12M do ${ind}!`, "success");
+                        setReajustarGrupoId(null);
+                        queryClient.invalidateQueries({ queryKey: ['grupos'] });
+                      } catch (err) {
+                        triggerToast(err.message || "Erro ao reajustar por índice", "danger");
+                      }
+                    }}
+                  >
+                    Aplicar {ind}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex justify-end gap-3 mt-6">
               <button type="button" className="btn btn-outline" onClick={() => setReajustarGrupoId(null)}>Cancelar</button>
               <button 
@@ -216,7 +244,7 @@ export const GruposPage = () => {
                   setReajustarGrupoId(null);
                 }}
               >
-                Aplicar Reajuste
+                Aplicar Valor Manual
               </button>
             </div>
           </div>

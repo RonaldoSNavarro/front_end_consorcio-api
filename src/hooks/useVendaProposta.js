@@ -31,10 +31,13 @@ export function useVendaProposta() {
 
   const [step, setStep] = useState(0);
   const [selectedCliente, setSelectedCliente] = useState(null);
+  const [selectedCategoria, setSelectedCategoria] = useState('IMOVEL');
+  const [selectedBem, setSelectedBem] = useState(null);
   const [selectedGrupo, setSelectedGrupo] = useState(null);
   const [selectedCotaNumero, setSelectedCotaNumero] = useState(null);
   const [selectedTipo, setSelectedTipo] = useState(null);
   const [contratarSeguro, setContratarSeguro] = useState(false);
+  const [selectedPrazo, setSelectedPrazo] = useState(120);
 
   const [clienteSearch, setClienteSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -43,6 +46,7 @@ export function useVendaProposta() {
   const {
     register,
     handleSubmit,
+    setValue,
     watch,
     trigger,
     formState: { errors }
@@ -56,7 +60,7 @@ export function useVendaProposta() {
 
   const valorCredito = watch('valorCredito');
 
-  // Debouce para busca de cliente
+  // Debounce para busca de cliente
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(clienteSearch);
@@ -75,6 +79,48 @@ export function useVendaProposta() {
     return list.filter(c => c.statusCliente !== 'INATIVO' && c.status !== 'INATIVO');
   }, [clientesData]);
 
+  // Query: Bens de Referência
+  const { data: bensData, isLoading: isLoadingBens } = useQuery({
+    queryKey: ['bensReferencia'],
+    queryFn: () => api.bens.listarTodos()
+  });
+
+  const bensList = useMemo(() => {
+    return Array.isArray(bensData) ? bensData : (bensData?.content || []);
+  }, [bensData]);
+
+  // Filtrar bens de referência pela Categoria BACEN selecionada
+  const bensFiltrados = useMemo(() => {
+    if (!selectedCategoria) return bensList;
+    return bensList.filter(bem => {
+      const tipoBacen = bem.categoriaBem?.tipoBacen;
+      if (selectedCategoria === 'IMOVEL') return tipoBacen === 'BEM_IMOVEL';
+      if (selectedCategoria === 'VEICULO_AUTOMOTOR') return tipoBacen === 'BEM_MOVEL_I';
+      if (selectedCategoria === 'OUTROS_BENS_MOVEIS') return tipoBacen === 'BEM_MOVEL_II';
+      if (selectedCategoria === 'SERVICO') return tipoBacen === 'SERVICO';
+      return true;
+    });
+  }, [bensList, selectedCategoria]);
+
+  // Auto-seleção do Bem de Referência (se houver apenas 1 ou se o atual não pertencer à categoria)
+  useEffect(() => {
+    if (bensFiltrados.length > 0) {
+      if (!selectedBem || !bensFiltrados.find(b => b.id === selectedBem.id)) {
+        setSelectedBem(bensFiltrados[0]);
+      }
+    } else {
+      setSelectedBem(null);
+    }
+  }, [bensFiltrados, selectedBem]);
+
+  // Atualizar valorCredito no form dinamicamente a partir do bem selecionado
+  const creditValue = selectedBem ? Number(selectedBem.valorAtual || 0) : (valorCredito || 50000);
+  useEffect(() => {
+    if (selectedBem) {
+      setValue('valorCredito', Number(selectedBem.valorAtual || 0));
+    }
+  }, [selectedBem, setValue]);
+
   // Query: Produtos
   const { data: produtos } = useQuery({
     queryKey: ['produtosConsorcio'],
@@ -92,12 +138,30 @@ export function useVendaProposta() {
     return list.filter(g => g.status === 'EM_FORMACAO' || g.status === 'EM_ANDAMENTO');
   }, [gruposData]);
 
-  // Auto-select primeiro grupo
+  // Filtrar grupos elegíveis por Categoria e Prazo
+  const gruposElegiveis = useMemo(() => {
+    return gruposList.filter(g => {
+      if (g.categoriaBem !== selectedCategoria) return false;
+      if (selectedPrazo) {
+        const prazos = g.prazosPermitidos && g.prazosPermitidos.length > 0
+          ? g.prazosPermitidos
+          : [g.prazoMeses || g.prazoMaximoMeses];
+        return prazos.includes(selectedPrazo);
+      }
+      return true;
+    });
+  }, [gruposList, selectedCategoria, selectedPrazo]);
+
+  // Auto-atribuir primeiro Grupo Elegível
   useEffect(() => {
-    if (gruposList.length > 0 && !selectedGrupo) {
-      setSelectedGrupo(gruposList[0]);
+    if (gruposElegiveis.length > 0) {
+      if (!selectedGrupo || !gruposElegiveis.find(g => g.id === selectedGrupo.id)) {
+        setSelectedGrupo(gruposElegiveis[0]);
+      }
+    } else {
+      setSelectedGrupo(null);
     }
-  }, [gruposList, selectedGrupo]);
+  }, [gruposElegiveis, selectedGrupo]);
 
   // Query: Cotas do grupo selecionado
   const { data: cotasData, isLoading: isLoadingCotas } = useQuery({
@@ -108,7 +172,6 @@ export function useVendaProposta() {
 
   const occupiedQuotas = useMemo(() => {
     const list = cotasData || [];
-    // Cotas CANCELADAS ou EXCLUIDAS estão vagas para venda de reposição (Art. 31-A BCB 285)
     return list
       .filter(c => c.status !== 'CANCELADA' && c.status !== 'EXCLUIDA')
       .map(c => c.numeroCota)
@@ -147,30 +210,42 @@ export function useVendaProposta() {
   }, [tipos, selectedTipo]);
 
   // Cálculos para simulação
-  const term = selectedGrupo ? selectedGrupo.prazoMeses : 100;
+  const term = selectedPrazo || (selectedGrupo ? (selectedGrupo.prazoMeses || selectedGrupo.prazoMaximoMeses || 120) : 120);
   const taxa = selectedGrupo ? selectedGrupo.taxaAdministracao : 15;
   const reserves = 2; // padrão 2%
-  const creditValue = Number(valorCredito) || 0;
+  const valCreditoCalc = selectedBem ? Number(selectedBem.valorAtual || 0) : (Number(valorCredito) || 0);
 
-  const fundoComum = creditValue / term;
+  const fundoComum = valCreditoCalc / term;
   const taxaAdm = fundoComum * (taxa / 100);
   const fundoReserva = fundoComum * (reserves / 100);
   const seguroPrestamista = contratarSeguro ? (fundoComum * 0.01) : 0;
   const totalInstallment = fundoComum + taxaAdm + fundoReserva + seguroPrestamista;
 
-  const getMatchedProduto = () => {
+  const matchedProduto = useMemo(() => {
     if (!produtos || produtos.length === 0) return null;
     if (selectedGrupo) {
-      const matched = produtos.find(p => p.prazoMeses === selectedGrupo.prazoMeses);
+      const catGroup = selectedGrupo.categoriaBem;
+      // 1. Tentar encontrar produto com Categoria de Bem compatível com a do Grupo
+      const matched = produtos.find(p => {
+        const tipoBacen = p.bemReferencia?.categoriaBem?.tipoBacen;
+        if (catGroup === 'IMOVEL' && tipoBacen === 'BEM_IMOVEL') return true;
+        if (catGroup === 'VEICULO_AUTOMOTOR' && tipoBacen === 'BEM_MOVEL_I') return true;
+        if (catGroup === 'OUTROS_BENS_MOVEIS' && tipoBacen === 'BEM_MOVEL_II') return true;
+        if (catGroup === 'SERVICO' && tipoBacen === 'SERVICO') return true;
+        return false;
+      });
       if (matched) return matched;
+
+      // 2. Fallback: encontrar por prazo
+      const matchedByPrazo = produtos.find(p => p.prazoMeses === selectedGrupo.prazoMeses);
+      if (matchedByPrazo) return matchedByPrazo;
     }
     return produtos[0];
-  };
+  }, [produtos, selectedGrupo]);
 
   // Mutation para o fluxo completo
   const vendaMutation = useMutation({
     mutationFn: async () => {
-      const matchedProduto = getMatchedProduto();
       if (!matchedProduto) {
         throw new Error("Nenhum produto de consórcio cadastrado.");
       }
@@ -179,6 +254,7 @@ export function useVendaProposta() {
       const proposta = await api.vendas.criarProposta({
         clienteId: selectedCliente.id,
         produtoId: matchedProduto.id,
+        grupoId: selectedGrupo?.id,
         tipoVendaId: selectedTipo.id,
         valorCreditoSolicitado: Number(valorCredito)
       });
@@ -238,15 +314,24 @@ export function useVendaProposta() {
     setStep,
     selectedCliente,
     setSelectedCliente,
+    selectedCategoria,
+    setSelectedCategoria,
+    selectedBem,
+    setSelectedBem,
+    bensFiltrados,
+    isLoadingBens,
     valorCredito,
     selectedGrupo,
     setSelectedGrupo,
+    gruposElegiveis,
     selectedCotaNumero,
     setSelectedCotaNumero,
     selectedTipo,
     setSelectedTipo,
     contratarSeguro,
     setContratarSeguro,
+    selectedPrazo,
+    setSelectedPrazo,
     clienteSearch,
     setClienteSearch,
     debouncedSearch,
@@ -254,6 +339,7 @@ export function useVendaProposta() {
     clientes,
     isLoadingClientes,
     produtos,
+    matchedProduto,
     gruposList,
     isLoadingGrupos,
     vacantQuotas,

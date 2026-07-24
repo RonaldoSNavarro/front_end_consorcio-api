@@ -61,8 +61,10 @@ Atualmente, o **Sign-Off** foi concluído com sucesso para as seguintes 14 capab
 12. Esteira de Vendas (Proposta de Adesão, Produtos e Planos)
 13. Busca Refinada e Filtros de Cota (Consulta sob demanda via formulário de busca, filtrando cotas comercializadas com consorciados e omitindo cotas disponíveis).
 14. Cadastro e Reajuste de Bens de Referência (Menu localizado na Sidebar entre Grupos Adm e Cotas, formulários com busca interativa na Tabela FIPE, categorias BACEN e modal de histórico de auditoria de preços).
+15. Índices Econômicos BACEN e Simulador de Reajustes (Modal `IndicesEconomicosModal` no módulo de Bens de Referência para consulta temporal do INCC-M, IPCA e IGP-M via API do Banco Central SGS, com simulação e reajuste direto nos Grupos).
 
 **Em Andamento / Recentes:**
+* **Índices BACEN:** Painel interativo com consulta de séries históricas de 12 meses do Banco Central (INCC-M, IPCA, IGP-M), cálculo de fator acumulado 12M e reajuste direto no crédito e parcelas de Grupos.
 * **Bens de Referência:** Módulo completo de catálogo (`BensReferenciaPage`), formulário com aba de busca oficial da Tabela FIPE (`BemReferenciaModal`) e visualizador temporal de reajustes (`HistoricoPrecosModal`).
 * **Credenciamento de Lances:** Novo fluxo dedicado na captação das assembleias, com cálculos de lance fixo automático.
 * **Gestão de Acessos (RBAC):** Novas páginas completas para administração de Perfis (`PerfisPage`) e Usuários (`UsuariosPage`). O frontend agora gerencia as Permissões Granulares em interface e fornece avisos de sistema (Toasts) requerendo logout sempre que os privilégios da sessão ativa são modificados, garantindo consistência JWT em conformidade com o backend.
