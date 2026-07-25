@@ -1,0 +1,26 @@
+# Dependências instaladas no host; a imagem as instala com npm ci.
+node_modules
+
+# Artefatos gerados localmente.
+dist
+coverage
+
+# Metadados de versionamento e ferramentas locais.
+.git
+.codex
+.agents
+
+# Variáveis de ambiente locais e arquivos de diagnóstico.
+.env
+.env.*
+!.env.example
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos e diretórios do sistema operacional/editor.
+.DS_Store
+Thumbs.db
+.vscode
+.idea

@@ -771,6 +771,7 @@ export const api = {
         body: JSON.stringify({ aprovada, justificativa })
       });
       if (!response.ok) throw await handleResponseError(response, "Erro ao analisar risco.");
+      if (response.status === 204) return null;
       return response.json();
     },
     criarProposta: async (dto) => {
