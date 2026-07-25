@@ -1,10 +1,10 @@
 # 📋 Especificação de UI — Módulo de Vendas (vendas)
 
 *   **Status**: IMPLEMENTED
-*   **Versão**: v2.2
+*   **Versão**: v2.3
 *   **Spec Backend**: [spec.md](../../consorcio-api/docs/specs/vendas/spec.md)
 *   **API Contract**: [api-contract.md](../../consorcio-api/docs/specs/vendas/api-contract.md)
-*   **Última alteração**: Venda registrada com cota e primeira parcela aguardando pagamento — origem: BUG-FIN-VND-002.
+*   **Última alteração**: Reprovação de risco conclui com resposta sem corpo — origem: BUG-PLD-VND-002.
 
 ---
 
@@ -84,6 +84,7 @@ Fornecer uma interface intuitiva em formato de Wizard (esteira de vendas) para q
 | `/api/vendas/tipos` | GET | useQuery | Listar tipos de venda para o Step 2 |
 | `/api/vendas/propostas` | POST | useMutation | Criar proposta de adesão (retorna `EM_ANALISE` ou `PENDENTE_ANALISE_RISCO`) |
 | `/api/vendas/propostas/{id}/aprovar` | POST | useMutation | Aprovar proposta e gerar contrato de adesão |
+| `/api/vendas/propostas/{id}/analise-risco` | POST | useMutation | Decide proposta retida; aprovação retorna contrato e reprovação retorna `204 No Content`, ambas com feedback de sucesso e invalidação da lista. |
 
 ---
 
@@ -105,3 +106,9 @@ Fornecer uma interface intuitiva em formato de Wizard (esteira de vendas) para q
 - **Then** a proposta é registrada com status `PENDENTE_ANALISE_RISCO`.
 - **And** o frontend interrompe a aprovação/efetivação automática.
 - **And** exibe um toast de aviso e direciona o usuário para a esteira de análise do Compliance.
+
+### REQ-VND-008 — AC-UI-2: Reprovação de risco
+- **Given** uma proposta em `PENDENTE_ANALISE_RISCO` na esteira de Compliance;
+- **When** o analista informa a justificativa obrigatória e confirma a reprovação;
+- **Then** a UI trata `204 No Content` como sucesso, fecha o modal e invalida a lista de pendências;
+- **And** a proposta não pode ser reenviada pela tela após a decisão.

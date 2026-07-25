@@ -84,4 +84,25 @@ describe('AnaliseRiscoPage', () => {
       "success"
     );
   });
+
+  it('conclui a reprovação quando a API responde sem conteúdo', async () => {
+    mocks.analisarRisco.mockResolvedValue(null);
+    renderPage();
+
+    fireEvent.click(await screen.findByRole('button', { name: /reprovar/i }));
+    fireEvent.change(screen.getByLabelText(/justificativa da reprovação/i), {
+      target: { value: 'Risco incompatível com a política de crédito.' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar Reprovação' }));
+
+    await waitFor(() => {
+      expect(mocks.analisarRisco).toHaveBeenCalledWith(
+        10,
+        false,
+        'Risco incompatível com a política de crédito.'
+      );
+    });
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Confirmar Reprovação' })).not.toBeInTheDocument());
+    expect(mocks.triggerToast).toHaveBeenCalledWith('Análise de risco concluída com sucesso!', 'success');
+  });
 });

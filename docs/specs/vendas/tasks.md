@@ -34,3 +34,9 @@
 
 - `hooks.test.jsx` e `AnaliseRiscoPage.test.jsx`: 16 testes aprovados.
 - `e2e/vendas.spec.js`: cenário atualizado para o novo estado pendente.
+
+## BUG-PLD-VND-002 — REQ-VND-008
+
+- [x] **[BACKEND] REQ-VND-008** — Retornar `204 No Content` quando a reprovação da análise de risco for persistida sem gerar contrato.
+- [x] **[FRONTEND] REQ-VND-008 / AC-UI-2** — Tratar `204 No Content` como sucesso e fechar o modal de reprovação, invalidando a lista de pendências.
+- [x] **[QA] REQ-VND-008 / AC-UI-2** — Cobrir a resposta sem corpo na confirmação de reprovação.
