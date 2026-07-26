@@ -89,4 +89,24 @@ describe('Serviço da API (api.js)', () => {
       );
     });
   });
+
+  describe('contemplacoes.liquidarLance()', () => {
+    it('envia o lance identificado e a modalidade de amortização obrigatória', async () => {
+      global.fetch = vi.fn().mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ id: 12, status: 'AGUARDANDO_ANALISE' })
+      });
+
+      await api.contemplacoes.liquidarLance(45, 'DILUICAO');
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/contemplacoes/lances/45/integralizar'),
+        expect.objectContaining({
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tipoAmortizacao: 'DILUICAO' })
+        })
+      );
+    });
+  });
 });

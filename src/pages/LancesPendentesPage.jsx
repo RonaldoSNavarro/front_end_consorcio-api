@@ -9,6 +9,7 @@ export const LancesPendentesPage = () => {
   const { triggerToast } = useToast();
   const queryClient = useQueryClient();
   const [selectedLance, setSelectedLance] = useState(null);
+  const [tipoAmortizacao, setTipoAmortizacao] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [cancelLanceId, setCancelLanceId] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -24,12 +25,15 @@ export const LancesPendentesPage = () => {
   const lances = Array.isArray(lancesData) ? lancesData : (lancesData?.content || []);
 
   const integralizarMutation = useMutation({
-    mutationFn: (id) => api.contemplacoes.confirmarIntegralizacao(id),
+    mutationFn: ({ lanceId, tipoAmortizacao: modalidade }) => api.contemplacoes.liquidarLance(lanceId, modalidade),
     onSuccess: () => {
       triggerToast('Lance integralizado com sucesso! Cota enviada para análise de crédito.', 'success');
       queryClient.invalidateQueries({ queryKey: ['lancesIntegralizacao'] });
+      queryClient.invalidateQueries({ queryKey: ['cotas'] });
+      queryClient.invalidateQueries({ queryKey: ['parcelas'] });
       setShowConfirmModal(false);
       setSelectedLance(null);
+      setTipoAmortizacao('');
     },
     onError: (err) => triggerToast(err.message, 'danger'),
   });
@@ -55,13 +59,25 @@ export const LancesPendentesPage = () => {
     onError: (err) => triggerToast(err.message, 'danger'),
   });
 
-  const handleConfirmClick = (lance) => { setSelectedLance(lance); setShowConfirmModal(true); };
+  const handleConfirmClick = (lance) => {
+    if (!lance.lanceId) {
+      triggerToast('Não foi possível identificar o lance vencedor para esta contemplação.', 'danger');
+      return;
+    }
+    setSelectedLance(lance);
+    setTipoAmortizacao('');
+    setShowConfirmModal(true);
+  };
   const handleCancelClick = (id) => { setCancelLanceId(id); setShowCancelModal(true); };
 
   const handleConfirmSubmit = (e) => {
     e.preventDefault();
-    if (selectedLance) {
-      integralizarMutation.mutate(selectedLance.id);
+    if (!tipoAmortizacao) {
+      triggerToast('Selecione a modalidade de amortização.', 'warning');
+      return;
+    }
+    if (selectedLance?.lanceId) {
+      integralizarMutation.mutate({ lanceId: selectedLance.lanceId, tipoAmortizacao });
     }
   };
 
@@ -188,7 +204,7 @@ export const LancesPendentesPage = () => {
                             onClick={() => handleConfirmClick(lance)}
                             className="btn btn-outline btn-xs !text-emerald-600 dark:!text-emerald-400 !border-emerald-200 dark:!border-emerald-500/30 hover:!bg-emerald-50 dark:hover:!bg-emerald-500/10 flex items-center gap-1"
                             title="Confirmar integralização do lance"
-                            disabled={integralizarMutation.isPending}
+                            disabled={integralizarMutation.isPending || !lance.lanceId}
                           >
                             <Check className="w-3.5 h-3.5" /> Confirmar
                           </button>
@@ -239,12 +255,13 @@ export const LancesPendentesPage = () => {
               <h3 className="text-lg font-title font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
                 <Check className="w-5 h-5" /> Confirmar Integralização
               </h3>
-              <button onClick={() => { setShowConfirmModal(false); setSelectedLance(null); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X className="w-5 h-5" /></button>
+              <button onClick={() => { setShowConfirmModal(false); setSelectedLance(null); setTipoAmortizacao(''); }} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><X className="w-5 h-5" /></button>
             </div>
 
             <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700/50 text-xs mb-4">
               <div className="grid grid-cols-2 gap-2 text-slate-600 dark:text-slate-400">
                 <div>Contemplação: <span className="font-semibold text-slate-900 dark:text-white">#{selectedLance.id}</span></div>
+                <div>Lance vencedor: <span className="font-semibold text-slate-900 dark:text-white">#{selectedLance.lanceId}</span></div>
                 <div>Cota: <span className="font-semibold text-slate-900 dark:text-white">#{selectedLance.cotaId}</span></div>
                 <div>Valor Lance: <span className="font-semibold text-slate-900 dark:text-white">{formatCurrency(selectedLance.valorLance || selectedLance.valorOferta)}</span></div>
                 <div>Tipo: <span className="font-semibold text-slate-900 dark:text-white">{selectedLance.tipoContemplacao || 'LANCE_LIVRE'}</span></div>
@@ -253,13 +270,27 @@ export const LancesPendentesPage = () => {
 
             <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-lg text-xs text-emerald-700 dark:text-emerald-400 flex gap-2 items-start mb-4">
               <Info className="w-4 h-4 shrink-0 mt-0.5" />
-              <div><strong>Impacto Contábil COSIF:</strong> O sistema gerará lançamento de partida dobrada debitando Disponibilidades do Grupo e creditando Créditos de Consórcios a Liberar.</div>
+              <div><strong>Liquidação rastreável:</strong> a amortização será aplicada uma única vez ao Fundo Comum pendente. {selectedLance.lanceEmbutido ? 'Por ser lance embutido, não haverá entrada de caixa.' : 'O sistema registrará os lançamentos contábeis de recebimento e trânsito de crédito.'}</div>
             </div>
 
-            <form onSubmit={handleConfirmSubmit}>
+            <form onSubmit={handleConfirmSubmit} className="space-y-4">
+              <div className="form-group">
+                <label htmlFor="tipo-amortizacao">Modalidade de Amortização *</label>
+                <select
+                  id="tipo-amortizacao"
+                  required
+                  value={tipoAmortizacao}
+                  onChange={(event) => setTipoAmortizacao(event.target.value)}
+                >
+                  <option value="">Selecione a modalidade</option>
+                  <option value="REDUCAO_PRAZO">Redução de prazo</option>
+                  <option value="DILUICAO">Diluição das parcelas pendentes</option>
+                </select>
+                <p className="mt-1 text-xs text-slate-500">A operação não baixa parcelas nem altera pagamentos já registrados.</p>
+              </div>
               <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => { setShowConfirmModal(false); setSelectedLance(null); }} className="btn btn-outline" disabled={integralizarMutation.isPending}>Voltar</button>
-                <button type="submit" className="btn btn-primary !bg-emerald-600 hover:!bg-emerald-500 !border-none" disabled={integralizarMutation.isPending}>
+                <button type="button" onClick={() => { setShowConfirmModal(false); setSelectedLance(null); setTipoAmortizacao(''); }} className="btn btn-outline" disabled={integralizarMutation.isPending}>Voltar</button>
+                <button type="submit" className="btn btn-primary !bg-emerald-600 hover:!bg-emerald-500 !border-none" disabled={integralizarMutation.isPending || !tipoAmortizacao}>
                   {integralizarMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                   {integralizarMutation.isPending ? 'Processando...' : 'Confirmar Integralização'}
                 </button>
