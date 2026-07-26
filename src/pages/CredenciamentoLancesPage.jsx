@@ -77,6 +77,11 @@ export const CredenciamentoLancesPage = () => {
       return;
     }
 
+    if (tipoLance === 'MISTO' || tipoLance === 'SEGURO_OBITO') {
+      triggerToast('Este tipo de lance está bloqueado até a modelagem financeira específica.', 'warning');
+      return;
+    }
+
     const grupoSelecionado = grupos?.find(g => g.id === Number(selectedGrupoId));
     if (tipoLance === 'EMBUTIDO' && grupoSelecionado) {
       const limitePercentual = grupoSelecionado.percentualLanceEmbutidoMaximo || 0.30;
@@ -222,9 +227,7 @@ export const CredenciamentoLancesPage = () => {
                     <option value="">Selecione...</option>
                     <option value="EMBUTIDO">Embutido (máx. 30% do crédito)</option>
                     <option value="FIRME">Firme (recursos próprios)</option>
-                    <option value="MISTO">Misto</option>
                     <option value="FGTS">FGTS (somente Imóvel)</option>
-                    <option value="SEGURO_OBITO">Seguro Óbito</option>
                   </select>
                 </div>
 

@@ -41,20 +41,6 @@ export function useParcelas(cotaId) {
     },
   });
 
-  const amortizarPrazoMutation = useMutation({
-    mutationFn: ({ valorLance }) => api.parcelas.amortizarPorReducaoDePrazo(cotaId, valorLance),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parcelas', cotaId] });
-    },
-  });
-
-  const amortizarDiluicaoMutation = useMutation({
-    mutationFn: ({ valorLance }) => api.parcelas.amortizarPorDiluicao(cotaId, valorLance),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parcelas', cotaId] });
-    },
-  });
-
   return {
     parcelas: parcelasQuery.data?.content || [],
     isLoading: parcelasQuery.isLoading,
@@ -66,10 +52,6 @@ export function useParcelas(cotaId) {
     isPagando: pagarMutation.isPending,
     estornar: estornarMutation.mutateAsync,
     isEstornando: estornarMutation.isPending,
-    amortizarPrazo: amortizarPrazoMutation.mutateAsync,
-    isAmortizandoPrazo: amortizarPrazoMutation.isPending,
-    amortizarDiluicao: amortizarDiluicaoMutation.mutateAsync,
-    isAmortizandoDiluicao: amortizarDiluicaoMutation.isPending,
   };
 }
 

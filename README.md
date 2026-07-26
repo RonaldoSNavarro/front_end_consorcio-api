@@ -92,7 +92,7 @@ src/
 
 ## 🚀 Como Executar
 
-O frontend foi desenvolvido para operar conectado em 100% do tempo à API real Spring Boot na porta 8080. O modo mock foi permanentemente descontinuado para garantir fidelidade total nas validações transacionais (Lances, Integralizações, etc).
+O frontend opera conectado à API real Spring Boot na porta `8081`. O modo mock foi permanentemente descontinuado para garantir fidelidade total nas validações transacionais (lances, integralizações etc.).
 
 1. Instale todas as dependências:
    ```bash
@@ -108,6 +108,25 @@ O frontend foi desenvolvido para operar conectado em 100% do tempo à API real S
    ```bash
    npm run test:run
    ```
+
+### Via Docker Compose
+
+O Compose é mantido no repositório do backend, em `../consorcio-api/docker-compose.yml`, e já constrói este frontend com Nginx. O `.dockerignore` deste diretório exclui dependências locais, artefatos de build, arquivos `.env` e metadados de ferramentas do contexto de build.
+
+1. Configure o arquivo `../consorcio-api/.env` a partir de `.env.example` daquele repositório.
+2. Execute, a partir de `../consorcio-api`:
+
+   ```bash
+   docker compose up --build -d
+   ```
+
+3. Acesse `http://localhost`. A API fica em `http://localhost:8081`.
+
+Para encerrar os containers:
+
+```bash
+docker compose down
+```
 
 ---
 

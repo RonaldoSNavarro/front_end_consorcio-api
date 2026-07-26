@@ -526,20 +526,6 @@ export const api = {
       const data = await response.json();
       return { data };
     },
-    amortizarPorReducaoDePrazo: async (cotaId, valorLance) => {
-            const response = await fetchApi(`${BASE_URL}/api/parcelas/cota/${cotaId}/lance/reducao-prazo?valorLance=${valorLance}`, {
-        method: 'POST'
-      });
-      if (!response.ok) throw await handleResponseError(response, "Erro na amortização por redução de prazo.");
-      return true;
-    },
-    amortizarPorDiluicao: async (cotaId, valorLance) => {
-            const response = await fetchApi(`${BASE_URL}/api/parcelas/cota/${cotaId}/lance/diluicao?valorLance=${valorLance}`, {
-        method: 'POST'
-      });
-      if (!response.ok) throw await handleResponseError(response, "Erro na amortização por diluição.");
-      return true;
-    },
     estornar: async (id) => {
             const response = await fetchApi(`${BASE_URL}/api/parcelas/${id}/estornar`, {
         method: 'POST'
@@ -610,11 +596,13 @@ export const api = {
       const data = await response.json();
       return data.content || data;
     },
-    confirmarIntegralizacao: async (id) => {
-      const response = await fetchApi(`${BASE_URL}/api/contemplacoes/lances/${id}/integralizar`, {
-        method: 'POST'
+    liquidarLance: async (lanceId, tipoAmortizacao) => {
+      const response = await fetchApi(`${BASE_URL}/api/contemplacoes/lances/${lanceId}/integralizar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipoAmortizacao })
       });
-      if (!response.ok) throw await handleResponseError(response, "Erro ao confirmar integralização do lance.");
+      if (!response.ok) throw await handleResponseError(response, "Erro ao liquidar o lance.");
       return response.json();
     },
     pagarBem: async (id) => {
