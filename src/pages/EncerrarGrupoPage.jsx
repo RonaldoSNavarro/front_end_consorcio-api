@@ -314,7 +314,7 @@ export const EncerrarGrupoPage = () => {
 
       {/* MODAL DE CONFIRMAÇÃO */}
       {showModal && (
-        <div className="modal-backdrop" onClick={() => !encerrarMutation.isPending && setShowModal(false)}>
+        <div className="modal-backdrop">
           <div className="w-full max-w-lg mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="text-center mb-6">
               <AlertTriangle className="w-16 h-16 text-rose-500 mx-auto mb-4" />

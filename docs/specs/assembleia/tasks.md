@@ -25,6 +25,7 @@
 - [x] Criar schema Zod `assembleiaSchema` (data obrigatória, grupoId obrigatório)
 - [x] Implementar invalidação de cache pós-agendamento
 - [x] Implementar estados: loading (skeleton), error (toast), empty state
+- [x] Separar agenda paginada de cinco itens das filas CAPTANDO, REALIZADA e das atas recentes.
 
 ### [FRONTEND] REQ-ASM-002: Validação de Duplicatas de Captação
 - [x] Implementar feedback visual de erro 400 quando grupo já possui assembleia CAPTANDO

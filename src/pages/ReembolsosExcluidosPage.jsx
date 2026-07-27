@@ -172,7 +172,7 @@ export const ReembolsosExcluidosPage = () => {
         const isDiferencaPositiva = diferenca > 0;
         
         return (
-          <div className="modal-backdrop" onClick={() => { setShowCalculationModal(false); setSelectedReembolso(null); }}>
+          <div className="modal-backdrop">
             <div className="w-full max-w-lg mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl" onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
                 <h3 className="text-lg font-title font-bold text-brand-600 dark:text-brand-400 flex items-center gap-2">
@@ -245,7 +245,7 @@ export const ReembolsosExcluidosPage = () => {
       {showPayModal && selectedReembolso && (() => {
         const valorLiquido = selectedReembolso.valorLiquidoRestituicao || 0;
         return (
-          <div className="modal-backdrop" onClick={() => { setShowPayModal(false); setSelectedReembolso(null); }}>
+          <div className="modal-backdrop">
             <div className="w-full max-w-lg mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl" onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
                 <h3 className="text-lg font-title font-bold text-amber-600 dark:text-amber-500 flex items-center gap-2">

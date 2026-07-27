@@ -110,7 +110,7 @@ export const BemReferenciaModal = ({ bem, onClose }) => {
   };
 
   const modalContent = (
-    <div className="modal-backdrop flex items-center justify-center p-4 sm:p-6 z-[9999]" onClick={onClose}>
+    <div className="modal-backdrop flex items-center justify-center p-4 sm:p-6 z-[9999]">
       <div 
         className="w-full max-w-xl mx-auto p-5 sm:p-6 rounded-2xl animate-scale-up
                    bg-white dark:bg-slate-800 

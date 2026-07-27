@@ -21,3 +21,27 @@ describe('api.vendas.analisarRisco', () => {
     );
   });
 });
+
+describe('api.cotas.buscarPorGrupoECota', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('envia os códigos de negócio sem converter o grupo em ID interno', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ content: [{ id: 603, codigoCota: 1 }], totalElements: 1 })
+    });
+
+    await expect(api.cotas.buscarPorGrupoECota('002', 1)).resolves.toEqual({
+      content: [{ id: 603, codigoCota: 1 }],
+      totalElements: 1
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/cotas/buscar?codigoGrupo=002&codigoCota=1&size=50',
+      expect.objectContaining({ credentials: 'include' })
+    );
+  });
+});

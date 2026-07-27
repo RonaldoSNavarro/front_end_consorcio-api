@@ -27,7 +27,8 @@ Permitir ao operador agendar assembleias ordinárias vinculadas a grupos, visual
 |-----------|------|--------|--------------|-----------|
 | Seletor de Grupo | Select | REQ-ASM-002 | useGrupos() | — |
 | Formulário Agendar AGO | Form | REQ-ASM-001 | useMutation (criar assembleia) | assembleiaSchema |
-| Histórico de Assembleias | Table | REQ-ASM-001 | useAssembleias(grupoId) | — |
+| Agenda agendada | Tabela paginada (5 itens) | REQ-ASM-001 | useQuery por status | — |
+| Captação e apuração | Cards operacionais | REQ-ASM-001 | useQuery por status | — |
 | Formulário de Lance | Form | REQ-LAN-001 | useMutation (criar lance) | lanceSchema |
 | Lista de Lances da AGO | Table | REQ-LAN-001 | useLances(assembleiaId) | — |
 | Botão Apurar | Action | REQ-CON-001 | useMutation (apurar) | — |
@@ -39,7 +40,7 @@ Permitir ao operador agendar assembleias ordinárias vinculadas a grupos, visual
 | Endpoint | Método | Hook | Ação |
 |----------|--------|------|------|
 | `POST /api/assembleias` | POST | useMutation | Agendar assembleia |
-| `GET /api/assembleias/grupo/{grupoId}` | GET | useQuery | Listar histórico |
+| `GET /api/assembleias/grupo/{grupoId}/status/{status}` | GET | useQuery | Agenda paginada e filas operacionais |
 | `POST /api/lances` | POST | useMutation | Cadastrar lance |
 | `POST /api/contemplacoes` | POST | useMutation | Executar apuração |
 | `GET /api/contemplacoes/assembleia/{assembleiaId}` | GET | useQuery | Listar contemplações |
@@ -54,6 +55,11 @@ Permitir ao operador agendar assembleias ordinárias vinculadas a grupos, visual
 | Success (apuração) | Confetti + destaque visual do vencedor |
 | Captando | Badge verde "CAPTANDO" habilitando formulário de lance |
 | Fechada | Badge cinza "FECHADA" desabilitando ações |
+
+### REQ-ASM-001 - AC-UI-2: Consulta operacional paginada
+- **Given**: Um grupo possui muitas assembleias pré-agendadas.
+- **When**: O operador seleciona o grupo na Central AGO.
+- **Then**: A tela mostra cinco `AGENDADA` por página e áreas independentes para `CAPTANDO`, `REALIZADA` e atas `FECHADA`; a ação Apurar só é oferecida em `REALIZADA`.
 
 ---
 

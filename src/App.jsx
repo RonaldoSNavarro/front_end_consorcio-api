@@ -77,7 +77,7 @@ export default function App() {
                     <Route path="/relatorios/estatisticas" element={<RelatorioEstatisticasPage />} />
                     
                     {/* Relatórios do BCB */}
-                    <Route element={<ProtectedRoute allowedAuthorities={['VIEW_REPORTS']} />}>
+                    <Route element={<ProtectedRoute allowedAuthorities={['VIEW_RELATORIOS']} />}>
                       <Route path="/relatorios/balancete" element={<RelatorioBalancetePage />} />
                       <Route path="/relatorios/pld-ft" element={<RelatorioPldFtPage />} />
                     </Route>

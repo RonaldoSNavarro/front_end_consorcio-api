@@ -96,7 +96,7 @@ export const ClienteForm = ({ onClose, editClienteId }) => {
   }, []);
 
   const modalContent = (
-    <div className="modal-backdrop flex items-center justify-center p-4 z-[9999]" onClick={onClose}>
+    <div className="modal-backdrop flex items-center justify-center p-4 z-[9999]">
       <div 
         className="w-full max-w-2xl p-6 rounded-2xl animate-scale-up
                    bg-white dark:bg-slate-800 

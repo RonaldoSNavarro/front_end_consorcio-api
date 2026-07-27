@@ -315,7 +315,7 @@ export const VendaPropostaPage = () => {
               type="button" 
               className="btn btn-primary flex-1" 
               onClick={handleNextStep}
-              disabled={!selectedGrupo || !selectedBem}
+              disabled={!selectedGrupo || !selectedBem || isLoadingCotas || vacantQuotas.length === 0}
             >
               Avançar
             </button>

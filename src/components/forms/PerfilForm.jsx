@@ -66,7 +66,7 @@ export const PerfilForm = ({ onClose, editId = null }) => {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-content max-w-md w-full" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-slate-900 dark:text-white">

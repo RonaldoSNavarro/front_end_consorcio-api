@@ -32,9 +32,9 @@ const vendaLinks = [
 ];
 
 const reportLinks = [
-  { to: '/relatorios/balancete', label: 'Balancete (4110)', icon: FileText, authorities: ['VIEW_REPORTS'] },
+  { to: '/relatorios/balancete', label: 'Balancete (4110)', icon: FileText, authorities: ['VIEW_RELATORIOS'] },
   { to: '/relatorios/estatisticas', label: 'Estatísticas (2080)', icon: BarChart3 },
-  { to: '/relatorios/pld-ft', label: 'Monitoramento PLD/FT', icon: Shield, authorities: ['VIEW_REPORTS'] },
+  { to: '/relatorios/pld-ft', label: 'Monitoramento PLD/FT', icon: Shield, authorities: ['VIEW_RELATORIOS'] },
   { to: '/compliance/alertas', label: 'Listas Restritivas (PLD)', icon: ShieldAlert, authorities: ['MANAGE_COMPLIANCE'] },
 ];
 

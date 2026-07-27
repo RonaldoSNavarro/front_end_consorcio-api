@@ -218,7 +218,7 @@ export const CotasPage = () => {
       />
 
       {simulationResult && (
-        <div className="modal-backdrop" onClick={() => setSimulationResult(null)}>
+        <div className="modal-backdrop">
           <div className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <div>

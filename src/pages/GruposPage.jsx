@@ -83,6 +83,7 @@ export const GruposPage = () => {
                 <th className="text-center">Status</th>
                 <th className="text-center">Categoria</th>
                 <th className="text-center">Prazo</th>
+                <th className="text-center">Capacidade de Cotas</th>
                 <th className="text-right">Crédito Base</th>
                 <th className="text-right">Fundo Comum (Saldo)</th>
                 <th className="text-center">Ações Regulatórias</th>
@@ -105,6 +106,7 @@ export const GruposPage = () => {
                     )}
                   </td>
                   <td className="text-center font-mono">{g.prazoMeses}x</td>
+                  <td className="text-center font-mono font-semibold">{g.quantidadeCotas ?? '—'}</td>
                   <td className="text-right font-mono text-sm font-semibold text-slate-900 dark:text-white">R$ {g.valorCredito?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                   <td className="text-right font-mono text-sm">
                     <GrupoSaldoCell grupoId={g.id} />
@@ -130,7 +132,7 @@ export const GruposPage = () => {
               ))}
               {grupos.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="text-center py-8 text-slate-400 text-sm">
+                  <td colSpan="7" className="text-center py-8 text-slate-400 text-sm">
                     Nenhum grupo formado. Crie o primeiro Grupo!
                   </td>
                 </tr>
@@ -144,7 +146,7 @@ export const GruposPage = () => {
 
       {/* Modal de Inauguração */}
       {inaugurarGrupoId !== null && createPortal(
-        <div className="modal-backdrop z-[9999]" onClick={() => setInaugurarGrupoId(null)}>
+        <div className="modal-backdrop z-[9999]">
           <div className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-title font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Rocket className="w-5 h-5 text-brand-500" /> Inaugurar Grupo
@@ -185,7 +187,7 @@ export const GruposPage = () => {
 
       {/* Modal de Reajuste */}
       {reajustarGrupoId !== null && createPortal(
-        <div className="modal-backdrop z-[9999]" onClick={() => setReajustarGrupoId(null)}>
+        <div className="modal-backdrop z-[9999]">
           <div className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-title font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-brand-500" /> Ajustar Valor do Bem de Referência

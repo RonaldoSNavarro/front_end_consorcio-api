@@ -408,9 +408,10 @@ export const api = {
       const data = await response.json();
       return { content: data.content };
     },
-    buscar: async (grupoId, numeroCota, versao, cpfCnpj) => {
+    buscar: async (grupoId, numeroCota, versao, cpfCnpj, codigoGrupo) => {
       const params = new URLSearchParams();
       if (grupoId) params.append('grupoId', grupoId);
+      if (codigoGrupo) params.append('codigoGrupo', codigoGrupo.trim());
       if (numeroCota) {
         params.append('codigoCota', numeroCota);
         params.append('numeroCota', numeroCota);
@@ -423,6 +424,17 @@ export const api = {
       params.append('size', '50');
       const response = await fetchApi(`${BASE_URL}/api/cotas/buscar?${params.toString()}`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar cotas.");
+      const data = await response.json();
+      return { content: data.content || data, totalElements: data.totalElements };
+    },
+    buscarPorGrupoECota: async (codigoGrupo, codigoCota) => {
+      const params = new URLSearchParams({
+        codigoGrupo: String(codigoGrupo).trim(),
+        codigoCota: String(codigoCota).trim(),
+        size: '50'
+      });
+      const response = await fetchApi(`${BASE_URL}/api/cotas/buscar?${params.toString()}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao buscar cota por grupo e código.");
       const data = await response.json();
       return { content: data.content || data, totalElements: data.totalElements };
     },
@@ -542,6 +554,12 @@ export const api = {
       if (!response.ok) throw new Error("Erro ao listar assembleias do grupo na API.");
       const data = await response.json();
       return { content: data };
+    },
+    listarPorGrupoEStatus: async (grupoId, status, { page = 0, size = 5 } = {}) => {
+      const search = new URLSearchParams({ page: String(page), size: String(size) });
+      const response = await fetchApi(`${BASE_URL}/api/assembleias/grupo/${grupoId}/status/${status}?${search}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar assembleias do grupo.");
+      return response.json();
     },
     salvar: async (dto) => {
             const response = await fetchApi(`${BASE_URL}/api/assembleias`, {

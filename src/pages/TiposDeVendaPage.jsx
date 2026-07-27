@@ -69,7 +69,7 @@ const TipoVendaModal = ({ tipoVenda, onClose }) => {
   };
 
   const modalContent = (
-    <div className="modal-backdrop flex items-center justify-center p-4 sm:p-6 z-[9999]" onClick={onClose}>
+    <div className="modal-backdrop flex items-center justify-center p-4 sm:p-6 z-[9999]">
       <div className="w-full max-w-lg mx-auto p-5 sm:p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-title font-bold text-slate-900 dark:text-white flex items-center gap-2">
