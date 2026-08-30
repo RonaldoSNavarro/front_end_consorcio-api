@@ -3,8 +3,26 @@ export const BASE_URL = import.meta.env?.VITE_API_URL || '';
 
 
 
+function getCookie(name) {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : null;
+}
+
 const fetchApi = (url, options = {}) => {
-  return fetch(url, { ...options, credentials: 'include' });
+  const method = (options.method || 'GET').toUpperCase();
+  const headers = {
+    ...(options.headers || {}),
+  };
+
+  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    if (xsrfToken) {
+      headers['X-XSRF-TOKEN'] = xsrfToken;
+    }
+  }
+
+  return fetch(url, { ...options, headers, credentials: 'include' });
 };
 
 const handleResponseError = async (response, defaultMessage) => {
