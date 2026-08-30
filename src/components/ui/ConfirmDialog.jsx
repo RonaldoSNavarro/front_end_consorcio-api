@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+ 
 import { useEffect, useRef } from 'react';
 import { AlertTriangle, Zap, Info } from 'lucide-react';
 
@@ -82,7 +82,7 @@ export const ConfirmDialog = ({
   };
 
   return (
-    <div className="modal-backdrop" onClick={handleCancel}>
+    <div className="modal-backdrop">
       <div 
         ref={dialogRef}
         className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up

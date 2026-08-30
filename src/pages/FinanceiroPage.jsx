@@ -10,7 +10,7 @@ export const FinanceiroPage = () => {
 
   // Search state
   const [searchMode, setSearchMode] = useState('grupoCota'); // 'grupoCota' ou 'cpfCnpj'
-  const [grupoIdInput, setGrupoIdInput] = useState('');
+  const [codigoGrupoInput, setCodigoGrupoInput] = useState('');
   const [numeroCotaInput, setNumeroCotaInput] = useState('');
   const [cpfCnpjInput, setCpfCnpjInput] = useState('');
 
@@ -43,10 +43,10 @@ export const FinanceiroPage = () => {
   const buscarMutation = useMutation({
     mutationFn: async () => {
       if (searchMode === 'grupoCota') {
-        if (!grupoIdInput || !numeroCotaInput) {
-          throw new Error('Informe o ID do Grupo e o Número da Cota.');
+        if (!codigoGrupoInput || !numeroCotaInput) {
+          throw new Error('Informe o Código do Grupo e o Código da Cota.');
         }
-        return api.cotas.buscar(grupoIdInput, numeroCotaInput, null, null);
+        return api.cotas.buscarPorGrupoECota(codigoGrupoInput, numeroCotaInput);
       } else {
         if (!cpfCnpjInput) {
           throw new Error('Informe o CPF ou CNPJ do consorciado.');
@@ -64,7 +64,7 @@ export const FinanceiroPage = () => {
         const cota = lista[0];
         setCotaEncontrada(cota);
         setSelectedCotaId(cota.id);
-        triggerToast(`Cota #${cota.numeroCota} do consorciado ${cota.nomeConsorciado || ''} localizada!`, "success");
+        triggerToast(`Cota #${cota.codigoCota ?? cota.numeroCota} do consorciado ${cota.nomeConsorciado || ''} localizada!`, "success");
       }
     },
     onError: (err) => triggerToast(err.message, "danger")
@@ -160,17 +160,17 @@ export const FinanceiroPage = () => {
           {searchMode === 'grupoCota' ? (
             <>
               <div className="form-group flex-1">
-                <label htmlFor="grupo-id-input">ID do Grupo *</label>
+                <label htmlFor="grupo-codigo-input">Código do Grupo *</label>
                 <input
-                  id="grupo-id-input"
-                  type="number"
-                  placeholder="Ex: 1"
-                  value={grupoIdInput}
-                  onChange={(e) => setGrupoIdInput(e.target.value)}
+                  id="grupo-codigo-input"
+                  type="text"
+                  placeholder="Ex: 002"
+                  value={codigoGrupoInput}
+                  onChange={(e) => setCodigoGrupoInput(e.target.value)}
                 />
               </div>
               <div className="form-group flex-1">
-                <label htmlFor="numero-cota-input">Número da Cota *</label>
+                <label htmlFor="numero-cota-input">Código da Cota *</label>
                 <input
                   id="numero-cota-input"
                   type="number"

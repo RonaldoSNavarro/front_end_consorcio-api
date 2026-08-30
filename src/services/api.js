@@ -3,8 +3,26 @@ export const BASE_URL = import.meta.env?.VITE_API_URL || '';
 
 
 
+function getCookie(name) {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : null;
+}
+
 const fetchApi = (url, options = {}) => {
-  return fetch(url, { ...options, credentials: 'include' });
+  const method = (options.method || 'GET').toUpperCase();
+  const headers = {
+    ...(options.headers || {}),
+  };
+
+  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+    const xsrfToken = getCookie('XSRF-TOKEN');
+    if (xsrfToken) {
+      headers['X-XSRF-TOKEN'] = xsrfToken;
+    }
+  }
+
+  return fetch(url, { ...options, headers, credentials: 'include' });
 };
 
 const handleResponseError = async (response, defaultMessage) => {
@@ -408,9 +426,10 @@ export const api = {
       const data = await response.json();
       return { content: data.content };
     },
-    buscar: async (grupoId, numeroCota, versao, cpfCnpj) => {
+    buscar: async (grupoId, numeroCota, versao, cpfCnpj, codigoGrupo) => {
       const params = new URLSearchParams();
       if (grupoId) params.append('grupoId', grupoId);
+      if (codigoGrupo) params.append('codigoGrupo', codigoGrupo.trim());
       if (numeroCota) {
         params.append('codigoCota', numeroCota);
         params.append('numeroCota', numeroCota);
@@ -423,6 +442,17 @@ export const api = {
       params.append('size', '50');
       const response = await fetchApi(`${BASE_URL}/api/cotas/buscar?${params.toString()}`);
       if (!response.ok) throw await handleResponseError(response, "Erro ao buscar cotas.");
+      const data = await response.json();
+      return { content: data.content || data, totalElements: data.totalElements };
+    },
+    buscarPorGrupoECota: async (codigoGrupo, codigoCota) => {
+      const params = new URLSearchParams({
+        codigoGrupo: String(codigoGrupo).trim(),
+        codigoCota: String(codigoCota).trim(),
+        size: '50'
+      });
+      const response = await fetchApi(`${BASE_URL}/api/cotas/buscar?${params.toString()}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao buscar cota por grupo e código.");
       const data = await response.json();
       return { content: data.content || data, totalElements: data.totalElements };
     },
@@ -542,6 +572,12 @@ export const api = {
       if (!response.ok) throw new Error("Erro ao listar assembleias do grupo na API.");
       const data = await response.json();
       return { content: data };
+    },
+    listarPorGrupoEStatus: async (grupoId, status, { page = 0, size = 5 } = {}) => {
+      const search = new URLSearchParams({ page: String(page), size: String(size) });
+      const response = await fetchApi(`${BASE_URL}/api/assembleias/grupo/${grupoId}/status/${status}?${search}`);
+      if (!response.ok) throw await handleResponseError(response, "Erro ao listar assembleias do grupo.");
+      return response.json();
     },
     salvar: async (dto) => {
             const response = await fetchApi(`${BASE_URL}/api/assembleias`, {

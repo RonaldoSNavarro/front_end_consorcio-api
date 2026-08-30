@@ -249,7 +249,7 @@ export const LancesPendentesPage = () => {
 
       {/* MODAL DE CONFIRMAÇÃO */}
       {showConfirmModal && selectedLance && (
-        <div className="modal-backdrop" onClick={() => { setShowConfirmModal(false); setSelectedLance(null); }}>
+        <div className="modal-backdrop">
           <div className="w-full max-w-lg mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
               <h3 className="text-lg font-title font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
@@ -302,7 +302,7 @@ export const LancesPendentesPage = () => {
 
       {/* MODAL DE CANCELAMENTO */}
       {showCancelModal && cancelLanceId && (
-        <div className="modal-backdrop" onClick={() => { setShowCancelModal(false); setCancelLanceId(null); }}>
+        <div className="modal-backdrop">
           <div className="w-full max-w-md mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
               <h3 className="text-lg font-title font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2">

@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+ 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
@@ -34,7 +34,7 @@ const DeliberacaoModal = ({ alerta, onClose }) => {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div 
         className="w-full max-w-lg mx-4 p-6 rounded-2xl animate-scale-up
                    bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60

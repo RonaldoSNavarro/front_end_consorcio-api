@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+ 
 import React from 'react';
 import { ShoppingCart, Users, Package, Tag, ChevronRight, CheckCircle, Loader2, AlertCircle, UserPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -315,7 +315,7 @@ export const VendaPropostaPage = () => {
               type="button" 
               className="btn btn-primary flex-1" 
               onClick={handleNextStep}
-              disabled={!selectedGrupo || !selectedBem}
+              disabled={!selectedGrupo || !selectedBem || isLoadingCotas || vacantQuotas.length === 0}
             >
               Avançar
             </button>

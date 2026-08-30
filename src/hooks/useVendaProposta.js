@@ -180,24 +180,21 @@ export function useVendaProposta() {
     enabled: !!selectedGrupo?.id
   });
 
-  const occupiedQuotas = useMemo(() => {
-    const list = cotasData || [];
-    return list
-      .filter(c => c.status !== 'CANCELADA' && c.status !== 'EXCLUIDA')
-      .map(c => c.numeroCota)
-      .filter(Boolean);
-  }, [cotasData]);
-
   const vacantQuotas = useMemo(() => {
-    const vacant = [];
+    const list = cotasData || [];
+    const vacant = list
+      .filter(c => c.status === 'DISPONIVEL')
+      .map(c => c.codigoCota)
+      .filter(Boolean);
+    const materializedQuotas = new Set(list.map(c => c.codigoCota).filter(Boolean));
     const maxCotas = selectedGrupo?.quantidadeCotas || 1000;
     for (let i = 1; i <= maxCotas; i++) {
-      if (!occupiedQuotas.includes(i)) {
+      if (!materializedQuotas.has(i)) {
         vacant.push(i);
       }
     }
-    return vacant;
-  }, [occupiedQuotas, selectedGrupo]);
+    return vacant.sort((a, b) => a - b);
+  }, [cotasData, selectedGrupo]);
 
   // Auto-select primeira cota vaga
   useEffect(() => {
@@ -205,6 +202,16 @@ export function useVendaProposta() {
       setSelectedCotaNumero(vacantQuotas[0]);
     }
   }, [vacantQuotas, selectedCotaNumero]);
+
+  useEffect(() => {
+    if (isLoadingCotas || !selectedGrupo || vacantQuotas.length > 0) return;
+
+    const currentIndex = gruposElegiveis.findIndex(grupo => grupo.id === selectedGrupo.id);
+    const proximoGrupo = gruposElegiveis.slice(currentIndex + 1)[0];
+    if (proximoGrupo) {
+      setSelectedGrupo(proximoGrupo);
+    }
+  }, [gruposElegiveis, isLoadingCotas, selectedGrupo, vacantQuotas.length]);
 
   // Query: Tipos Venda
   const { data: tipos } = useQuery({
@@ -325,6 +332,10 @@ export function useVendaProposta() {
     if (step === 1) {
       const isValid = await trigger('valorCredito');
       if (!isValid) return;
+      if (!selectedGrupo || vacantQuotas.length === 0) {
+        triggerToast('Não há cotas disponíveis para a categoria e o prazo selecionados.', 'warning');
+        return;
+      }
     }
     setStep(prev => prev + 1);
   };

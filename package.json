@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:e2e": "node e2e-playwright-lifecycle.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

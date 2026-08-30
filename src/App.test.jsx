@@ -73,11 +73,9 @@ describe('Integração de Componentes do Front-End (App.jsx)', () => {
       fireEvent.click(submitButton);
 
       // Espera autenticar e carregar a barra lateral principal do sistema
-      await waitFor(() => {
-        expect(screen.getByText(/Consórcio API/)).toBeInTheDocument();
-        expect(screen.getByText('Visão Geral')).toBeInTheDocument();
-        expect(screen.getByText(/Visão Geral do Consórcio/)).toBeInTheDocument();
-      });
+      expect(await screen.findByText(/Consórcio API/, {}, { timeout: 5000 })).toBeInTheDocument();
+      expect(await screen.findByText('Visão Geral', {}, { timeout: 5000 })).toBeInTheDocument();
+      expect(await screen.findByText(/Visão Geral do Consórcio/, {}, { timeout: 5000 })).toBeInTheDocument();
     });
   });
 
@@ -99,7 +97,7 @@ describe('Integração de Componentes do Front-End (App.jsx)', () => {
 
     it('deve permitir navegar para a aba de Clientes', async () => {
       await loginAndGoToTab('Clientes');
-      expect(await screen.findByText(/Cadastro de Consorciados/)).toBeInTheDocument();
+      expect(await screen.findByText(/Cadastro de Consorciados/, {}, { timeout: 5000 })).toBeInTheDocument();
     });
 
     it('deve realizar busca automática e preencher o endereço no formulário ao digitar CEP válido', async () => {

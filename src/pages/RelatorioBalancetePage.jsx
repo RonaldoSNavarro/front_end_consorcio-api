@@ -1,4 +1,6 @@
 import React, { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { FileText, Download, AlertTriangle, CheckCircle2, TrendingUp, TrendingDown, Activity, Loader2 } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
@@ -7,15 +9,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { balanceteFiltroSchema } from '../schemas/relatoriosSchema';
 import { useBalanceteQuery } from '../hooks/useRelatorios';
 
-// Idealmente os grupos viriam de uma query `useGrupos()`, mas mantemos mock local para este exemplo focado no relatório
-const MOCK_GRUPOS = [
-  { id: 1, codigo: 'GRP-AUTO-002' },
-  { id: 2, codigo: 'GRP-IMOVEL-010' },
-  { id: 3, codigo: 'GRP-MOTO-005' },
-];
-
 export const RelatorioBalancetePage = () => {
   const { triggerToast } = useToast();
+
+  const { data: gruposData } = useQuery({
+    queryKey: ['grupos'],
+    queryFn: () => api.grupos.listar(),
+  });
+  const grupos = gruposData?.content || gruposData || [];
 
   const { register, watch, formState: { errors, isValid } } = useForm({
     resolver: zodResolver(balanceteFiltroSchema),
@@ -126,7 +127,11 @@ export const RelatorioBalancetePage = () => {
           <label htmlFor="select-grupo">Grupo *</label>
           <select id="select-grupo" {...register('grupoId')} className={errors.grupoId ? 'border-rose-500' : ''}>
             <option value="">Selecione um grupo...</option>
-            {MOCK_GRUPOS.map((g) => <option key={g.id} value={g.id}>{g.codigo}</option>)}
+            {grupos.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.codigoGrupo || g.codigo || `Grupo ${g.id}`}
+              </option>
+            ))}
           </select>
           {errors.grupoId && <span className="text-xs text-rose-500 mt-1">{errors.grupoId.message}</span>}
         </div>

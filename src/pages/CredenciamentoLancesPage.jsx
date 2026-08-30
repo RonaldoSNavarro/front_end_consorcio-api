@@ -25,15 +25,15 @@ export const CredenciamentoLancesPage = () => {
     queryKey: ['grupos'],
     queryFn: () => api.grupos.listar(),
   });
-  const grupos = gruposData?.content || [];
+  const grupos = gruposData?.content || gruposData || [];
 
   const { data: assembleiasData } = useQuery({
     queryKey: ['assembleias-grupo', selectedGrupoId],
     queryFn: () => api.assembleias.listarPorGrupo(selectedGrupoId),
     enabled: !!selectedGrupoId,
   });
-  const assembleiasCaptando = (assembleiasData?.content || []).filter(
-    (a) => a.status === 'CAPTANDO' || a.status === 'AGENDADA'
+  const assembleiasCaptando = (assembleiasData?.content || assembleiasData || []).filter(
+    (a) => a.status === 'CAPTANDO'
   );
 
   const { data: cotasData } = useQuery({
@@ -65,6 +65,8 @@ export const CredenciamentoLancesPage = () => {
     setSelectedCotaId('');
   };
 
+  const grupoSelecionado = grupos.find((grupo) => String(grupo.id) === String(selectedGrupoId));
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!selectedCotaId || !selectedAssembleiaId || !tipoLance || !modalidade || !valorOferta) {
@@ -82,7 +84,6 @@ export const CredenciamentoLancesPage = () => {
       return;
     }
 
-    const grupoSelecionado = grupos?.find(g => g.id === Number(selectedGrupoId));
     if (tipoLance === 'EMBUTIDO' && grupoSelecionado) {
       const limitePercentual = grupoSelecionado.percentualLanceEmbutidoMaximo || 0.30;
       const limiteValor = grupoSelecionado.valorCredito ? (grupoSelecionado.valorCredito * limitePercentual) : null;
@@ -142,16 +143,24 @@ export const CredenciamentoLancesPage = () => {
               <CircleDot className="w-4 h-4 text-brand-500" /> Seleção de Grupo
             </h3>
             <div className="form-group">
-              <label htmlFor="select-grupo">Grupo *</label>
-              <select id="select-grupo" value={selectedGrupoId} onChange={handleGrupoChange}>
-                <option value="">Selecione um grupo...</option>
+              <label htmlFor="grupo-lance">Grupo de consórcio *</label>
+              <select id="grupo-lance" value={selectedGrupoId} onChange={handleGrupoChange}>
+                <option value="">Selecione o código do grupo...</option>
                 {grupos.map((g) => (
                   <option key={g.id} value={g.id}>
-                    Grupo #{g.id} — {g.categoriaCredito || g.categoria} ({g.status})
+                    {String(g.codigoGrupo || g.codigo || '').padStart(3, '0')} — {g.categoriaCredito || g.categoria || 'Categoria não informada'} — {(g.status || 'SEM STATUS').replaceAll('_', ' ')}
                   </option>
                 ))}
               </select>
             </div>
+
+            {grupoSelecionado && (
+              <div className="rounded-lg border border-brand-200 dark:border-brand-500/25 bg-brand-50 dark:bg-brand-500/10 p-3 text-xs text-slate-700 dark:text-slate-200 space-y-1">
+                <div className="font-semibold text-brand-700 dark:text-brand-300">Grupo {String(grupoSelecionado.codigoGrupo || grupoSelecionado.codigo || '').padStart(3, '0')} selecionado</div>
+                <div>{grupoSelecionado.categoriaCredito || grupoSelecionado.categoria || 'Categoria não informada'} · {(grupoSelecionado.status || 'SEM STATUS').replaceAll('_', ' ')}</div>
+                {grupoSelecionado.valorCredito && <div>Crédito vigente: {Number(grupoSelecionado.valorCredito).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>}
+              </div>
+            )}
 
             {/* Assembleia Selector */}
             {selectedGrupoId && (

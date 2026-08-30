@@ -197,7 +197,7 @@ export const ClientesPage = () => {
 
       {/* Modal Histórico de Auditoria */}
       {showHistoricoModal && (
-        <div className="modal-backdrop" onClick={() => { setShowHistoricoModal(false); setHistoricoClienteId(null); }}>
+        <div className="modal-backdrop">
           <div
             className="w-full max-w-2xl mx-4 p-6 rounded-2xl animate-scale-up bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shadow-2xl max-h-[80vh] overflow-y-auto"
             onClick={e => e.stopPropagation()}
