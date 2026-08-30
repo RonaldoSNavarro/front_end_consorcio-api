@@ -39,6 +39,8 @@ const BensReferenciaPage = lazy(() => import('./pages/BensReferenciaPage').then(
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutos de cache padrão (MELHORIA-046)
+      gcTime: 1000 * 60 * 15,   // 15 minutos de garbage collection
       refetchOnWindowFocus: false,
       retry: false,
     },
@@ -76,11 +78,9 @@ export default function App() {
                       <Route path="/reembolsos-excluidos" element={<ReembolsosExcluidosPage />} />
                       <Route path="/financeiro" element={<FinanceiroPage />} />
                       
-                      {/* Relatório de Estatísticas (Doc 2080) - Aberto para todos os perfis */}
-                      <Route path="/relatorios/estatisticas" element={<RelatorioEstatisticasPage />} />
-                      
-                      {/* Relatórios do BCB */}
-                      <Route element={<ProtectedRoute allowedAuthorities={['VIEW_RELATORIOS']} />}>
+                      {/* Relatórios do BCB / Estatísticas (Protegidos) */}
+                      <Route element={<ProtectedRoute allowedAuthorities={['VIEW_RELATORIOS', 'ROLE_ADMIN']} />}>
+                        <Route path="/relatorios/estatisticas" element={<RelatorioEstatisticasPage />} />
                         <Route path="/relatorios/balancete" element={<RelatorioBalancetePage />} />
                         <Route path="/relatorios/pld-ft" element={<RelatorioPldFtPage />} />
                       </Route>
