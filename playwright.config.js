@@ -1,19 +1,30 @@
+// @ts-check
 import { defineConfig, devices } from '@playwright/test';
 
+/**
+ * Playwright E2E Configuration - Consórcio API Frontend
+ * @see https://playwright.dev/docs/test-configuration
+ */
 export default defineConfig({
   testDir: './e2e',
-  timeout: 120000,
+  timeout: 30 * 1000,
+  expect: {
+    timeout: 5000
+  },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 1,
+  retries: process.env.CI ? 2 : 0,
   workers: 1,
-  reporter: 'html',
+  reporter: [
+    ['list'],
+    ['html', { outputFolder: 'test-results/playwright-report', open: 'never' }]
+  ],
   use: {
-    baseURL: 'http://localhost',
+    baseURL: process.env.BASE_URL || 'http://localhost',
     trace: 'on-first-retry',
-  },
-  expect: {
-    timeout: 30000,
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    viewport: { width: 1440, height: 900 }
   },
   projects: [
     {
@@ -21,10 +32,4 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  // webServer: {
-  //   command: 'npm run dev',
-  //   url: 'http://localhost:5173',
-  //   reuseExistingServer: !process.env.CI,
-  //   timeout: 120 * 1000,
-  // },
 });

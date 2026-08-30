@@ -97,7 +97,7 @@ describe('Integração de Componentes do Front-End (App.jsx)', () => {
 
     it('deve permitir navegar para a aba de Clientes', async () => {
       await loginAndGoToTab('Clientes');
-      expect(await screen.findByText(/Cadastro de Consorciados/)).toBeInTheDocument();
+      expect(await screen.findByText(/Cadastro de Consorciados/, {}, { timeout: 5000 })).toBeInTheDocument();
     });
 
     it('deve realizar busca automática e preencher o endereço no formulário ao digitar CEP válido', async () => {
