@@ -130,12 +130,14 @@ docker compose down
 
 ---
 
-## 🧪 Cobertura de Testes (Vitest)
+## 🧪 Cobertura de Testes (Vitest & Playwright E2E)
 
-A aplicação conta com validação automatizada contínua por meio de Vitest, cobrindo:
+A aplicação conta com validação automatizada contínua por meio de Vitest e Playwright, cobrindo:
 *   **Schemas Zod**: Validação de CPFs/CNPJs, regras financeiras, patrimônio e formatos.
-*   **Estado Frontend**: Totalmente refatorado para estética Premium, com Skeletons de alto nível (`TableSkeleton`, `CardSkeleton`) e temas dinâmicos (Âmbar, Oceano, Esmeralda). As dependências offline foram erradicadas, tornando o consumo 100% voltado para a API de produção Spring Boot.
+*   **Hooks & Services**: Testes unitários do cliente HTTP (`httpClient`, `fetchApi`), injeção dinâmica de cabeçalho CSRF (`X-XSRF-TOKEN`), invalidação de cache do TanStack Query e rotas protegidas (RBAC).
+*   **Acessibilidade (WCAG 2.1 AA)**: Foco programático em modais, focus traps e componente `SkipLink`.
+*   **Testes E2E (Playwright)**: Suíte ponta a ponta (`npm run test:e2e`) cobrindo 13 etapas completas do ciclo de vida: login, MFA, criação de grupos, propostas de adesão, credenciamento de lances, apuração de assembleia com lances fixos e livres, simulação dry-run e relatórios do balancete contábil.
 
-Todos os **51 testes integrados (Vitest)** passam com 100% de sucesso.
+Todos os **60 testes integrados (Vitest)** e os testes E2E passam com 100% de sucesso.
 
 * **CRM e Vendas:** Motor de originação de consórcios com cadastro de Corretores, orçamentação e Propostas de Adesão. O valor do crédito é imutável manualmente e derivado automaticamente a partir do valor do Bem de Referência selecionado (com auto-seleção padrão quando houver 1 único bem na categoria). O sistema realiza a alocação automática de Grupo e Cota elegíveis cruzando a Categoria BACEN e o Prazo escolhidos, garantindo estrita homogeneidade regulatória (Lei 11.795/08 e Resolução BCB 285/2023).
