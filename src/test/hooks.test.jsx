@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars, react/prop-types, react/display-name */
+/* eslint-disable no-unused-vars, react/display-name */
 import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

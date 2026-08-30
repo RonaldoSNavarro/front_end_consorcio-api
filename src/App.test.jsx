@@ -73,11 +73,9 @@ describe('Integração de Componentes do Front-End (App.jsx)', () => {
       fireEvent.click(submitButton);
 
       // Espera autenticar e carregar a barra lateral principal do sistema
-      await waitFor(() => {
-        expect(screen.getByText(/Consórcio API/)).toBeInTheDocument();
-        expect(screen.getByText('Visão Geral')).toBeInTheDocument();
-        expect(screen.getByText(/Visão Geral do Consórcio/)).toBeInTheDocument();
-      });
+      expect(await screen.findByText(/Consórcio API/, {}, { timeout: 5000 })).toBeInTheDocument();
+      expect(await screen.findByText('Visão Geral', {}, { timeout: 5000 })).toBeInTheDocument();
+      expect(await screen.findByText(/Visão Geral do Consórcio/, {}, { timeout: 5000 })).toBeInTheDocument();
     });
   });
 

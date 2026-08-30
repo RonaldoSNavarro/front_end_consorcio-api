@@ -14,8 +14,6 @@ export const EncerrarGrupoPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [encerrarResponse, setEncerrarResponse] = useState(null);
 
-  if (!id) return <Navigate to="/grupos" replace />;
-
   // 1. Fetch Grupos (para achar o atual)
   const { data: gruposData, isLoading: isLoadingGrupos } = useQuery({
     queryKey: ['grupos'],
@@ -101,6 +99,10 @@ export const EncerrarGrupoPage = () => {
       diasTotais: 120
     };
   }, [assembleiasData, grupo]);
+
+  if (!id) {
+    return <Navigate to="/grupos" replace />;
+  }
 
   const isLoading = isLoadingGrupos || isLoadingCotas || isLoadingAssembleias || isLoadingFinanceiro;
 

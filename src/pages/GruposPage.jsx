@@ -7,6 +7,7 @@ import { useToast } from '../context/ToastContext';
 import { GrupoForm } from '../components/forms/GrupoForm';
 import { Plus, Rocket, TrendingUp } from 'lucide-react';
 import { TableSkeleton } from '../components/ui/Skeleton';
+import { api } from '../services/api';
 
 const GrupoSaldoCell = ({ grupoId }) => {
   const { data: saldo, isLoading, error } = useGrupoSaldo(grupoId);

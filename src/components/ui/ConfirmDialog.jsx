@@ -1,4 +1,4 @@
-/* eslint-disable react/prop-types */
+ 
 import { useEffect, useRef } from 'react';
 import { AlertTriangle, Zap, Info } from 'lucide-react';
 

@@ -33,7 +33,7 @@ const FormField = ({ label, id, error, children, className = '' }) => (
   </div>
 );
 
-// eslint-disable-next-line react/prop-types
+ 
 export const GrupoForm = ({ onClose }) => {
   const { triggerToast } = useToast();
   const queryClient = useQueryClient();
