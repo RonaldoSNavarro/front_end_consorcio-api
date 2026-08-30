@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
+import { SkipLink } from './SkipLink';
 import { Menu } from 'lucide-react';
 
 export const AppLayout = () => {
@@ -8,6 +9,9 @@ export const AppLayout = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+      {/* WCAG 2.1 AA Skip Link */}
+      <SkipLink />
+
       {/* Ambient glow vectors */}
       <div className="fixed -top-[15%] -left-[10%] w-[50vw] h-[50vw] bg-gradient-radial from-brand-500/[0.04] to-transparent blur-[100px] pointer-events-none z-0 dark:from-brand-500/[0.03]" />
       <div className="fixed -bottom-[15%] -right-[10%] w-[55vw] h-[55vw] bg-gradient-radial from-blue-500/[0.03] to-transparent blur-[100px] pointer-events-none z-0 dark:from-blue-500/[0.02]" />
@@ -30,7 +34,7 @@ export const AppLayout = () => {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 min-w-0 overflow-y-auto h-screen relative z-10">
+      <main id="main-content" tabIndex="-1" className="flex-1 min-w-0 overflow-y-auto h-screen relative z-10 focus:outline-none">
         {/* Mobile header */}
         <div className="sticky top-0 z-20 lg:hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-700/50 px-4 py-3">
           <button
